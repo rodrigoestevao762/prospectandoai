@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 
 export default function GiantEye({ className = '' }: { className?: string }) {
   return (
@@ -18,7 +18,7 @@ export default function GiantEye({ className = '' }: { className?: string }) {
       {/* Inner tech ring rotating opposite */}
       <motion.svg
         viewBox="0 0 100 100"
-        className="absolute inset-0 w-full h-full text-[#8b5cf6]/30"
+        className="absolute inset-0 w-full h-full text-[#0284c7]/30"
         animate={{ rotate: -360 }}
         transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
       >
@@ -39,7 +39,7 @@ export default function GiantEye({ className = '' }: { className?: string }) {
         <defs>
           <linearGradient id="eyeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#38bdf8" />
-            <stop offset="100%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#0284c7" />
           </linearGradient>
         </defs>
       </svg>
@@ -54,7 +54,7 @@ export default function GiantEye({ className = '' }: { className?: string }) {
         {/* Core pupil */}
         <div className="w-1/3 h-1/3 rounded-full bg-[#38bdf8] shadow-[0_0_10px_#fff]" />
         {/* Tech crosshair in pupil */}
-        <div className="absolute inset-0 w-full h-full border border-[#8b5cf6]/50 rounded-full" />
+        <div className="absolute inset-0 w-full h-full border border-[#0284c7]/50 rounded-full" />
         <div className="absolute w-full h-[1px] bg-[#38bdf8]/40" />
         <div className="absolute h-full w-[1px] bg-[#38bdf8]/40" />
       </motion.div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -25,7 +25,7 @@ export default function LoginPage() {
     } else {
       const { error } = await sb.auth.signUp({ email, password: senha });
       if (error) setErro(error.message);
-      else setMsg("Conta criada! Confirme o e-mail (se exigido) e faça login.");
+      else setMsg("Conta criada! Confirme o e-mail (se exigido) e faÃ§a login.");
     }
     setCarregando(false);
   }
@@ -41,7 +41,7 @@ export default function LoginPage() {
 
   return (
     <main className="bg-void grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
-      {/* Painel esquerdo — atmosfera */}
+      {/* Painel esquerdo â€” atmosfera */}
       <section className="relative hidden flex-col justify-between overflow-hidden border-r border-[var(--line)] p-12 lg:flex">
         <div className="bg-grid pointer-events-none absolute inset-0" />
         
@@ -63,7 +63,7 @@ export default function LoginPage() {
         ))}
 
         <Link href="/" className="mono relative flex w-fit items-center gap-3 text-xs uppercase tracking-[0.3em] text-[var(--ink-dim)] transition hover:text-[#38bdf8]">
-          ← voltar ao site
+          â† voltar ao site
         </Link>
         <div className="relative flex flex-1 items-center justify-center py-12">
           <motion.div
@@ -75,19 +75,19 @@ export default function LoginPage() {
           </motion.div>
         </div>
         <div className="relative">
-          <p className="eyebrow" style={{ color: "#8b5cf6" }}>Sala de controle</p>
+          <p className="eyebrow" style={{ color: "#0284c7" }}>Sala de controle</p>
           <h2 className="headline mt-4 max-w-md text-3xl font-bold leading-tight">
-            Todo dia, milhares de negócios entram no ar <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#8b5cf6]">sem um site.</span>
+            Todo dia, milhares de negÃ³cios entram no ar <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#0284c7]">sem um site.</span>
           </h2>
           <div className="mono mt-6 flex flex-wrap gap-x-8 gap-y-2 text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>• openstreetmap ao vivo</motion.span>
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>• score automático</motion.span>
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>• IA multilíngue</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>â€¢ openstreetmap ao vivo</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>â€¢ score automÃ¡tico</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>â€¢ IA multilÃ­ngue</motion.span>
           </div>
         </div>
       </section>
 
-      {/* Formulário */}
+      {/* FormulÃ¡rio */}
       <section className="relative flex items-center justify-center px-5 py-12">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -98,16 +98,16 @@ export default function LoginPage() {
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <GiantEye className="w-10 h-10" />
             <Link href="/" className="headline text-sm font-bold uppercase tracking-widest">
-              PROSPECT<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#8b5cf6]">AI</span>
+              PROSPECT<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#0284c7]">AI</span>
             </Link>
           </div>
           
-          <p className="eyebrow" style={{ color: "#8b5cf6" }}>{modo === "login" ? "Acesso" : "Novo operador"}</p>
+          <p className="eyebrow" style={{ color: "#0284c7" }}>{modo === "login" ? "Acesso" : "Novo operador"}</p>
           <h1 className="headline mt-3 text-2xl font-bold">
             {modo === "login" ? "Bem-vindo de volta." : "Crie sua conta gratuita."}
           </h1>
           <p className="mono mt-2 text-[11px] uppercase tracking-widest text-[var(--ink-faint)]">
-            {modo === "login" ? "identifique-se para abrir o radar" : "sem cartão • comece em minutos"}
+            {modo === "login" ? "identifique-se para abrir o radar" : "sem cartÃ£o â€¢ comece em minutos"}
           </p>
 
           <form onSubmit={entrar} className="mt-8 space-y-4">
@@ -120,7 +120,7 @@ export default function LoginPage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <input
-                type="password" required minLength={6} placeholder="Senha (mín. 6 caracteres)" value={senha}
+                type="password" required minLength={6} placeholder="Senha (mÃ­n. 6 caracteres)" value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="field field-premium w-full rounded-xl px-4 py-3 text-sm"
               />
@@ -128,8 +128,8 @@ export default function LoginPage() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="pt-2">
               <button
                 type="submit" disabled={carregando}
-                className="btn-3d w-full py-3.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]"
-                style={{ background: "linear-gradient(135deg, #38bdf8 0%, #8b5cf6 100%)", border: "none" }}
+                className="btn-3d w-full py-3.5 text-xs font-bold text-white shadow-[0_0_20px_rgba(56,189,248,0.3)] transition-all hover:shadow-[0_0_30px_rgba(56,189,248,0.5)]"
+                style={{ background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)", border: "none" }}
               >
                 {carregando ? "Conectando..." : modo === "login" ? "Entrar no radar" : "Criar conta"}
               </button>
@@ -166,7 +166,7 @@ export default function LoginPage() {
               Cadastro
             </button>
             <motion.div
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-gradient-to-r from-[#38bdf8] to-[#8b5cf6] rounded-lg z-0"
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-gradient-to-r from-[#38bdf8] to-[#0284c7] rounded-lg z-0"
               initial={false}
               animate={{ left: modo === "login" ? "4px" : "calc(50%)" }}
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
