@@ -28,6 +28,20 @@ export const CATEGORIAS: CategoriaDef[] = [
   { id: "advogado", label: "Escritórios de Advocacia", tags: ["office=lawyer"] },
   { id: "contabilidade", label: "Contabilidades", tags: ["office=accountant", "office=tax_advisor"] },
   { id: "imobiliaria", label: "Imobiliárias", tags: ["office=estate_agent"] },
+  { id: "supermercado", label: "Supermercados e Conveniências", tags: ["shop=supermarket", "shop=convenience"] },
+  { id: "roupas", label: "Lojas de Roupas e Calçados", tags: ["shop=clothes", "shop=shoes", "shop=boutique"] },
+  { id: "medico", label: "Clínicas Médicas", tags: ["amenity=clinic", "amenity=doctors"] },
+  { id: "hospital", label: "Hospitais", tags: ["amenity=hospital"] },
+  { id: "tatuagem", label: "Estúdios de Tatuagem", tags: ["shop=tattoo"] },
+  { id: "tecnologia", label: "Agências e TI", tags: ["office=it", "office=advertising_agency"] },
+  { id: "eletronicos", label: "Eletrônicos e Celulares", tags: ["shop=electronics", "shop=mobile_phone", "shop=computer"] },
+  { id: "escola", label: "Escolas e Cursos", tags: ["amenity=school", "amenity=language_school"] },
+  { id: "concessionaria", label: "Concessionárias", tags: ["shop=car", "shop=motorcycle"] },
+  { id: "lavajato", label: "Lava Jatos", tags: ["amenity=car_wash"] },
+  { id: "hotel", label: "Hotéis e Pousadas", tags: ["tourism=hotel", "tourism=guest_house", "tourism=hostel"] },
+  { id: "joalheria", label: "Joalherias", tags: ["shop=jewelry"] },
+  { id: "papelaria", label: "Papelarias", tags: ["shop=stationery"] },
+  { id: "moveis", label: "Lojas de Móveis", tags: ["shop=furniture", "shop=interior_decoration"] }
 ];
 
 export function getCategoria(id: string): CategoriaDef | undefined {

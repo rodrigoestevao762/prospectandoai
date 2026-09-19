@@ -129,9 +129,13 @@ export default function FoodsRadarPage() {
       setErro(error.code === "23505" ? `${emp.nome} já está salvo` : error.message);
   }
 
-  async function salvarTodos() {
+  async function salvarEmLote(nivel?: "quente" | "morno" | "frio") {
     if (!resultados) return;
-    const naoSalvos = resultados.filter((e) => !salvos.has(e.osmId));
+    let lista = resultados;
+    if (nivel) {
+      lista = lista.filter(e => e.nivel === nivel);
+    }
+    const naoSalvos = lista.filter((e) => !salvos.has(e.osmId));
     if (naoSalvos.length === 0) return;
     setSalvandoTodos(true);
     const sb = supabaseBrowser();
@@ -384,45 +388,37 @@ export default function FoodsRadarPage() {
                 {resultados.length} restaurantes detectados
               </p>
 
-              <motion.button
-                onClick={salvarTodos}
-                disabled={salvandoTodos || naoSalvosCount === 0}
-                whileHover={
-                  salvandoTodos || naoSalvosCount === 0
-                    ? {}
-                    : {
-                        y: -2,
-                        borderColor: "rgba(249,115,22,0.65)",
-                        boxShadow:
-                          "0 5px 0 rgba(249,115,22,0.25), 0 15px 40px rgba(249,115,22,0.12)",
-                      }
-                }
-                whileTap={
-                  salvandoTodos || naoSalvosCount === 0 ? {} : { y: 2 }
-                }
-                style={{
-                  background: "transparent",
-                  color: "#f97316",
-                  border: "1px solid rgba(249,115,22,0.35)",
-                  borderRadius: "0.75rem",
-                  padding: "0.45rem 1.1rem",
-                  fontFamily: "var(--font-mono, monospace)",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  cursor:
-                    salvandoTodos || naoSalvosCount === 0
-                      ? "not-allowed"
-                      : "pointer",
-                  boxShadow:
-                    "0 3px 0 rgba(249,115,22,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
-                  opacity: naoSalvosCount === 0 ? 0.4 : 1,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {salvandoTodos
-                  ? "Salvando…"
-                  : `+ Salvar todos (${naoSalvosCount})`}
-              </motion.button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => salvarEmLote()}
+                  disabled={salvandoTodos || naoSalvosCount === 0}
+                  className="btn-3d text-[10px] px-2 py-1"
+                  style={{ background: "transparent", color: "#f97316", border: "1px solid rgba(249,115,22,0.35)", boxShadow: "0 3px 0 rgba(249,115,22,0.15)" }}
+                >
+                  {salvandoTodos ? "Salvando..." : `+ Todos (${naoSalvosCount})`}
+                </button>
+                <button
+                  onClick={() => salvarEmLote("quente")}
+                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "quente" && !salvos.has(e.osmId)).length === 0}
+                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[var(--signal)]"
+                >
+                  + Quentes
+                </button>
+                <button
+                  onClick={() => salvarEmLote("morno")}
+                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "morno" && !salvos.has(e.osmId)).length === 0}
+                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#facc15]"
+                >
+                  + Mornos
+                </button>
+                <button
+                  onClick={() => salvarEmLote("frio")}
+                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "frio" && !salvos.has(e.osmId)).length === 0}
+                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#3b82f6]"
+                >
+                  + Frios
+                </button>
+              </div>
             </div>
 
             {/* Cards */}

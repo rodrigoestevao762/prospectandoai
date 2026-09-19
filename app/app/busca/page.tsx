@@ -25,7 +25,7 @@ const NIVEL_ACCENT: Record<Empresa["nivel"], string> = {
 };
 
 export default function BuscaPage() {
-  const [categoria, setCategoria] = useState("barbearia");
+  const [categoria, setCategoria] = useState("todos");
   const [cidade, setCidade] = useState("");
   const [pais, setPais] = useState("");
   const [resultados, setResultados] = useState<Empresa[] | null>(null);
@@ -75,9 +75,12 @@ export default function BuscaPage() {
     else if (error) setErro(error.code === "23505" ? `${emp.nome} já está salvo` : error.message);
   }
 
-  async function salvarTodos() {
+  async function salvarEmLote(nivel?: "quente" | "morno" | "frio") {
     if (!resultados) return;
-    const lista = somenteInstagram ? resultados.filter(e => e.instagram) : resultados;
+    let lista = somenteInstagram ? resultados.filter(e => e.instagram) : resultados;
+    if (nivel) {
+      lista = lista.filter(e => e.nivel === nivel);
+    }
     const naoSalvos = lista.filter(e => !salvos.has(e.osmId));
     if (naoSalvos.length === 0) return;
     
@@ -92,7 +95,7 @@ export default function BuscaPage() {
         telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: emp.email,
         fonte: "osm", osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
       });
-      if (!error || error.code === "23505") {
+      if (!error) {
         setSalvos(s => new Set(s).add(emp.osmId));
       }
     }
@@ -174,10 +177,24 @@ export default function BuscaPage() {
                     só com Instagram
                   </span>
                 </label>
-                <button onClick={salvarTodos} disabled={carregando || (somenteInstagram ? resultados.filter(e => e.instagram) : resultados).every(e => salvos.has(e.osmId))}
-                  className="btn-3d btn-3d-ghost">
-                  + Salvar Todos
-                </button>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => salvarEmLote()} disabled={carregando || (somenteInstagram ? resultados.filter(e => e.instagram) : resultados).every(e => salvos.has(e.osmId))}
+                    className="btn-3d btn-3d-ghost text-[10px] px-2 py-1">
+                    + Salvar Todos
+                  </button>
+                  <button onClick={() => salvarEmLote("quente")} disabled={carregando || (somenteInstagram ? resultados.filter(e => e.instagram) : resultados).filter(e => e.nivel === "quente").every(e => salvos.has(e.osmId))}
+                    className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[var(--signal)]">
+                    + Quentes
+                  </button>
+                  <button onClick={() => salvarEmLote("morno")} disabled={carregando || (somenteInstagram ? resultados.filter(e => e.instagram) : resultados).filter(e => e.nivel === "morno").every(e => salvos.has(e.osmId))}
+                    className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#facc15]">
+                    + Mornos
+                  </button>
+                  <button onClick={() => salvarEmLote("frio")} disabled={carregando || (somenteInstagram ? resultados.filter(e => e.instagram) : resultados).filter(e => e.nivel === "frio").every(e => salvos.has(e.osmId))}
+                    className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#3b82f6]">
+                    + Frios
+                  </button>
+                </div>
               </div>
             </div>
             <div className="mt-4 flex flex-col gap-3">
