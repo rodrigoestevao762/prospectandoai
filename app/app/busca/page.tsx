@@ -54,7 +54,7 @@ export default function BuscaPage() {
     setCarregando(true); setErro(null); setResultados(null); setSalvos(new Set());
     const res = await fetch("/api/buscar", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ categoria, cidade, pais, motor }),
+      body: JSON.stringify({ categoria, cidade, pais }),
     });
     const json = await res.json();
     setCarregando(false);
@@ -127,14 +127,8 @@ export default function BuscaPage() {
         <input value={pais} onChange={(e) => setPais(e.target.value)} placeholder="País (opcional)"
           className="field field-premium mono min-w-36 rounded-lg px-3 py-2 text-xs" />
         <button type="submit" disabled={carregando} className="btn-3d btn-3d-primary w-full md:w-auto mt-2 md:mt-0">
-          {carregando ? "Varrendo..." : "◉ Varrer Mundo"}
+          {carregando ? "Varrendo..." : "🔍 Varrer Mundo"}
         </button>
-        <div className="w-full mt-2 flex items-center justify-between">
-          <label className="mono flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--ink-dim)] cursor-pointer hover:text-[var(--ink)]">
-            <input type="checkbox" checked={motor === "google"} onChange={(e) => setMotor(e.target.checked ? "google" : "overpass")} className="accent-[var(--signal)]" />
-            Trazer fotos reais do Google Maps na busca (mais demorado)
-          </label>
-        </div>
       </motion.form>
 
       <AnimatePresence>
@@ -200,9 +194,8 @@ export default function BuscaPage() {
             <div className="mt-4 flex flex-col gap-3">
               {(somenteInstagram ? resultados.filter(e => e.instagram) : resultados).map((emp, i) => {
                 let fotoUrl = emp.foto;
-                if (!fotoUrl && (emp.website || emp.instagram)) {
-                  const u = emp.website || emp.instagram;
-                  fotoUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${u}&size=128`;
+                if (!fotoUrl) {
+                  fotoUrl = `/api/foto-maps?q=${encodeURIComponent(emp.nome + " " + emp.cidade)}`;
                 }
 
                 return (

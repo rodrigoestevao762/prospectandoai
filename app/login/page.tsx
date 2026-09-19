@@ -39,6 +39,17 @@ export default function LoginPage() {
     if (error) setErro(error.message);
   }
 
+  async function recuperarSenha() {
+    if (!email) return setErro("Digite seu e-mail acima para recuperar a senha.");
+    setCarregando(true); setErro(null); setMsg(null);
+    const { error } = await supabaseBrowser().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login?reset=true`,
+    });
+    if (error) setErro(error.message);
+    else setMsg("Um e-mail de recuperação foi enviado.");
+    setCarregando(false);
+  }
+
   return (
     <main className="bg-void grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
       {/* Painel esquerdo â€” atmosfera */}

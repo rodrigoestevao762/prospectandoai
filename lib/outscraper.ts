@@ -1,7 +1,7 @@
-export async function buscarOutscraper(query: string, apiKey: string) {
+export async function buscarOutscraper(query: string, apiKey: string, limit: number = 50) {
   const params = new URLSearchParams({
     query: query,
-    limit: "50",
+    limit: limit.toString(),
     language: "pt",
   });
 

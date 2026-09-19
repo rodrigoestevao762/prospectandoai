@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type InstaResult = {
   osmId: string;
   nome: string;
@@ -21,7 +21,7 @@ type InstaResult = {
   foto?: string | null;
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getFonteStyle(fonte: string) {
   if (fonte.includes("instagram"))
     return {
@@ -56,7 +56,7 @@ function getFonteStyle(fonte: string) {
 const IG_GRADIENT = "linear-gradient(135deg, #833ab4, #d6249f, #fcaf45)";
 const IG_SHADOW_DARK = "#4a1a6e";
 
-// ─── Animation variants ───────────────────────────────────────────────────────
+// â”€â”€â”€ Animation variants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const pageVariants = {
   hidden: { opacity: 0, y: -20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -88,7 +88,7 @@ const cardVariants = (i: number) => ({
   },
 });
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function InstaRadarPage() {
   const [nicho, setNicho] = useState("");
   const [cidade, setCidade] = useState("");
@@ -98,7 +98,7 @@ export default function InstaRadarPage() {
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
   const [salvandoTodos, setSalvandoTodos] = useState(false);
 
-  // ── Business logic (unchanged) ─────────────────────────────────────────────
+  // â”€â”€ Business logic (unchanged) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function buscar(e: React.FormEvent) {
     e.preventDefault();
     setCarregando(true);
@@ -144,7 +144,7 @@ export default function InstaRadarPage() {
     if (!error && data) setSalvos((s) => new Set(s).add(emp.osmId));
     else if (error)
       setErro(
-        error.code === "23505" ? `${emp.nome} já está salvo` : error.message
+        error.code === "23505" ? `${emp.nome} jÃ¡ estÃ¡ salvo` : error.message
       );
   }
 
@@ -191,10 +191,10 @@ export default function InstaRadarPage() {
     ? resultados.filter((e) => !salvos.has(e.osmId)).length
     : 0;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div>
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <motion.div variants={pageVariants} initial="hidden" animate="visible">
         <p className="eyebrow" style={{ color: "#d6249f" }}>
           Social Intelligence
@@ -208,17 +208,17 @@ export default function InstaRadarPage() {
             backgroundClip: "text",
           }}
         >
-          Radar Insta 📸
+          Radar Insta ðŸ“¸
         </h1>
         <p
           className="mono mt-1 text-[11px] uppercase tracking-widest"
           style={{ color: "var(--ink-dim)" }}
         >
-          Instagram · Facebook · OpenStreetMap Global
+          Instagram Â· Facebook Â· OpenStreetMap Global
         </p>
       </motion.div>
 
-      {/* ── Search Form ─────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Search Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <motion.form
         onSubmit={buscar}
         variants={formVariants}
@@ -251,13 +251,13 @@ export default function InstaRadarPage() {
         <input
           value={nicho}
           onChange={(e) => setNicho(e.target.value)}
-          placeholder="Nicho (ex: Barbearia, Estúdio de Tatuagem…)"
+          placeholder="Nicho (ex: Barbearia, EstÃºdio de Tatuagemâ€¦)"
           className="field mono min-w-44 flex-1 text-xs"
         />
         <input
           value={cidade}
           onChange={(e) => setCidade(e.target.value)}
-          placeholder="Cidade (ex: São Paulo, Lisboa, Mundial)"
+          placeholder="Cidade (ex: SÃ£o Paulo, Lisboa, Mundial)"
           className="field mono min-w-36 text-xs"
         />
 
@@ -302,15 +302,15 @@ export default function InstaRadarPage() {
                 className="pulse-dot"
                 style={{ background: "#d6249f", display: "inline-block" }}
               />
-              Caçando…
+              CaÃ§andoâ€¦
             </>
           ) : (
-            "📸 Caçar Perfis"
+            "ðŸ“¸ CaÃ§ar Perfis"
           )}
         </motion.button>
       </motion.form>
 
-      {/* ── Error ───────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence>
         {erro && (
           <motion.p
@@ -326,12 +326,12 @@ export default function InstaRadarPage() {
               color: "var(--alert)",
             }}
           >
-            ⚠ {erro}
+            âš  {erro}
           </motion.p>
         )}
       </AnimatePresence>
 
-      {/* ── Loading radar ───────────────────────────────────────────────────── */}
+      {/* â”€â”€ Loading radar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence>
         {carregando && (
           <motion.div
@@ -375,7 +375,7 @@ export default function InstaRadarPage() {
                     className="pulse-dot mr-2 inline-block align-middle"
                     style={{ background: "#d6249f" }}
                   />
-                  Varrendo perfis no Instagram…
+                  Varrendo perfis no Instagramâ€¦
                 </p>
                 <motion.p
                   animate={{ opacity: [0.4, 1, 0.4] }}
@@ -383,7 +383,7 @@ export default function InstaRadarPage() {
                   className="mono text-[10px] uppercase tracking-widest"
                   style={{ color: "#d6249f" }}
                 >
-                  Instagram · Facebook · OpenStreetMap
+                  Instagram Â· Facebook Â· OpenStreetMap
                 </motion.p>
               </div>
             </div>
@@ -391,7 +391,7 @@ export default function InstaRadarPage() {
         )}
       </AnimatePresence>
 
-      {/* ── Results ─────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <AnimatePresence>
         {resultados && !carregando && (
           <motion.div
@@ -406,7 +406,7 @@ export default function InstaRadarPage() {
                 className="mono text-[11px] uppercase tracking-widest"
                 style={{ color: "var(--ink-dim)" }}
               >
-                <span style={{ color: "#d6249f" }}>●</span>{" "}
+                <span style={{ color: "#d6249f" }}>â—</span>{" "}
                 {resultados.length} perfis detectados
               </p>
 
@@ -543,7 +543,7 @@ export default function InstaRadarPage() {
                               color: "#38bdf8",
                             }}
                           >
-                            ✉ Email
+                            âœ‰ Email
                           </span>
                         )}
 
@@ -570,7 +570,7 @@ export default function InstaRadarPage() {
                               color: "#ef4444",
                             }}
                           >
-                            🔥 Quente
+                            ðŸ”¥ Quente
                           </span>
                         )}
                       </div>
@@ -580,7 +580,7 @@ export default function InstaRadarPage() {
                         style={{ color: "var(--ink-dim)" }}
                       >
                         {emp.cidade}
-                        {emp.pais ? ` · ${emp.pais}` : ""}
+                        {emp.pais ? ` Â· ${emp.pais}` : ""}
                         {igUrl && (
                           <a
                             href={igUrl}
@@ -589,13 +589,13 @@ export default function InstaRadarPage() {
                             className="ml-3 font-semibold hover:underline"
                             style={{ color: "#d6249f" }}
                           >
-                            ↗ Ver no Instagram
+                            â†— Ver no Instagram
                           </a>
                         )}
                       </p>
                     </div>
 
-                    {/* Save button — IG 3D */}
+                    {/* Save button â€” IG 3D */}
                     <motion.button
                       onClick={() => salvar(emp)}
                       disabled={salvo}
@@ -643,7 +643,7 @@ export default function InstaRadarPage() {
                             }
                       }
                     >
-                      {salvo ? "✓ Travado" : "+ Travar Alvo"}
+                      {salvo ? "âœ“ Travado" : "+ Travar Alvo"}
                     </motion.button>
                   </motion.div>
                 );
@@ -655,3 +655,5 @@ export default function InstaRadarPage() {
     </div>
   );
 }
+
+
