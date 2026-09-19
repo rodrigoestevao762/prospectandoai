@@ -1,8 +1,8 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function GiantEye({ className = '' }: { className?: string }) {
   return (
-    <div className={elative flex items-center justify-center }>
+    <div className={`relative flex items-center justify-center ${className}`}>
       {/* Outer cyber ring */}
       <motion.svg
         viewBox="0 0 100 100"
@@ -61,4 +61,3 @@ export default function GiantEye({ className = '' }: { className?: string }) {
     </div>
   );
 }
-
