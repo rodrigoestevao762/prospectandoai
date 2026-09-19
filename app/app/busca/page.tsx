@@ -30,6 +30,7 @@ export default function BuscaPage() {
   const [pais, setPais] = useState("");
   const [resultados, setResultados] = useState<Empresa[] | null>(null);
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
+  const [motor, setMotor] = useState<"google" | "overpass">("google");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [checando, setChecando] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export default function BuscaPage() {
     setCarregando(true); setErro(null); setResultados(null); setSalvos(new Set());
     const res = await fetch("/api/buscar", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ categoria, cidade, pais }),
+      body: JSON.stringify({ categoria, cidade, pais, motor }),
     });
     const json = await res.json();
     setCarregando(false);
@@ -123,8 +124,14 @@ export default function BuscaPage() {
         <input value={pais} onChange={(e) => setPais(e.target.value)} placeholder="País (opcional)"
           className="field field-premium mono min-w-36 rounded-lg px-3 py-2 text-xs" />
         <button type="submit" disabled={carregando} className="btn-3d btn-3d-primary w-full md:w-auto mt-2 md:mt-0">
-          {carregando ? "Varrendo..." : "▶ Varrer Mundo"}
+          {carregando ? "Varrendo..." : "◉ Varrer Mundo"}
         </button>
+        <div className="w-full mt-2 flex items-center justify-between">
+          <label className="mono flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--ink-dim)] cursor-pointer hover:text-[var(--ink)]">
+            <input type="checkbox" checked={motor === "google"} onChange={(e) => setMotor(e.target.checked ? "google" : "overpass")} className="accent-[var(--signal)]" />
+            Trazer fotos reais do Google Maps na busca (mais demorado)
+          </label>
+        </div>
       </motion.form>
 
       <AnimatePresence>

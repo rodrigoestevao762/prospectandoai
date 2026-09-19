@@ -7,7 +7,7 @@ import { usuarioObrigatorio } from "@/lib/supabase-server";
 export async function POST(req: Request) {
   try {
     await usuarioObrigatorio();
-    const { categoria, cidade, pais } = await req.json();
+    const { categoria, cidade, pais, motor = "overpass" } = await req.json();
     const cat = getCategoria(categoria);
     if (!cidade || (categoria !== "todos" && !cat)) {
       return NextResponse.json({ erro: "categoria e cidade obrigatórias" }, { status: 400 });
@@ -16,17 +16,31 @@ export async function POST(req: Request) {
     if (!geo) {
       return NextResponse.json({ erro: "cidade não encontrada" }, { status: 404 });
     }
-    const tags = cat
-      ? cat.tags
-      : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
-    const empresas = (await buscarEmpresas(
-      cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome
-    )).map((e) => {
-      const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
-      return { ...e, score: q.score, nivel: q.nivel };
-    });
+
+    let empresas = [];
+
+    if (motor === "google") {
+      const { buscarOutscraper } = await import("@/lib/outscraper");
+      const searchQuery = `"${cat ? cat.label : 'empresas'}" em ${cidade}, ${geo.paisNome}`;
+      const results = await buscarOutscraper(searchQuery, process.env.OUTSCRAPER_API_KEY || "");
+      empresas = results.map((e: any) => {
+        const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
+        return { ...e, score: q.score, nivel: q.nivel };
+      });
+    } else {
+      const tags = cat
+        ? cat.tags
+        : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
+      empresas = (await buscarEmpresas(
+        cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome
+      )).map((e) => {
+        const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
+        return { ...e, score: q.score, nivel: q.nivel };
+      });
+    }
+
     // quentes primeiro
-    empresas.sort((a, b) => b.score - a.score || a.nome.localeCompare(b.nome));
+    empresas.sort((a: any, b: any) => b.score - a.score || a.nome.localeCompare(b.nome));
     return NextResponse.json({ empresas, total: empresas.length });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);

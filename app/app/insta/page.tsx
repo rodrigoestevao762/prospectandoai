@@ -473,7 +473,9 @@ export default function InstaRadarPage() {
                   : null;
 
                 let fotoUrl = emp.foto;
-                if (!fotoUrl && (emp.website || emp.instagram)) {
+                if (!fotoUrl && igHandle) {
+                  fotoUrl = `https://unavatar.io/instagram/${igHandle}?fallback=false`;
+                } else if (!fotoUrl && (emp.website || emp.instagram)) {
                   const u = emp.website || emp.instagram;
                   fotoUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${u}&size=128`;
                 }

@@ -79,6 +79,7 @@ export default function FoodsRadarPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
   const [salvandoTodos, setSalvandoTodos] = useState(false);
+  const [motor, setMotor] = useState<"google" | "overpass">("google");
 
   // ── Business logic (unchanged) ─────────────────────────────────────────────
   async function buscar(e: React.FormEvent) {
@@ -90,7 +91,7 @@ export default function FoodsRadarPage() {
     const res = await fetch("/api/buscar-foods", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nicho, cidade }),
+      body: JSON.stringify({ nicho, cidade, motor }),
     });
     const json = await res.json();
     setCarregando(false);
@@ -275,12 +276,18 @@ export default function FoodsRadarPage() {
                 className="pulse-dot"
                 style={{ background: "#f97316", display: "inline-block" }}
               />
-              Caçando…
+              Caçando...
             </>
           ) : (
-            "🍕 Caçar Delivery"
+            "🍔 Caçar Delivery"
           )}
         </motion.button>
+        <div className="w-full mt-2 flex items-center justify-between">
+          <label className="mono flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--ink-dim)] cursor-pointer hover:text-[var(--ink)]">
+            <input type="checkbox" checked={motor === "google"} onChange={(e) => setMotor(e.target.checked ? "google" : "overpass")} className="accent-[#f97316]" />
+            Trazer fotos reais do Google Maps na busca (mais demorado)
+          </label>
+        </div>
       </motion.form>
 
       {/* ── Error ───────────────────────────────────────────────────────────── */}

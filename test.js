@@ -1,0 +1,1 @@
+﻿async function get() { const res = await fetch('https://html.duckduckgo.com/html/?q=Barbearia+do+ze+fachada'); const html = await res.text(); const match = html.match(/<img[^>]+src="([^"]+)"/i); console.log(match ? match[1] : 'not found'); } get();
