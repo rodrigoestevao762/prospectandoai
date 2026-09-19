@@ -79,7 +79,6 @@ export default function FoodsRadarPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
   const [salvandoTodos, setSalvandoTodos] = useState(false);
-  | "overpass">("google");
 
   // â”€â”€ Business logic (unchanged) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function buscar(e: React.FormEvent) {
@@ -598,5 +597,6 @@ export default function FoodsRadarPage() {
     </div>
   );
 }
+
 
 
