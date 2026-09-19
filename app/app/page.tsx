@@ -487,9 +487,17 @@ export default function LeadsPage() {
     const accent = NIVEL_ACCENT[l.nivel];
     
     let fotoUrl: string | null = null;
-    if (l.fontes) {
-      const f = l.fontes.find((fo) => fo.startsWith("foto|"));
+    if (l.fontes && Array.isArray(l.fontes)) {
+      const f = l.fontes.find((fo) => fo?.startsWith?.("foto|"));
       if (f) fotoUrl = f.split("foto|")[1];
+    } else if (typeof l.fontes === 'string') {
+      try {
+        const arr = JSON.parse(l.fontes);
+        if (Array.isArray(arr)) {
+          const f = arr.find((fo: any) => typeof fo === 'string' && fo.startsWith("foto|"));
+          if (f) fotoUrl = f.split("foto|")[1];
+        }
+      } catch (e) {}
     }
     
     // Fallback: If no real photo from Outscraper, but they have Instagram or Website, use Google Favicon API
@@ -517,7 +525,7 @@ export default function LeadsPage() {
             <img src={fotoUrl} alt={l.nome} className="w-12 h-12 rounded-full object-cover border border-white/10" />
           ) : (
             <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest text-[var(--ink-dim)]">
-              {l.nome.substring(0, 2)}
+              {l.nome ? l.nome.substring(0, 2) : "??"}
             </div>
           )}
         </div>

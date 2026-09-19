@@ -196,7 +196,7 @@ export default function BuscaPage() {
                         <img src={fotoUrl} alt={emp.nome} className="w-12 h-12 rounded-full object-cover border border-white/10" />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest text-[var(--ink-dim)]">
-                          {emp.nome.substring(0, 2)}
+                          {emp.nome ? emp.nome.substring(0, 2) : "??"}
                         </div>
                       )}
                     </div>

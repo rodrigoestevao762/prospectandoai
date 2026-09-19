@@ -510,7 +510,7 @@ export default function InstaRadarPage() {
                         <img src={fotoUrl} alt={emp.nome} className="w-10 h-10 rounded-full object-cover border border-white/10" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest" style={{ color: fonteInfo.color }}>
-                          {emp.nome.substring(0, 2)}
+                          {emp.nome ? emp.nome.substring(0, 2) : "??"}
                         </div>
                       )}
                     </div>
