@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -77,17 +77,17 @@ export default function LoginPage() {
         <div className="relative">
           <p className="eyebrow" style={{ color: "#0284c7" }}>Sala de controle</p>
           <h2 className="headline mt-4 max-w-md text-3xl font-bold leading-tight">
-            Todo dia, milhares de negÃ³cios entram no ar <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#0284c7]">sem um site.</span>
+            Todo dia, milhares de negócios entram no ar <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#0284c7]">sem um site.</span>
           </h2>
           <div className="mono mt-6 flex flex-wrap gap-x-8 gap-y-2 text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>â€¢ openstreetmap ao vivo</motion.span>
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>â€¢ score automÃ¡tico</motion.span>
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>â€¢ IA multilÃ­ngue</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>• openstreetmap ao vivo</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>• score automático</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>• IA multilíngue</motion.span>
           </div>
         </div>
       </section>
 
-      {/* FormulÃ¡rio */}
+      {/* Formulário */}
       <section className="relative flex items-center justify-center px-5 py-12">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -107,7 +107,7 @@ export default function LoginPage() {
             {modo === "login" ? "Bem-vindo de volta." : "Crie sua conta gratuita."}
           </h1>
           <p className="mono mt-2 text-[11px] uppercase tracking-widest text-[var(--ink-faint)]">
-            {modo === "login" ? "identifique-se para abrir o radar" : "sem cartÃ£o â€¢ comece em minutos"}
+            {modo === "login" ? "identifique-se para abrir o radar" : "sem cartão • comece em minutos"}
           </p>
 
           <form onSubmit={entrar} className="mt-8 space-y-4">

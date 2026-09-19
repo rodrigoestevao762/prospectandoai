@@ -23,7 +23,7 @@ export default function MapaPage() {
 
   const [pronto, setPronto] = useState(false);
   const [cidade, setCidade] = useState("");
-  const [cat, setCat] = useState("barbearia");
+  const [cat, setCat] = useState("todos");
   const [resultados, setResultados] = useState<Resultado[] | null>(null);
   const [centro, setCentro] = useState<{ cidade: string; pais: string } | null>(null);
   const [carregando, setCarregando] = useState(false);
