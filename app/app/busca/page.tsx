@@ -9,6 +9,7 @@ type Empresa = {
   osmId: string; nome: string; categoria: string; cidade: string; pais: string;
   telefone: string | null; website: string | null; instagram: string | null; email: string | null;
   endereco: string; score: number; nivel: "quente" | "morno" | "frio";
+  foto?: string | null;
 };
 
 const NIVEL_ESTILO: Record<Empresa["nivel"], string> = {
@@ -173,42 +174,61 @@ export default function BuscaPage() {
               </div>
             </div>
             <div className="mt-4 flex flex-col gap-3">
-              {(somenteInstagram ? resultados.filter(e => e.instagram) : resultados).map((emp, i) => (
-                <motion.div 
-                  key={emp.osmId}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(i * 0.05, 0.5) }}
-                  className="lead-card flex flex-wrap items-center gap-4 p-4"
-                  style={{ '--lead-accent': NIVEL_ACCENT[emp.nivel] } as React.CSSProperties}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <h2 className="font-semibold tracking-tight">{emp.nome}</h2>
-                      <span className={`badge ${NIVEL_ESTILO[emp.nivel]}`}>
-                        {emp.nivel === "quente" ? "🔥" : emp.nivel === "morno" ? "💡" : "❄"} {emp.nivel} • {emp.score}
-                      </span>
+              {(somenteInstagram ? resultados.filter(e => e.instagram) : resultados).map((emp, i) => {
+                let fotoUrl = emp.foto;
+                if (!fotoUrl && (emp.website || emp.instagram)) {
+                  const u = emp.website || emp.instagram;
+                  fotoUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${u}&size=128`;
+                }
+
+                return (
+                  <motion.div 
+                    key={emp.osmId}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(i * 0.05, 0.5) }}
+                    className="lead-card flex flex-wrap items-center gap-4 p-4"
+                    style={{ '--lead-accent': NIVEL_ACCENT[emp.nivel] } as React.CSSProperties}
+                  >
+                    <div className="shrink-0 mt-1">
+                      {fotoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={fotoUrl} alt={emp.nome} className="w-12 h-12 rounded-full object-cover border border-white/10" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest text-[var(--ink-dim)]">
+                          {emp.nome.substring(0, 2)}
+                        </div>
+                      )}
                     </div>
-                    <p className="mono mt-1.5 text-[11px] leading-relaxed text-[var(--ink-dim)] flex flex-wrap gap-2">
-                      <span>◎ {emp.endereco || emp.cidade}</span>
-                      {emp.telefone && <span>• 📞 {emp.telefone}</span>}
-                      {emp.website ? <span>• 🌐 tem site</span> : <span className="font-semibold text-[var(--signal)]">• 🚫 sem site ✔</span>}
-                      {emp.instagram && <span className="text-[#e879f9]">• 💜 {emp.instagram}</span>}
-                      {emp.email && <span>• ✉ {emp.email}</span>}
-                    </p>
-                  </div>
-                  <div className="flex gap-2 w-full md:w-auto">
-                    <button onClick={() => checarRedes(emp)} disabled={!!checando}
-                      className="btn-3d btn-3d-dark flex-1 md:flex-none" style={{ color: '#e879f9' }}>
-                      {checando === emp.osmId ? "buscando..." : "🔍 Redes"}
-                    </button>
-                    <button onClick={() => salvar(emp)} disabled={salvos.has(emp.osmId)}
-                      className="btn-3d btn-3d-primary flex-1 md:flex-none">
-                      {salvos.has(emp.osmId) ? "✓ Travado" : "+ Travar"}
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                    
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <h2 className="font-semibold tracking-tight">{emp.nome}</h2>
+                        <span className={`badge ${NIVEL_ESTILO[emp.nivel]}`}>
+                          {emp.nivel === "quente" ? "🔥" : emp.nivel === "morno" ? "💡" : "❄"} {emp.nivel} • {emp.score}
+                        </span>
+                      </div>
+                      <p className="mono mt-1.5 text-[11px] leading-relaxed text-[var(--ink-dim)] flex flex-wrap gap-2">
+                        <span>◎ {emp.endereco || emp.cidade}</span>
+                        {emp.telefone && <span>• 📞 {emp.telefone}</span>}
+                        {emp.website ? <span>• 🌐 tem site</span> : <span className="font-semibold text-[var(--signal)]">• 🚫 sem site ✔</span>}
+                        {emp.instagram && <span className="text-[#e879f9]">• 💜 {emp.instagram}</span>}
+                        {emp.email && <span>• ✉ {emp.email}</span>}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 w-full md:w-auto">
+                      <button onClick={() => checarRedes(emp)} disabled={!!checando}
+                        className="btn-3d btn-3d-dark flex-1 md:flex-none" style={{ color: '#e879f9' }}>
+                        {checando === emp.osmId ? "buscando..." : "🔍 Redes"}
+                      </button>
+                      <button onClick={() => salvar(emp)} disabled={salvos.has(emp.osmId)}
+                        className="btn-3d btn-3d-primary flex-1 md:flex-none">
+                        {salvos.has(emp.osmId) ? "✓ Travado" : "+ Travar"}
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         ) : null}

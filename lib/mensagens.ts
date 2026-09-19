@@ -10,6 +10,7 @@ export type MsgInput = {
   temInstagram: boolean;
   temEmail: boolean;
   negocio: { negocio_nome: string; servico: string; diferenciais: string };
+  canal?: "email" | "instagram" | "whatsapp";
 };
 
 export function idiomaDoPais(pais: string, cidade: string): string {
@@ -20,7 +21,17 @@ export function idiomaDoPais(pais: string, cidade: string): string {
 function promptMsg(l: MsgInput): string {
   const cat = getCategoria(l.categoria)?.label || l.categoria;
   const idiomaLocal = l.pais || l.cidade || "Brasil";
-  return `Você é um redator de prospecção B2B nativo do país/cidade do cliente. Escreva UMA mensagem de primeira abordagem (WhatsApp ou e-mail) apresentando a empresa ${l.negocio.negocio_nome}, que oferece: ${l.negocio.servico}. Diferenciais: ${l.negocio.diferenciais}.
+  
+  let contextoCanal = "uma mensagem de primeira abordagem (WhatsApp ou e-mail)";
+  if (l.canal === "whatsapp") {
+    contextoCanal = "uma mensagem de primeira abordagem exclusiva para WhatsApp. Use emojis, seja muito amigável e use formatação do WhatsApp como *negrito* ou _itálico_ sem exageros";
+  } else if (l.canal === "instagram") {
+    contextoCanal = "uma curtíssima mensagem de primeira abordagem para Direct do Instagram (DM). Use linguagem informal, emojis e vá direto ao ponto sem enrolação";
+  } else if (l.canal === "email") {
+    contextoCanal = "uma mensagem de primeira abordagem por e-mail corporativo. Inclua um 'Assunto:' na primeira linha. Seja educado, direto e profissional";
+  }
+
+  return `Você é um redator de prospecção B2B nativo do país/cidade do cliente. Escreva ${contextoCanal} apresentando a empresa ${l.negocio.negocio_nome}, que oferece: ${l.negocio.servico}. Diferenciais: ${l.negocio.diferenciais}.
 
 Destinatário: "${l.nome}", um(a) ${cat.toLowerCase()} em ${l.cidade} (${l.pais}).
 Sinais: ${l.temSite ? "já tem site (foco em melhorar/renovar)" : "NÃO tem site próprio (principal gancho)"}; ${l.temInstagram ? "tem Instagram" : "não tem Instagram"}; ${l.temEmail ? "tem e-mail público" : "sem e-mail público"}.

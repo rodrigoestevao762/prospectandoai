@@ -18,6 +18,7 @@ type FoodResult = {
   fonte: string;
   score: number;
   nivel: "quente" | "morno" | "frio";
+  foto?: string | null;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -433,6 +434,12 @@ export default function FoodsRadarPage() {
               {resultados.map((emp, i) => {
                 const salvo = salvos.has(emp.osmId);
                 const fonteInfo = getFonteStyle(emp.fonte);
+                let fotoUrl = emp.foto;
+                if (!fotoUrl && (emp.website || emp.instagram)) {
+                  const u = emp.website || emp.instagram;
+                  fotoUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${u}&size=128`;
+                }
+
                 return (
                   <motion.div
                     key={emp.osmId}
@@ -459,7 +466,18 @@ export default function FoodsRadarPage() {
                       }}
                     />
 
-                    <div className="min-w-0 flex-1">
+                    <div className="shrink-0 z-10">
+                      {fotoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={fotoUrl} alt={emp.nome} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest" style={{ color: fonteInfo.color }}>
+                          {emp.nome.substring(0, 2)}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1 z-10">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2
                           className="font-semibold tracking-tight"

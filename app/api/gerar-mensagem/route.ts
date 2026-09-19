@@ -5,7 +5,7 @@ import { gerarMensagem } from "@/lib/mensagens";
 export async function POST(req: Request) {
   try {
     const { sb, user } = await usuarioObrigatorio();
-    const { leadId } = await req.json();
+    const { leadId, canal } = await req.json();
 
     const { data: lead, error: e1 } = await sb
       .from("leads").select("*").eq("id", leadId).eq("user_id", user.id).single();
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
         temInstagram: Boolean(lead.instagram),
         temEmail: Boolean(lead.email),
         negocio,
+        canal,
       },
       process.env.GEMINI_API_KEY || null
     );

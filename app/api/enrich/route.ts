@@ -50,6 +50,7 @@ export async function POST(req: Request) {
             facebook: outRes[0].facebook || null,
             instagram: outRes[0].instagram || null,
             email: outRes[0].email || null,
+            foto: outRes[0].foto || null,
             fontes: ["outscraper"]
           };
         }
@@ -82,6 +83,9 @@ export async function POST(req: Request) {
       fontes: enriquecido.fontes,
       enriquecido_em: new Date().toISOString(),
     };
+    if (enriquecido.foto) {
+      updatePayload.fontes.push(`foto|${enriquecido.foto}`);
+    }
     if (!lead?.facebook && enriquecido.facebook) updatePayload.facebook = enriquecido.facebook;
     if (!lead?.instagram && enriquecido.instagram) updatePayload.instagram = enriquecido.instagram;
     if (!lead?.email && enriquecido.email) updatePayload.email = enriquecido.email;

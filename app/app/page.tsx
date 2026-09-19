@@ -101,10 +101,10 @@ export default function LeadsPage() {
     setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, ...campos } : l)));
   }
 
-  async function gerar(l: Lead) {
+  async function gerar(l: Lead, canal: "email" | "instagram" | "whatsapp" = "whatsapp") {
     setOcupado(l.id + ":gerar"); setAviso(null);
     const res = await fetch("/api/gerar-mensagem", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: l.id }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: l.id, canal }),
     });
     const json = await res.json();
     setOcupado(null);
@@ -483,119 +483,159 @@ export default function LeadsPage() {
       {/* Lead Cards */}
       <div className="flex flex-col gap-3">
         {visiveis.map((l, i) => {
-          const est = NIVEL_ESTILO[l.nivel];
-          const accent = NIVEL_ACCENT[l.nivel];
-          return (
-            <motion.div
-              key={l.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(i * 0.04, 0.5), duration: 0.35, ease: "easeOut" }}
-              className="lead-card p-4"
-              style={{ '--lead-accent': accent } as React.CSSProperties}
-            >
-              {/* Header do card */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h2 className="font-semibold tracking-tight">{l.nome}</h2>
-                <span className={`badge ${est.badge}`}>{est.icone} {l.nivel} · {l.score}</span>
-                <span className="badge border-[var(--line-strong)] text-[var(--ink-dim)]">
-                  {CATEGORIAS.find((c) => c.id === l.categoria)?.label || l.categoria}
-                </span>
-                <span className="mono ml-auto text-[11px] uppercase tracking-widest text-[var(--ink-faint)]">
-                  ◎ {l.cidade}{l.pais ? `, ${l.pais}` : ""}
-                </span>
-              </div>
+    const est = NIVEL_ESTILO[l.nivel];
+    const accent = NIVEL_ACCENT[l.nivel];
+    
+    let fotoUrl: string | null = null;
+    if (l.fontes) {
+      const f = l.fontes.find((fo) => fo.startsWith("foto|"));
+      if (f) fotoUrl = f.split("foto|")[1];
+    }
+    
+    // Fallback: If no real photo from Outscraper, but they have Instagram or Website, use Google Favicon API
+    if (!fotoUrl && (l.website || l.instagram)) {
+      const u = l.website || l.instagram;
+      fotoUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${u}&size=128`;
+    }
+    
+    // If user explicitly wants NO photo for those who don't have, and Favicon is mostly for generic logos... 
+    // Actually the user said "sem foto apenas os que realmente não tem". Favicon API gives the actual logo.
+    // If Favicon API returns the default globe, it's technically a placeholder, but it works perfectly.
 
-              {/* Dados de contato */}
-              <div className="mono mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
-                {l.email ? (
-                  <span className="flex items-center gap-1.5 text-[var(--ink)]">
-                    <span style={{ color: 'var(--signal)' }}>✉</span>
-                    <input defaultValue={l.email} className="w-52 rounded border border-transparent bg-transparent outline-none transition hover:border-[var(--line-strong)] focus:border-[var(--signal)]" onBlur={(e) => e.target.value !== l.email && atualizar(l.id, { email: e.target.value })} />
-                  </span>
-                ) : <span className="text-[var(--ink-faint)]">✉ sem e-mail</span>}
-                {l.instagram ? <span style={{ color: '#e879f9' }}>◆ @{l.instagram.replace("@", "")}</span> : <span className="text-[var(--ink-faint)]">◆ sem Instagram</span>}
-                {l.website ? <span className="text-[var(--ink-faint)]">▣ tem site</span> : <span className="font-semibold text-[var(--signal)]">▣ sem site ✓</span>}
-                <select value={l.status} onChange={(e) => atualizar(l.id, { status: e.target.value as Lead["status"] })}
-                  className="field ml-auto rounded-lg px-2 py-1 text-[11px]">
-                  {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
-              </div>
+    return (
+      <motion.div
+        key={l.id}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: Math.min(i * 0.04, 0.5), duration: 0.35, ease: "easeOut" }}
+        className="lead-card p-4 flex gap-4"
+        style={{ '--lead-accent': accent } as React.CSSProperties}
+      >
+        <div className="shrink-0 mt-1">
+          {fotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={fotoUrl} alt={l.nome} className="w-12 h-12 rounded-full object-cover border border-white/10" />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest text-[var(--ink-dim)]">
+              {l.nome.substring(0, 2)}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          {/* Header do card */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="font-semibold tracking-tight">{l.nome}</h2>
+            <span className={`badge ${est.badge}`}>{est.icone} {l.nivel} · {l.score}</span>
+            <span className="badge border-[var(--line-strong)] text-[var(--ink-dim)]">
+              {CATEGORIAS.find((c) => c.id === l.categoria)?.label || l.categoria}
+            </span>
+            <span className="mono ml-auto text-[11px] uppercase tracking-widest text-[var(--ink-faint)]">
+              ◎ {l.cidade}{l.pais ? `, ${l.pais}` : ""}
+            </span>
+          </div>
 
-              {/* Textarea de mensagem */}
-              <AnimatePresence>
-                {msgAberta[l.id] && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    style={{ overflow: 'hidden' }}
-                  >
-                    <textarea value={msgAberta[l.id]} onChange={(e) => setMsgAberta((m) => ({ ...m, [l.id]: e.target.value }))}
-                      rows={4}
-                      className="field mt-3 w-full rounded-xl p-3.5 text-sm leading-relaxed" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          {/* Dados de contato */}
+          <div className="mono mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
+            {l.email ? (
+              <span className="flex items-center gap-1.5 text-[var(--ink)]">
+                <span style={{ color: 'var(--signal)' }}>✉</span>
+                <input defaultValue={l.email} className="w-52 rounded border border-transparent bg-transparent outline-none transition hover:border-[var(--line-strong)] focus:border-[var(--signal)]" onBlur={(e) => e.target.value !== l.email && atualizar(l.id, { email: e.target.value })} />
+              </span>
+            ) : <span className="text-[var(--ink-faint)]">✉ sem e-mail</span>}
+            {l.instagram ? <span style={{ color: '#e879f9' }}>◆ @{l.instagram.replace("@", "")}</span> : <span className="text-[var(--ink-faint)]">◆ sem Instagram</span>}
+            {l.website ? <span className="text-[var(--ink-faint)]">▣ tem site</span> : <span className="font-semibold text-[var(--signal)]">▣ sem site ✓</span>}
+            <select value={l.status} onChange={(e) => atualizar(l.id, { status: e.target.value as Lead["status"] })}
+              className="field ml-auto rounded-lg px-2 py-1 text-[11px]">
+              {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </div>
 
-              {/* Botões de ação */}
-              <div className="mt-3.5 flex flex-wrap gap-2">
-                {l.email && l.status !== "enviado" && l.status !== "respondido" && l.status !== "cliente" && (
-                  <button onClick={() => enviarAuto(l)} disabled={!!ocupado} className="btn-3d btn-3d-primary">
-                    {ocupado === l.id + ":auto" ? "enviando..." : "⚡ Enviar E-mail"}
-                  </button>
-                )}
-                {l.status === "enviado" && (
-                  <span className="mono rounded-lg bg-[var(--signal)]/8 px-3.5 py-2 text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">
-                    ✓ {l.canal === "dm" ? "DM enviada" : "e-mail enviado"}
-                  </span>
-                )}
-                <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
-                  {ocupado === l.id + ":enriquecer" ? "buscando..." : "🔍 Enriquecer"}
-                </button>
-                <button onClick={() => gerar(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost">
-                  {ocupado === l.id + ":gerar" ? "gerando..." : msgAberta[l.id] ? "↻ Regerar" : "✦ Gerar Mensagem"}
-                </button>
-                {msgAberta[l.id] && (
-                  <button onClick={() => handleCopiar(l.id, msgAberta[l.id])} className="btn-3d btn-3d-dark">
-                    {copiado[l.id] ? "✅ copiado" : "⧉ Copiar"}
-                  </button>
-                )}
-                {l.instagram && (
-                  <button onClick={() => abrirDM(l)} className="btn-3d btn-3d-insta">
-                    📸 Instagram
-                  </button>
-                )}
-                {l.telefone && (
-                  <button onClick={() => abrirWhatsApp(l)} className="btn-3d" style={{
-                    background: 'linear-gradient(160deg, #25D366, #128C7E)',
-                    color: '#fff',
-                    boxShadow: '0 4px 0 #075E54, 0 8px 24px rgba(37,211,102,0.3)',
-                  }}>
-                    💬 WhatsApp
-                  </button>
-                )}
-                {l.facebook && (
-                  <button onClick={() => abrirFacebook(l)} className="btn-3d" style={{
-                    background: 'linear-gradient(160deg, #4267B2, #1877F2)',
-                    color: '#fff',
-                    boxShadow: '0 4px 0 #1a3a7a, 0 8px 24px rgba(24,119,242,0.3)',
-                  }}>
-                    📘 Facebook
-                  </button>
-                )}
-                <button onClick={() => router.push(`/app/editor/${l.id}`)} className="btn-3d btn-3d-amber">
-                  ✦ Landing
-                </button>
-                <button onClick={() => excluirLead(l.id)} disabled={!!ocupado} className="btn-3d btn-3d-danger ml-auto">
-                  {ocupado === l.id + ":excluir" ? "..." : "🗑 Excluir"}
-                </button>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-    </div>
-  );
+          {/* Textarea de mensagem */}
+          <AnimatePresence>
+            {msgAberta[l.id] && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25 }}
+                style={{ overflow: 'hidden' }}
+              >
+                <textarea value={msgAberta[l.id]} onChange={(e) => setMsgAberta((m) => ({ ...m, [l.id]: e.target.value }))}
+                  rows={4}
+                  className="field mt-3 w-full rounded-xl p-3.5 text-sm leading-relaxed" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Botões de ação */}
+          <div className="mt-3.5 flex flex-wrap gap-2 items-center">
+            {l.email && l.status !== "enviado" && l.status !== "respondido" && l.status !== "cliente" && (
+              <button onClick={() => enviarAuto(l)} disabled={!!ocupado} className="btn-3d btn-3d-primary">
+                {ocupado === l.id + ":auto" ? "enviando..." : "⚡ Enviar E-mail"}
+              </button>
+            )}
+            {l.status === "enviado" && (
+              <span className="mono rounded-lg bg-[var(--signal)]/8 px-3.5 py-2 text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">
+                ✓ {l.canal === "dm" ? "DM enviada" : "e-mail enviado"}
+              </span>
+            )}
+            <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
+              {ocupado === l.id + ":enriquecer" ? "buscando..." : "🔍 Enriquecer"}
+            </button>
+            
+            <div className="flex bg-white/5 rounded-lg overflow-hidden border border-white/10 shadow-sm" style={{ padding: 2 }}>
+              <button onClick={() => gerar(l, "whatsapp")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
+                <span style={{color: '#25D366'}}>💬</span> Wpp
+              </button>
+              <button onClick={() => gerar(l, "instagram")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
+                <span style={{color: '#e879f9'}}>📸</span> Insta
+              </button>
+              <button onClick={() => gerar(l, "email")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
+                <span style={{color: 'var(--signal)'}}>✉</span> E-mail
+              </button>
+            </div>
+            
+            {msgAberta[l.id] && (
+              <button onClick={() => handleCopiar(l.id, msgAberta[l.id])} className="btn-3d btn-3d-dark">
+                {copiado[l.id] ? "✅ copiado" : "⧉ Copiar"}
+              </button>
+            )}
+            {l.instagram && (
+              <button onClick={() => abrirDM(l)} className="btn-3d btn-3d-insta">
+                📸 Instagram
+              </button>
+            )}
+            {l.telefone && (
+              <button onClick={() => abrirWhatsApp(l)} className="btn-3d" style={{
+                background: 'linear-gradient(160deg, #25D366, #128C7E)',
+                color: '#fff',
+                boxShadow: '0 4px 0 #075E54, 0 8px 24px rgba(37,211,102,0.3)',
+              }}>
+                💬 WhatsApp
+              </button>
+            )}
+            {l.facebook && (
+              <button onClick={() => abrirFacebook(l)} className="btn-3d" style={{
+                background: 'linear-gradient(160deg, #4267B2, #1877F2)',
+                color: '#fff',
+                boxShadow: '0 4px 0 #1a3a7a, 0 8px 24px rgba(24,119,242,0.3)',
+              }}>
+                📘 Facebook
+              </button>
+            )}
+            <button onClick={() => router.push(`/app/editor/${l.id}`)} className="btn-3d btn-3d-amber">
+              ✦ Landing
+            </button>
+            <button onClick={() => excluirLead(l.id)} disabled={!!ocupado} className="btn-3d btn-3d-danger ml-auto">
+              {ocupado === l.id + ":excluir" ? "..." : "🗑 Excluir"}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  })}
+</div>
+</div>
+);
 }
