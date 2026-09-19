@@ -72,11 +72,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           {/* Signout */}
           <button
-            onClick={async () => { await supabaseBrowser().auth.signOut(); router.push("/login"); }}
+            onClick={async () => { await supabaseBrowser().auth.signOut(); window.location.href = "/login"; }}
             className="btn-3d btn-3d-danger shrink-0"
             style={{ padding: "0.4rem 0.8rem", fontSize: "10px" }}
           >
-            Sair ×
+            Sair
           </button>
         </div>
       </header>
