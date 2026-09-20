@@ -45,7 +45,7 @@ async function searchEcosia(query: string): Promise<string> {
   return await fetchHtml(`https://www.ecosia.org/search?q=${encodeURIComponent(query)}`);
 }
 
-export async function enriquecerLead(nome: string, cidade: string) {
+export async function enrichLeadData(nome: string, cidade: string, pais: string = "") {
   const safeNome = nome.replace(/['"]/g, "");
   
   const searches = await Promise.all([
