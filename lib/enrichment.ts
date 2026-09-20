@@ -310,7 +310,11 @@ export async function radarInstagram(nicho: string, cidade: string) {
     });
   })();
 
-  const [overpassResults, osintResults] = await Promise.all([overpassPromise, osintPromise]);
+    const safePromise = (p: Promise<any>, ms: number) => Promise.race([p, new Promise<any[]>(r => setTimeout(() => r([]), ms))]);
+  const [overpassResults, osintResults] = await Promise.all([
+    safePromise(overpassPromise, 7500),
+    safePromise(osintPromise, 7500)
+  ]);
   
   // Merge and deduplicate
   const map = new Map<string, any>();
@@ -432,7 +436,11 @@ export async function radarFoods(nicho: string, cidade: string) {
     }));
   })();
 
-  const [overpassResults, osintResults] = await Promise.all([overpassPromise, osintPromise]);
+    const safePromise = (p: Promise<any>, ms: number) => Promise.race([p, new Promise<any[]>(r => setTimeout(() => r([]), ms))]);
+  const [overpassResults, osintResults] = await Promise.all([
+    safePromise(overpassPromise, 7500),
+    safePromise(osintPromise, 7500)
+  ]);
 
   const map = new Map<string, any>();
   for (const item of [...overpassResults, ...osintResults]) {

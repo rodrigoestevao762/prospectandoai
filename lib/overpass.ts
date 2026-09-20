@@ -32,7 +32,12 @@ function esc(s: string) {
 export async function geocodificar(cidade: string, pais?: string): Promise<{ lat: number; lng: number; radiusM: number; paisNome: string } | null> {
   const q = pais ? `${cidade}, ${pais}` : cidade;
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
-  const res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(4000) });
+  let res;
+    try {
+      res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(4000) });
+    } catch (err) {
+      return null;
+    }
   if (!res.ok) return null;
   const data = await res.json();
   if (!data?.length) return null;
