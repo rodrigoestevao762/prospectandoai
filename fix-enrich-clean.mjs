@@ -293,3 +293,4 @@ export async function radarFoods(nicho: string, cidade: string) {
 `;
 
 fs.writeFileSync('lib/enrichment.ts', enrichmentContent);
+

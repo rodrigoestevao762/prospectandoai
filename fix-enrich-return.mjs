@@ -33,3 +33,4 @@ const regex = /export async function enrichLeadData[\s\S]*?return \{\s*email[\s\
 content = content.replace(regex, newEnrichLeadData);
 
 fs.writeFileSync('lib/enrichment.ts', content);
+
