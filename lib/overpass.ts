@@ -32,7 +32,7 @@ function esc(s: string) {
 export async function geocodificar(cidade: string, pais?: string): Promise<{ lat: number; lng: number; radiusM: number; paisNome: string } | null> {
   const q = pais ? `${cidade}, ${pais}` : cidade;
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
-  const res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" } });
+  const res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(4000) });
   if (!res.ok) return null;
   const data = await res.json();
   if (!data?.length) return null;
@@ -71,21 +71,21 @@ export async function buscarEmpresas(
     return `nwr["${k}"="${esc(v)}"]${around};`;
   });
   // Limite massivo de 15000 resultados para velocidade e volume de extração extremo
-  const query = `[out:json][timeout:60];(${selectors.join("")});out center 15000;`;
+  const query = `[out:json][timeout:10];(${selectors.join("")});out center 15000;`;
 
   const UA = { "User-Agent": "ProspectandoAI/1.0 (prospeccao de empresas)" };
 
   // Tenta cada endpoint; em caso de erro de rede ou 5xx/429 passa para o próximo.
   let json: { elements?: any[] } | null = null;
   let ultimoErro: Error | null = null;
-  for (const url of OVERPASS_ENDPOINTS) {
-    for (let tentativa = 0; tentativa < 2; tentativa++) {
+  for (const url of OVERPASS_ENDPOINTS.slice(0, 2)) {
+    for (let tentativa = 0; tentativa < 1; tentativa++) {
       try {
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
           body: "data=" + encodeURIComponent(query),
-          signal: AbortSignal.timeout(90_000),
+          signal: AbortSignal.timeout(4000),
         });
         if (res.ok) {
           json = await res.json();
@@ -98,7 +98,7 @@ export async function buscarEmpresas(
         if (ultimoErro.message.startsWith("Overpass 400")) throw ultimoErro;
       }
       // pequena pausa antes de repetir o mesmo endpoint
-      await new Promise((r) => setTimeout(r, 1500));
+      // no sleep in serverless
     }
     if (json) break;
   }
