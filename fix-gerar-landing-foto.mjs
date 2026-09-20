@@ -16,3 +16,4 @@ const replacement = `// Tenta pegar a foto real via API interna
 content = content.replace(/\/\/ Tenta pegar a foto real via Outscraper[\s\S]*?\}\n    \}/, replacement);
 
 fs.writeFileSync('app/api/gerar-landing/route.ts', content);
+

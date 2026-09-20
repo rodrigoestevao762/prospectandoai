@@ -60,8 +60,24 @@ export async function enrichLeadData(nome: string, cidade: string, pais: string 
   const htmlUnificado = searches.join(" ");
 
   const emails = htmlUnificado.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/g) || [];
-  const instas = htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || [];
-  const faces = htmlUnificado.match(/facebook\.com\/([A-Za-z0-9_.]+)/gi) || [];
+  const instas = (htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []).filter(u => {
+      const lower = u.toLowerCase();
+      return !lower.includes('qwantcom') && 
+             !lower.includes('/p/') && 
+             !lower.includes('/reel/') && 
+             !lower.includes('/stories/') &&
+             !lower.includes('/explore') &&
+             !lower.includes('google');
+    });
+  const faces = (htmlUnificado.match(/facebook\.com\/([A-Za-z0-9_.]+)/gi) || []).filter(u => {
+      const lower = u.toLowerCase();
+      return !lower.includes('qwantcom') && 
+             !lower.includes('/p/') && 
+             !lower.includes('/reel/') && 
+             !lower.includes('/stories/') &&
+             !lower.includes('/explore') &&
+             !lower.includes('google');
+    });
   
   return {
     email: emails.length > 0 ? emails[0]?.toLowerCase() : null,
@@ -134,7 +150,15 @@ export async function radarInstagram(nicho: string, cidade: string) {
     ]);
     
     const htmlUnificado = searches.join(" ");
-    const instaMatches = htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || [];
+    const instaMatches = (htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []).filter(u => {
+      const lower = u.toLowerCase();
+      return !lower.includes('qwantcom') && 
+             !lower.includes('/p/') && 
+             !lower.includes('/reel/') && 
+             !lower.includes('/stories/') &&
+             !lower.includes('/explore') &&
+             !lower.includes('google');
+    });
 
     const usernames = new Set<string>();
     for (const match of instaMatches) {

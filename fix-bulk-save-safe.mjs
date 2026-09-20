@@ -47,3 +47,4 @@ for (const file of ['app/app/foods/page.tsx', 'app/app/insta/page.tsx', 'app/app
   
   fs.writeFileSync(file, content);
 }
+
