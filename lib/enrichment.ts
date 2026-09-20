@@ -62,10 +62,13 @@ export async function enrichLeadData(nome: string, cidade: string, pais: string 
 
   const emails = htmlUnificado.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/g) || [];
   const instas = htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || [];
+  const faces = htmlUnificado.match(/facebook\.com\/([A-Za-z0-9_.]+)/gi) || [];
   
   return {
     email: emails.length > 0 ? emails[0].toLowerCase() : null,
     instagram: instas.length > 0 ? `https://www.${instas[0].toLowerCase()}` : null,
+    facebook: faces.length > 0 ? `https://www.${faces[0].toLowerCase()}` : null,
+    fontes: ['duckduckgo', 'bing', 'yahoo', 'qwant', 'brave', 'ask', 'ecosia']
   };
 }
 
