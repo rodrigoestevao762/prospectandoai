@@ -86,7 +86,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
       if (key) {
         const query = `${nic} ${cid || "Brasil"}`.trim();
         const results = await buscarOutscraper(query, key, 100);
-        return results.map(r => ({
+        return results.map((r: any) => ({
           osmId: r.osmId,
           nome: r.nome,
           categoria: nicho || "Instagram",
@@ -116,7 +116,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
         }
       }
     } catch (error) {}
-    return leadsOSM.map(r => ({ ...r, fonte: "overpass", score: 60, nivel: "morno" }));
+    return leadsOSM.map((r: any) => ({ ...r, fonte: "overpass", score: 60, nivel: "morno" }));
   })();
 
   // 3. OSINT
@@ -191,7 +191,7 @@ export async function radarFoods(nicho: string, cidade: string) {
       if (key) {
         const query = `${nic} delivery ${cid || "Brasil"}`.trim();
         const results = await buscarOutscraper(query, key, 100);
-        return results.map(r => ({
+        return results.map((r: any) => ({
           osmId: r.osmId,
           nome: r.nome,
           categoria: nicho || "Delivery/Restaurante",
@@ -221,7 +221,7 @@ export async function radarFoods(nicho: string, cidade: string) {
         }
       }
     } catch (error) {}
-    return leadsOSM.map(r => ({ ...r, fonte: "overpass", score: 60, nivel: "morno" }));
+    return leadsOSM.map((r: any) => ({ ...r, fonte: "overpass", score: 60, nivel: "morno" }));
   })();
 
   // 3. OSINT
