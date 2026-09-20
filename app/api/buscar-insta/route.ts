@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import { NextResponse } from "next/server";
 import { usuarioObrigatorio } from "@/lib/supabase-server";
 import { radarInstagram } from "@/lib/enrichment";

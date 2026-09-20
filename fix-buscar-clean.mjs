@@ -1,4 +1,6 @@
-export const runtime = 'edge';
+import fs from 'fs';
+
+const buscarRoute = `export const runtime = 'edge';
 
 import { NextResponse } from "next/server";
 import { geocodificar, buscarEmpresas } from "@/lib/overpass";
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
     let empresas = [];
 
     if (motor === "google") {
-      const searchQuery = `"${cat ? cat.label : 'empresas'}" em ${cidade}, ${geo.paisNome}`;
+      const searchQuery = \`"\${cat ? cat.label : 'empresas'}" em \${cidade}, \${geo.paisNome}\`;
       const results = await buscarOutscraper(searchQuery, process.env.OUTSCRAPER_API_KEY || "");
       empresas = results.map((e: any) => {
         const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
@@ -49,3 +51,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ erro: msg }, { status: 500 });
   }
 }
+`;
+
+fs.writeFileSync('app/api/buscar/route.ts', buscarRoute);

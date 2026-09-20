@@ -1,4 +1,6 @@
-import { geocodificar, buscarEmpresas } from "./overpass";
+import fs from 'fs';
+
+const enrichmentContent = `import { geocodificar, buscarEmpresas } from "./overpass";
 import { buscarOutscraper } from "./outscraper";
 
 async function fetchHtml(url: string): Promise<string> {
@@ -18,54 +20,54 @@ async function fetchHtml(url: string): Promise<string> {
 }
 
 async function searchDuckDuckGo(query: string): Promise<string> {
-  return await fetchHtml(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`);
+  return await fetchHtml(\`https://html.duckduckgo.com/html/?q=\${encodeURIComponent(query)}\`);
 }
 
 async function searchBing(query: string): Promise<string> {
-  return await fetchHtml(`https://www.bing.com/search?q=${encodeURIComponent(query)}`);
+  return await fetchHtml(\`https://www.bing.com/search?q=\${encodeURIComponent(query)}\`);
 }
 
 async function searchYahoo(query: string): Promise<string> {
-  return await fetchHtml(`https://search.yahoo.com/search?p=${encodeURIComponent(query)}`);
+  return await fetchHtml(\`https://search.yahoo.com/search?p=\${encodeURIComponent(query)}\`);
 }
 
 async function searchQwant(query: string): Promise<string> {
-  return await fetchHtml(`https://lite.qwant.com/?q=${encodeURIComponent(query)}`);
+  return await fetchHtml(\`https://lite.qwant.com/?q=\${encodeURIComponent(query)}\`);
 }
 
 async function searchBrave(query: string): Promise<string> {
-  return await fetchHtml(`https://search.brave.com/search?q=${encodeURIComponent(query)}`);
+  return await fetchHtml(\`https://search.brave.com/search?q=\${encodeURIComponent(query)}\`);
 }
 
 async function searchAsk(query: string): Promise<string> {
-  return await fetchHtml(`https://www.ask.com/web?q=${encodeURIComponent(query)}`);
+  return await fetchHtml(\`https://www.ask.com/web?q=\${encodeURIComponent(query)}\`);
 }
 
 async function searchEcosia(query: string): Promise<string> {
-  return await fetchHtml(`https://www.ecosia.org/search?q=${encodeURIComponent(query)}`);
+  return await fetchHtml(\`https://www.ecosia.org/search?q=\${encodeURIComponent(query)}\`);
 }
 
 export async function enriquecerLead(nome: string, cidade: string) {
   const safeNome = nome.replace(/['"]/g, "");
   
   const searches = await Promise.all([
-    searchDuckDuckGo(`"${safeNome}" ${cidade} contato email`),
-    searchBing(`"${safeNome}" ${cidade} @gmail.com`),
-    searchYahoo(`site:instagram.com "${safeNome}" ${cidade}`),
-    searchQwant(`site:facebook.com "${safeNome}" ${cidade}`),
-    searchBrave(`"${safeNome}" ${cidade} email contato`),
-    searchAsk(`"${safeNome}" ${cidade} instagram facebook email`),
-    searchEcosia(`"${safeNome}" ${cidade} contato`)
+    searchDuckDuckGo(\`"\${safeNome}" \${cidade} contato email\`),
+    searchBing(\`"\${safeNome}" \${cidade} @gmail.com\`),
+    searchYahoo(\`site:instagram.com "\${safeNome}" \${cidade}\`),
+    searchQwant(\`site:facebook.com "\${safeNome}" \${cidade}\`),
+    searchBrave(\`"\${safeNome}" \${cidade} email contato\`),
+    searchAsk(\`"\${safeNome}" \${cidade} instagram facebook email\`),
+    searchEcosia(\`"\${safeNome}" \${cidade} contato\`)
   ]);
   
   const htmlUnificado = searches.join(" ");
 
-  const emails = htmlUnificado.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/g) || [];
-  const instas = htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || [];
+  const emails = htmlUnificado.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}/g) || [];
+  const instas = htmlUnificado.match(/instagram\\.com\\/([A-Za-z0-9_.]+)/gi) || [];
   
   return {
     email: emails.length > 0 ? emails[0].toLowerCase() : null,
-    instagram: instas.length > 0 ? `https://www.${instas[0].toLowerCase()}` : null,
+    instagram: instas.length > 0 ? \`https://www.\${instas[0].toLowerCase()}\` : null,
   };
 }
 
@@ -74,14 +76,14 @@ export async function radarInstagram(nicho: string, cidade: string) {
   const cid = isGlobal ? "" : cidade.trim();
   const nic = nicho.trim() || "loja";
   
-  const nicExpanded = nic.toLowerCase().includes("roupa") ? `${nic} modas` : nic;
+  const nicExpanded = nic.toLowerCase().includes("roupa") ? \`\${nic} modas\` : nic;
 
   // 1. OUTSCRAPER (Google Maps - True Machine)
   const outscraperPromise = (async () => {
     try {
       const key = process.env.OUTSCRAPER_API_KEY;
       if (key) {
-        const query = `${nic} ${cid || "Brasil"}`.trim();
+        const query = \`\${nic} \${cid || "Brasil"}\`.trim();
         const results = await buscarOutscraper(query, key, 100);
         return results.map(r => ({
           osmId: r.osmId,
@@ -118,21 +120,21 @@ export async function radarInstagram(nicho: string, cidade: string) {
 
   // 3. OSINT
   const osintPromise = (async () => {
-    const base = `${nicExpanded} ${cid}`.trim();
-    const baseComAspas = `${nicExpanded} ${cid ? `"${cid}"` : ""}`.trim();
+    const base = \`\${nicExpanded} \${cid}\`.trim();
+    const baseComAspas = \`\${nicExpanded} \${cid ? \`"\${cid}"\` : ""}\`.trim();
     
     const searches = await Promise.all([
-      searchDuckDuckGo(`${baseComAspas} "instagram.com"`),
-      searchBing(`${baseComAspas} instagram`),
-      searchYahoo(`${baseComAspas} instagram oficial`),
-      searchQwant(`${base} instagram profile`),
-      searchBrave(`${base} instagram.com`),
-      searchAsk(`${base} instagram page`),
-      searchEcosia(`${base} instagram.com`)
+      searchDuckDuckGo(\`\${baseComAspas} "instagram.com"\`),
+      searchBing(\`\${baseComAspas} instagram\`),
+      searchYahoo(\`\${baseComAspas} instagram oficial\`),
+      searchQwant(\`\${base} instagram profile\`),
+      searchBrave(\`\${base} instagram.com\`),
+      searchAsk(\`\${base} instagram page\`),
+      searchEcosia(\`\${base} instagram.com\`)
     ]);
     
     const htmlUnificado = searches.join(" ");
-    const instaMatches = htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || [];
+    const instaMatches = htmlUnificado.match(/instagram\\.com\\/([A-Za-z0-9_.]+)/gi) || [];
 
     const usernames = new Set<string>();
     for (const match of instaMatches) {
@@ -143,7 +145,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
     }
 
     return Array.from(usernames).slice(0, 100).map(user => {
-      const nomeFormatado = user.replace(/[._]/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+      const nomeFormatado = user.replace(/[._]/g, " ").replace(/\\b\\w/g, l => l.toUpperCase());
       return {
         osmId: "insta_" + user,
         nome: nomeFormatado,
@@ -153,7 +155,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
         telefone: null,
         website: null,
         email: null,
-        instagram: `https://www.instagram.com/${user}`,
+        instagram: \`https://www.instagram.com/\${user}\`,
         fonte: "instagram",
         score: 50,
         nivel: "morno"
@@ -177,16 +179,16 @@ export async function radarFoods(nicho: string, cidade: string) {
   const cid = isGlobal ? "" : cidade.trim();
   const nic = nicho.trim() || "restaurante";
   
-  const nicExpanded = nic.toLowerCase().includes("restaurante") ? `${nic} restaurant` : 
-                      nic.toLowerCase().includes("hamburgueria") ? `${nic} burger` : 
-                      nic.toLowerCase().includes("pizzaria") ? `${nic} pizzeria` : nic;
+  const nicExpanded = nic.toLowerCase().includes("restaurante") ? \`\${nic} restaurant\` : 
+                      nic.toLowerCase().includes("hamburgueria") ? \`\${nic} burger\` : 
+                      nic.toLowerCase().includes("pizzaria") ? \`\${nic} pizzeria\` : nic;
 
   // 1. OUTSCRAPER (Google Maps - True Machine)
   const outscraperPromise = (async () => {
     try {
       const key = process.env.OUTSCRAPER_API_KEY;
       if (key) {
-        const query = `${nic} delivery ${cid || "Brasil"}`.trim();
+        const query = \`\${nic} delivery \${cid || "Brasil"}\`.trim();
         const results = await buscarOutscraper(query, key, 100);
         return results.map(r => ({
           osmId: r.osmId,
@@ -223,21 +225,21 @@ export async function radarFoods(nicho: string, cidade: string) {
 
   // 3. OSINT
   const osintPromise = (async () => {
-    const base = `${nicExpanded} ${cid}`.trim();
-    const baseComAspas = `${nicExpanded} ${cid ? `"${cid}"` : ""}`.trim();
+    const base = \`\${nicExpanded} \${cid}\`.trim();
+    const baseComAspas = \`\${nicExpanded} \${cid ? \`"\${cid}"\` : ""}\`.trim();
 
     const searches = await Promise.all([
-      searchDuckDuckGo(`${baseComAspas} ifood OR ubereats`),
-      searchBing(`${baseComAspas} tripadvisor OR yelp`),
-      searchYahoo(`${baseComAspas} doordash OR grubhub`),
-      searchQwant(`${base} rappi OR zomato`),
-      searchBrave(`${base} just-eat OR deliveroo`),
-      searchAsk(`${base} restaurant menu delivery ifood`),
-      searchEcosia(`${base} ifood tripadvisor ubereats yelp`)
+      searchDuckDuckGo(\`\${baseComAspas} ifood OR ubereats\`),
+      searchBing(\`\${baseComAspas} tripadvisor OR yelp\`),
+      searchYahoo(\`\${baseComAspas} doordash OR grubhub\`),
+      searchQwant(\`\${base} rappi OR zomato\`),
+      searchBrave(\`\${base} just-eat OR deliveroo\`),
+      searchAsk(\`\${base} restaurant menu delivery ifood\`),
+      searchEcosia(\`\${base} ifood tripadvisor ubereats yelp\`)
     ]);
 
     const htmlUnificado = searches.join(" ");
-    const urlsMatches = htmlUnificado.match(/https?:\/\/(www\.)?([a-zA-Z0-9.-]+)\/([^"'\s<]+)/gi) || [];
+    const urlsMatches = htmlUnificado.match(/https?:\\/\\/(www\\.)?([a-zA-Z0-9.-]+)\\/([^"'\\s<]+)/gi) || [];
 
     const restaurantes = new Map<string, any>();
     
@@ -254,7 +256,7 @@ export async function radarFoods(nicho: string, cidade: string) {
           
           if (nomePotencial.length > 3 && !nomePotencial.includes("?")) {
             const fonteStr = host.split(".")[0];
-            const nomeFormatado = nomePotencial.replace(/\b\w/g, l => l.toUpperCase());
+            const nomeFormatado = nomePotencial.replace(/\\b\\w/g, l => l.toUpperCase());
             
             restaurantes.set(nomeFormatado, { nome: nomeFormatado, url: match, fonteStr });
           }
@@ -263,7 +265,7 @@ export async function radarFoods(nicho: string, cidade: string) {
     }
 
     return Array.from(restaurantes.values()).slice(0, 100).map((r, i) => ({
-      osmId: `osint_food_${i}`,
+      osmId: \`osint_food_\${i}\`,
       nome: r.nome,
       categoria: nicho || "Delivery/Restaurante",
       cidade: cidade || "Global",
@@ -288,3 +290,6 @@ export async function radarFoods(nicho: string, cidade: string) {
 
   return Array.from(map.values()).slice(0, 200);
 }
+`;
+
+fs.writeFileSync('lib/enrichment.ts', enrichmentContent);

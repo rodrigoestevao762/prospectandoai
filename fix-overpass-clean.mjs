@@ -1,4 +1,6 @@
-// Busca de empresas via Overpass API (OpenStreetMap)
+import fs from 'fs';
+
+const overpassTs = `// Busca de empresas via Overpass API (OpenStreetMap)
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
@@ -21,12 +23,12 @@ export type EmpresaOSM = {
 };
 
 function esc(s: string) {
-  return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return s.replace(/\\\\/g, "\\\\\\\\").replace(/"/g, '\\\\"');
 }
 
 export async function geocodificar(cidade: string, pais?: string): Promise<{ lat: number; lng: number; radiusM: number; paisNome: string } | null> {
-  const q = pais ? `${cidade}, ${pais}` : cidade;
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
+  const q = pais ? \`\${cidade}, \${pais}\` : cidade;
+  const url = \`https://nominatim.openstreetmap.org/search?q=\${encodeURIComponent(q)}&format=json&limit=1\`;
   let res;
   try {
     res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(10000) });
@@ -57,17 +59,17 @@ export async function buscarEmpresas(
   pais: string,
   classificar?: (t: Record<string, string>) => string
 ): Promise<EmpresaOSM[]> {
-  const around = radiusM > 0 ? `(around:${radiusM},${lat},${lng})` : "";
+  const around = radiusM > 0 ? \`(around:\${radiusM},\${lat},\${lng})\` : "";
   const selectors = tags.map((t) => {
     if (t.includes("~")) {
       const [k, v] = t.split("~");
-      return `nwr["${k}"~"${esc(v)}",i]${around};`;
+      return \`nwr["\${k}"~"\${esc(v)}",i]\${around};\`;
     }
     const [k, v] = t.split("=");
-    return `nwr["${k}"="${esc(v)}"]${around};`;
+    return \`nwr["\${k}"="\${esc(v)}"]\${around};\`;
   });
   
-  const query = `[out:json][timeout:20];(${selectors.join("")});out center 15000;`;
+  const query = \`[out:json][timeout:20];(\${selectors.join("")});out center 15000;\`;
   const UA = { "User-Agent": "ProspectandoAI/1.0 (prospeccao de empresas)" };
 
   let json: { elements?: any[] } | null = null;
@@ -85,7 +87,7 @@ export async function buscarEmpresas(
         json = await res.json();
         break;
       }
-      ultimoErro = new Error(`Overpass ${res.status}`);
+      ultimoErro = new Error(\`Overpass \${res.status}\`);
       if (res.status === 400) throw ultimoErro; 
     } catch (e) {
       ultimoErro = e instanceof Error ? e : new Error(String(e));
@@ -100,7 +102,7 @@ export async function buscarEmpresas(
   for (const el of json.elements || []) {
     const t = el.tags || {};
     if (!t.name) continue;
-    const osmId = `${el.type}/${el.id}`;
+    const osmId = \`\${el.type}/\${el.id}\`;
     if (seen.has(osmId)) continue;
     seen.add(osmId);
     const clat = el.lat ?? el.center?.lat;
@@ -129,3 +131,6 @@ export async function buscarEmpresas(
   }
   return out;
 }
+`;
+
+fs.writeFileSync('lib/overpass.ts', overpassTs);
