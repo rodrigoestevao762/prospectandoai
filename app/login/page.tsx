@@ -1,10 +1,21 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import GiantEye from "@/components/GiantEye";
+
+function MiniRadar() {
+  return (
+    <div className="radar aspect-square w-full max-w-sm">
+      <div className="radar-sweep" />
+      <span className="blip" style={{ left: "30%", top: "30%", animationDelay: "0.5s" }} />
+      <span className="blip amber" style={{ left: "66%", top: "55%", animationDelay: "1.8s" }} />
+      <span className="blip" style={{ left: "48%", top: "70%", animationDelay: "3s" }} />
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -25,7 +36,7 @@ export default function LoginPage() {
     } else {
       const { error } = await sb.auth.signUp({ email, password: senha });
       if (error) setErro(error.message);
-      else setMsg("Conta criada! Confirme o e-mail (se exigido) e faÃ§a login.");
+      else setMsg("Conta criada! Confirme o e-mail (se exigido) e faça login.");
     }
     setCarregando(false);
   }
@@ -39,8 +50,8 @@ export default function LoginPage() {
     if (error) setErro(error.message);
   }
 
-  async function recuperarSenha() {
-    if (!email) return setErro("Digite seu e-mail acima para recuperar a senha.");
+    async function recuperarSenha() {
+    if (!email) return setErro("Digite seu e-mail para recuperar a senha.");
     setCarregando(true); setErro(null); setMsg(null);
     const { error } = await supabaseBrowser().auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/login?reset=true`,
@@ -52,7 +63,7 @@ export default function LoginPage() {
 
   return (
     <main className="bg-void grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
-      {/* Painel esquerdo â€” atmosfera */}
+      {/* Painel esquerdo — atmosfera */}
       <section className="relative hidden flex-col justify-between overflow-hidden border-r border-[var(--line)] p-12 lg:flex">
         <div className="bg-grid pointer-events-none absolute inset-0" />
         
@@ -73,14 +84,13 @@ export default function LoginPage() {
           />
         ))}
 
-        <Link href="/" className="mono relative flex w-fit items-center gap-3 text-xs uppercase tracking-[0.3em] text-[var(--ink-dim)] transition hover:text-[#38bdf8]">
-          â† voltar ao site
+        <Link href="/" className="mono relative flex w-fit items-center gap-3 text-xs uppercase tracking-[0.3em] text-[var(--ink-dim)] transition hover:text-[var(--signal)]">
+          ← voltar ao site
         </Link>
         <div className="relative flex flex-1 items-center justify-center py-12">
           <motion.div
             animate={{ y: [-10, 10, -10] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full max-w-[400px] aspect-square"
           >
             <GiantEye className="w-full h-full" />
           </motion.div>
@@ -131,7 +141,7 @@ export default function LoginPage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <input
-                type="password" required minLength={6} placeholder="Senha (mÃ­n. 6 caracteres)" value={senha}
+                type="password" required minLength={6} placeholder="Senha (mín. 6 caracteres)" value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="field field-premium w-full rounded-xl px-4 py-3 text-sm"
               />
@@ -213,3 +223,4 @@ export default function LoginPage() {
     </main>
   );
 }
+

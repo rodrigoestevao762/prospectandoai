@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,17 +24,17 @@ const NIVEL_ESTILO: Record<Lead["nivel"], { borda: string; badge: string; icone:
   quente: {
     borda: "border-l-[var(--alert)]",
     badge: "border-[var(--alert)]/50 bg-[var(--alert)]/10 text-[var(--alert)]",
-    icone: "ðŸ”¥",
+    icone: "🔥",
   },
   morno: {
     borda: "border-l-[var(--amber)]",
     badge: "border-[var(--amber)]/50 bg-[var(--amber)]/10 text-[var(--amber)]",
-    icone: "â—",
+    icone: "◐",
   },
   frio: {
     borda: "border-l-[var(--ink-faint)]",
     badge: "border-[var(--line-strong)] bg-white/5 text-[var(--ink-dim)]",
-    icone: "â—‹",
+    icone: "○",
   },
 };
 
@@ -123,11 +123,11 @@ export default function LeadsPage() {
     if (!res.ok) return setAviso("Erro: " + json.erro);
     setMsgAberta((m) => ({ ...m, [l.id]: json.texto }));
     await atualizar(l.id, { status: "enviado", canal: "email" });
-    setAviso(`âœ“ e-mail enviado para ${l.email} â€” o lead saiu de "Para contato" e entrou em "Enviados"`);
+    setAviso(`✓ e-mail enviado para ${l.email} — o lead saiu de "Para contato" e entrou em "Enviados"`);
   }
 
   async function abrirDM(l: Lead) {
-    if (!l.instagram) return setAviso("Lead sem Instagram â€” cole o @ no campo e salve");
+    if (!l.instagram) return setAviso("Lead sem Instagram — cole o @ no campo e salve");
     if (!msgAberta[l.id]) {
       setOcupado(l.id + ":gerar"); setAviso(null);
       const res = await fetch("/api/gerar-mensagem", {
@@ -150,7 +150,7 @@ export default function LeadsPage() {
     
     const usernamesBloqueados = ["tripadvisor", "ifood", "ifoodbrasil", "ubereats", "rappi", "zomato", "facebook", "duckduckgo", "google", "qwantcom", "yahoo", "bing"];
     if (usernamesBloqueados.includes(username.toLowerCase())) {
-      return setAviso(`Este Instagram (${username}) Ã© um falso positivo de uma busca anterior. Por favor, exclua ou re-enriqueÃ§a este lead.`);
+      return setAviso(`Este Instagram (${username}) é um falso positivo de uma busca anterior. Por favor, exclua ou re-enriqueça este lead.`);
     }
 
     window.open(`https://ig.me/m/${username}`, "_blank");
@@ -158,7 +158,7 @@ export default function LeadsPage() {
   }
 
   async function abrirWhatsApp(l: Lead) {
-    if (!l.telefone) return setAviso("Lead sem Telefone â€” edite e adicione o nÃºmero.");
+    if (!l.telefone) return setAviso("Lead sem Telefone — edite e adicione o número.");
     if (!msgAberta[l.id]) return setAviso("Gere a mensagem primeiro antes de enviar.");
     navigator.clipboard.writeText(msgAberta[l.id]);
     const num = l.telefone.replace(/\D/g, "");
@@ -186,13 +186,13 @@ export default function LeadsPage() {
       return;
     }
     setLeads((ls) => ls.map((lead) => (lead.id === l.id ? { ...lead, ...json.lead } : lead)));
-    if (!bulk) setAviso(`Enriquecimento de ${l.nome} concluÃ­do com sucesso!`);
+    if (!bulk) setAviso(`Enriquecimento de ${l.nome} concluído com sucesso!`);
   }
 
   async function enriquecerEmLote() {
     const semInsta = visiveis.filter(l => !l.instagram && !l.email && !l.enriquecido_em);
-    if (semInsta.length === 0) return setAviso("Nenhum lead visÃ­vel precisa de enriquecimento.");
-    if (!confirm(`Deseja acionar a IA para vasculhar a internet atrÃ¡s dos contatos de ${semInsta.length} leads simultaneamente?`)) return;
+    if (semInsta.length === 0) return setAviso("Nenhum lead visível precisa de enriquecimento.");
+    if (!confirm(`Deseja acionar a IA para vasculhar a internet atrás dos contatos de ${semInsta.length} leads simultaneamente?`)) return;
     
     let sucessos = 0;
     const batchSize = 30; // Acelerado Mega Brain
@@ -208,7 +208,7 @@ export default function LeadsPage() {
     }
     
     setOcupado(null);
-    setAviso(`Enriquecimento turbo concluÃ­do para ${sucessos} leads!`);
+    setAviso(`Enriquecimento turbo concluído para ${sucessos} leads!`);
   }
 
   async function excluirLead(id: string) {
@@ -229,18 +229,18 @@ export default function LeadsPage() {
     const ids = paraExcluir.map(l => l.id);
     await sb.from("leads").delete().in("id", ids);
     setLeads((ls) => ls.filter((l) => !ids.includes(l.id)));
-    setAviso(`${paraExcluir.length} leads excluÃ­dos com sucesso.`);
+    setAviso(`${paraExcluir.length} leads excluídos com sucesso.`);
   }
 
   async function gerarDMsEmLote() {
     const paraGerar = visiveis.filter(l => l.instagram && !msgAberta[l.id]);
-    if (paraGerar.length === 0) return setAviso("Nenhum lead disponÃ­vel para gerar mensagens (ou jÃ¡ geradas).");
+    if (paraGerar.length === 0) return setAviso("Nenhum lead disponível para gerar mensagens (ou já geradas).");
     if (!confirm(`Deseja gerar mensagens persuasivas via IA para ${paraGerar.length} leads simultaneamente?`)) return;
     
     let sucessos = 0;
     
-    // Processamento Turbo: lotes paralelos de 5 para mÃ¡xima velocidade. 
-    // Se o limite do Gemini Free (15 RPM) for atingido, o backend agora traduzirÃ¡ os templates automaticamente sem delay.
+    // Processamento Turbo: lotes paralelos de 5 para máxima velocidade. 
+    // Se o limite do Gemini Free (15 RPM) for atingido, o backend agora traduzirá os templates automaticamente sem delay.
     const batchSize = 5;
     for (let i = 0; i < paraGerar.length; i += batchSize) {
       const lote = paraGerar.slice(i, i + batchSize);
@@ -263,7 +263,7 @@ export default function LeadsPage() {
         }
         setOcupado(null);
       }));
-      // Apenas um respiro mÃ­nimo para o navegador nÃ£o travar
+      // Apenas um respiro mínimo para o navegador não travar
       await new Promise(r => setTimeout(r, 100));
     }
     
@@ -273,8 +273,8 @@ export default function LeadsPage() {
 
   async function limparTodos() {
     const sb = supabaseBrowser();
-    if (visiveis.length === 0) return setAviso("Nenhum lead visÃ­vel para excluir.");
-    if (!confirm(`âš ï¸ ATENÃ‡ÃƒO: VocÃª estÃ¡ prestes a EXCLUIR DEFINITIVAMENTE ${visiveis.length} leads da tela atual.\n\nTem certeza absoluta?`)) return;
+    if (visiveis.length === 0) return setAviso("Nenhum lead visível para excluir.");
+    if (!confirm(`⚠️ ATENÇÃO: Você está prestes a EXCLUIR DEFINITIVAMENTE ${visiveis.length} leads da tela atual.\n\nTem certeza absoluta?`)) return;
     
     setAviso(`Excluindo ${visiveis.length} leads...`);
     const ids = visiveis.map((l) => l.id);
@@ -286,7 +286,7 @@ export default function LeadsPage() {
     }
     
     setLeads((ls) => ls.filter((l) => !ids.includes(l.id)));
-    setAviso(`${visiveis.length} leads excluÃ­dos com sucesso.`);
+    setAviso(`${visiveis.length} leads excluídos com sucesso.`);
   }
 
   async function disparoEmLote() {
@@ -295,7 +295,7 @@ export default function LeadsPage() {
       !l.email.includes("duckduckgo.com") && 
       ["novo", "mensagem_gerada"].includes(l.status)
     );
-    if (paraEnviar.length === 0) return setAviso("Nenhum lead com e-mail vÃ¡lido disponÃ­vel para envio.");
+    if (paraEnviar.length === 0) return setAviso("Nenhum lead com e-mail válido disponível para envio.");
     if (!confirm(`Deseja disparar e-mails com IA para ${paraEnviar.length} leads simultaneamente?`)) return;
     
     let sucessos = 0;
@@ -329,9 +329,9 @@ export default function LeadsPage() {
     
     setOcupado(null);
     if (sucessos > 0) {
-      setAviso(`Processamento turbo concluÃ­do! ${sucessos} e-mails disparados com sucesso.`);
+      setAviso(`Processamento turbo concluído! ${sucessos} e-mails disparados com sucesso.`);
     } else {
-      setAviso(`Falha no disparo! Verifique a configuraÃ§Ã£o de E-mail/Senha de App. Erro: ${ultErro}`);
+      setAviso(`Falha no disparo! Verifique a configuração de E-mail/Senha de App. Erro: ${ultErro}`);
     }
   }
 
@@ -349,7 +349,7 @@ export default function LeadsPage() {
 
   return (
     <div>
-      {/* Header + mÃ©tricas */}
+      {/* Header + métricas */}
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -400,7 +400,7 @@ export default function LeadsPage() {
         ))}
       </div>
 
-      {/* Filtros + AÃ§Ãµes 3D */}
+      {/* Filtros + Ações 3D */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -412,24 +412,24 @@ export default function LeadsPage() {
           {CATEGORIAS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select>
         <select value={fNivel} onChange={(e) => setFNivel(e.target.value)} className="field mono rounded-lg px-2.5 py-1.5 text-xs">
-          <option value="all">Todos nÃ­veis</option><option value="quente">ðŸ”¥ Quente</option><option value="morno">ðŸ’¡ Morno</option><option value="frio">â„ Frio</option>
+          <option value="all">Todos níveis</option><option value="quente">🔥 Quente</option><option value="morno">💡 Morno</option><option value="frio">❄ Frio</option>
         </select>
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar nome/cidade..."
           className="field mono min-w-44 flex-1 rounded-lg px-3 py-1.5 text-xs" />
         <button onClick={enriquecerEmLote} disabled={!!ocupado} className="btn-3d btn-3d-ghost">
-          âš¡ Enriquecer Lote
+          ⚡ Enriquecer Lote
         </button>
         <button onClick={disparoEmLote} disabled={!!ocupado} className="btn-3d btn-3d-amber">
-          âœ‰ Disparo E-mails
+          ✉ Disparo E-mails
         </button>
         <button onClick={gerarDMsEmLote} disabled={!!ocupado} className="btn-3d btn-3d-insta">
-          ðŸ“¸ Gerar DMs
+          📸 Gerar DMs
         </button>
         <button onClick={limparSemRedes} disabled={!!ocupado} className="btn-3d btn-3d-dark">
-          ðŸ—‘ s/ Insta
+          🗑 s/ Insta
         </button>
         <button onClick={limparTodos} disabled={!!ocupado} className="btn-3d btn-3d-danger">
-          âš ï¸ Limpar Tudo
+          ⚠️ Limpar Tudo
         </button>
       </motion.div>
 
@@ -445,7 +445,7 @@ export default function LeadsPage() {
           >
             <span className="pulse-dot shrink-0" />
             <span>{aviso}</span>
-            <button onClick={() => setAviso(null)} className="ml-auto shrink-0 opacity-50 hover:opacity-100 transition-opacity">âœ•</button>
+            <button onClick={() => setAviso(null)} className="ml-auto shrink-0 opacity-50 hover:opacity-100 transition-opacity">✕</button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -473,9 +473,9 @@ export default function LeadsPage() {
               <div className="radar-sweep" />
             </div>
           </div>
-          <p className="mono text-xs uppercase tracking-widest text-[var(--ink-faint)]">radar limpo â€” nenhum lead nesta visÃ£o</p>
+          <p className="mono text-xs uppercase tracking-widest text-[var(--ink-faint)]">radar limpo — nenhum lead nesta visão</p>
           <a href="/app/busca" className="btn-3d btn-3d-ghost mt-6 inline-flex">
-            â–¸ escanear uma cidade agora
+            ▸ escanear uma cidade agora
           </a>
         </motion.div>
       )}
@@ -504,7 +504,7 @@ export default function LeadsPage() {
     if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(l.nome + " " + l.cidade)}`; }
     
     // If user explicitly wants NO photo for those who don't have, and Favicon is mostly for generic logos... 
-    // Actually the user said "sem foto apenas os que realmente nÃ£o tem". Favicon API gives the actual logo.
+    // Actually the user said "sem foto apenas os que realmente não tem". Favicon API gives the actual logo.
     // If Favicon API returns the default globe, it's technically a placeholder, but it works perfectly.
 
     return (
@@ -531,12 +531,12 @@ export default function LeadsPage() {
           {/* Header do card */}
           <div className="flex flex-wrap items-center gap-2.5">
             <h2 className="font-semibold tracking-tight">{l.nome}</h2>
-            <span className={`badge ${est.badge}`}>{est.icone} {l.nivel} Â· {l.score}</span>
+            <span className={`badge ${est.badge}`}>{est.icone} {l.nivel} · {l.score}</span>
             <span className="badge border-[var(--line-strong)] text-[var(--ink-dim)]">
               {CATEGORIAS.find((c) => c.id === l.categoria)?.label || l.categoria}
             </span>
             <span className="mono ml-auto text-[11px] uppercase tracking-widest text-[var(--ink-faint)]">
-              â—Ž {l.cidade}{l.pais ? `, ${l.pais}` : ""}
+              ◎ {l.cidade}{l.pais ? `, ${l.pais}` : ""}
             </span>
           </div>
 
@@ -544,12 +544,12 @@ export default function LeadsPage() {
           <div className="mono mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
             {l.email ? (
               <span className="flex items-center gap-1.5 text-[var(--ink)]">
-                <span style={{ color: 'var(--signal)' }}>âœ‰</span>
+                <span style={{ color: 'var(--signal)' }}>✉</span>
                 <input defaultValue={l.email} className="w-52 rounded border border-transparent bg-transparent outline-none transition hover:border-[var(--line-strong)] focus:border-[var(--signal)]" onBlur={(e) => e.target.value !== l.email && atualizar(l.id, { email: e.target.value })} />
               </span>
-            ) : <span className="text-[var(--ink-faint)]">âœ‰ sem e-mail</span>}
-            {l.instagram ? <span style={{ color: '#e879f9' }}>â—† @{l.instagram.replace("@", "")}</span> : <span className="text-[var(--ink-faint)]">â—† sem Instagram</span>}
-            {l.website ? <span className="text-[var(--ink-faint)]">â–£ tem site</span> : <span className="font-semibold text-[var(--signal)]">â–£ sem site âœ“</span>}
+            ) : <span className="text-[var(--ink-faint)]">✉ sem e-mail</span>}
+            {l.instagram ? <span style={{ color: '#e879f9' }}>◆ @{l.instagram.replace("@", "")}</span> : <span className="text-[var(--ink-faint)]">◆ sem Instagram</span>}
+            {l.website ? <span className="text-[var(--ink-faint)]">▣ tem site</span> : <span className="font-semibold text-[var(--signal)]">▣ sem site ✓</span>}
             <select value={l.status} onChange={(e) => atualizar(l.id, { status: e.target.value as Lead["status"] })}
               className="field ml-auto rounded-lg px-2 py-1 text-[11px]">
               {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -573,42 +573,42 @@ export default function LeadsPage() {
             )}
           </AnimatePresence>
 
-          {/* BotÃµes de aÃ§Ã£o */}
+          {/* Botões de ação */}
           <div className="mt-3.5 flex flex-wrap gap-2 items-center">
             {l.email && l.status !== "enviado" && l.status !== "respondido" && l.status !== "cliente" && (
               <button onClick={() => enviarAuto(l)} disabled={!!ocupado} className="btn-3d btn-3d-primary">
-                {ocupado === l.id + ":auto" ? "enviando..." : "âš¡ Enviar E-mail"}
+                {ocupado === l.id + ":auto" ? "enviando..." : "⚡ Enviar E-mail"}
               </button>
             )}
             {l.status === "enviado" && (
               <span className="mono rounded-lg bg-[var(--signal)]/8 px-3.5 py-2 text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">
-                âœ“ {l.canal === "dm" ? "DM enviada" : "e-mail enviado"}
+                ✓ {l.canal === "dm" ? "DM enviada" : "e-mail enviado"}
               </span>
             )}
             <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
-              {ocupado === l.id + ":enriquecer" ? "buscando..." : "ðŸ” Enriquecer"}
+              {ocupado === l.id + ":enriquecer" ? "buscando..." : "🔍 Enriquecer"}
             </button>
             
             <div className="flex bg-white/5 rounded-lg overflow-hidden border border-white/10 shadow-sm" style={{ padding: 2 }}>
               <button onClick={() => gerar(l, "whatsapp")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
-                <span style={{color: '#25D366'}}>ðŸ’¬</span> Wpp
+                <span style={{color: '#25D366'}}>💬</span> Wpp
               </button>
               <button onClick={() => gerar(l, "instagram")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
-                <span style={{color: '#e879f9'}}>ðŸ“¸</span> Insta
+                <span style={{color: '#e879f9'}}>📸</span> Insta
               </button>
               <button onClick={() => gerar(l, "email")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
-                <span style={{color: 'var(--signal)'}}>âœ‰</span> E-mail
+                <span style={{color: 'var(--signal)'}}>✉</span> E-mail
               </button>
             </div>
             
             {msgAberta[l.id] && (
               <button onClick={() => handleCopiar(l.id, msgAberta[l.id])} className="btn-3d btn-3d-dark">
-                {copiado[l.id] ? "âœ… copiado" : "â§‰ Copiar"}
+                {copiado[l.id] ? "✅ copiado" : "⧉ Copiar"}
               </button>
             )}
             {l.instagram && (
               <button onClick={() => abrirDM(l)} className="btn-3d btn-3d-insta">
-                ðŸ“¸ Instagram
+                📸 Instagram
               </button>
             )}
             {l.telefone && (
@@ -617,7 +617,7 @@ export default function LeadsPage() {
                 color: '#fff',
                 boxShadow: '0 4px 0 #075E54, 0 8px 24px rgba(37,211,102,0.3)',
               }}>
-                ðŸ’¬ WhatsApp
+                💬 WhatsApp
               </button>
             )}
             {l.facebook && (
@@ -626,14 +626,14 @@ export default function LeadsPage() {
                 color: '#fff',
                 boxShadow: '0 4px 0 #1a3a7a, 0 8px 24px rgba(24,119,242,0.3)',
               }}>
-                ðŸ“˜ Facebook
+                📘 Facebook
               </button>
             )}
             <button onClick={() => router.push(`/app/editor/${l.id}`)} className="btn-3d btn-3d-amber">
-              âœ¦ Landing
+              ✦ Landing
             </button>
             <button onClick={() => excluirLead(l.id)} disabled={!!ocupado} className="btn-3d btn-3d-danger ml-auto">
-              {ocupado === l.id + ":excluir" ? "..." : "ðŸ—‘ Excluir"}
+              {ocupado === l.id + ":excluir" ? "..." : "🗑 Excluir"}
             </button>
           </div>
         </div>
@@ -644,4 +644,3 @@ export default function LeadsPage() {
 </div>
 );
 }
-

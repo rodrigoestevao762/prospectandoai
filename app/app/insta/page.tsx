@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ────────────────────────────────────────────────────────────────────
 type InstaResult = {
   osmId: string;
   nome: string;
@@ -21,7 +21,7 @@ type InstaResult = {
   foto?: string | null;
 };
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getFonteStyle(fonte: string) {
   if (fonte.includes("instagram"))
     return {
@@ -56,7 +56,7 @@ function getFonteStyle(fonte: string) {
 const IG_GRADIENT = "linear-gradient(135deg, #833ab4, #d6249f, #fcaf45)";
 const IG_SHADOW_DARK = "#4a1a6e";
 
-// â”€â”€â”€ Animation variants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Animation variants ───────────────────────────────────────────────────────
 const pageVariants = {
   hidden: { opacity: 0, y: -20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -88,7 +88,7 @@ const cardVariants = (i: number) => ({
   },
 });
 
-// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function InstaRadarPage() {
   const [nicho, setNicho] = useState("");
   const [cidade, setCidade] = useState("");
@@ -98,7 +98,7 @@ export default function InstaRadarPage() {
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
   const [salvandoTodos, setSalvandoTodos] = useState(false);
 
-  // â”€â”€ Business logic (unchanged) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Business logic (unchanged) ─────────────────────────────────────────────
   async function buscar(e: React.FormEvent) {
     e.preventDefault();
     setCarregando(true);
@@ -144,17 +144,13 @@ export default function InstaRadarPage() {
     if (!error && data) setSalvos((s) => new Set(s).add(emp.osmId));
     else if (error)
       setErro(
-        error.code === "23505" ? `${emp.nome} jÃ¡ estÃ¡ salvo` : error.message
+        error.code === "23505" ? `${emp.nome} já está salvo` : error.message
       );
   }
 
-  async function salvarEmLote(nivel?: "quente" | "morno" | "frio") {
+  async function salvarTodos() {
     if (!resultados) return;
-    let lista = resultados;
-    if (nivel) {
-      lista = lista.filter(e => e.nivel === nivel);
-    }
-    const naoSalvos = lista.filter((e) => !salvos.has(e.osmId));
+    const naoSalvos = resultados.filter((e) => !salvos.has(e.osmId));
     if (naoSalvos.length === 0) return;
     setSalvandoTodos(true);
     const sb = supabaseBrowser();
@@ -191,10 +187,10 @@ export default function InstaRadarPage() {
     ? resultados.filter((e) => !salvos.has(e.osmId)).length
     : 0;
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div>
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <motion.div variants={pageVariants} initial="hidden" animate="visible">
         <p className="eyebrow" style={{ color: "#d6249f" }}>
           Social Intelligence
@@ -208,17 +204,17 @@ export default function InstaRadarPage() {
             backgroundClip: "text",
           }}
         >
-          Radar Insta ðŸ“¸
+          Radar Insta 📸
         </h1>
         <p
           className="mono mt-1 text-[11px] uppercase tracking-widest"
           style={{ color: "var(--ink-dim)" }}
         >
-          Instagram Â· Facebook Â· OpenStreetMap Global
+          Instagram · Facebook · OpenStreetMap Global
         </p>
       </motion.div>
 
-      {/* â”€â”€ Search Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Search Form ─────────────────────────────────────────────────────── */}
       <motion.form
         onSubmit={buscar}
         variants={formVariants}
@@ -251,13 +247,13 @@ export default function InstaRadarPage() {
         <input
           value={nicho}
           onChange={(e) => setNicho(e.target.value)}
-          placeholder="Nicho (ex: Barbearia, EstÃºdio de Tatuagemâ€¦)"
+          placeholder="Nicho (ex: Barbearia, Estúdio de Tatuagem…)"
           className="field mono min-w-44 flex-1 text-xs"
         />
         <input
           value={cidade}
           onChange={(e) => setCidade(e.target.value)}
-          placeholder="Cidade (ex: SÃ£o Paulo, Lisboa, Mundial)"
+          placeholder="Cidade (ex: São Paulo, Lisboa, Mundial)"
           className="field mono min-w-36 text-xs"
         />
 
@@ -302,15 +298,15 @@ export default function InstaRadarPage() {
                 className="pulse-dot"
                 style={{ background: "#d6249f", display: "inline-block" }}
               />
-              CaÃ§andoâ€¦
+              Caçando…
             </>
           ) : (
-            "ðŸ“¸ CaÃ§ar Perfis"
+            "📸 Caçar Perfis"
           )}
         </motion.button>
       </motion.form>
 
-      {/* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Error ───────────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {erro && (
           <motion.p
@@ -326,12 +322,12 @@ export default function InstaRadarPage() {
               color: "var(--alert)",
             }}
           >
-            âš  {erro}
+            ⚠ {erro}
           </motion.p>
         )}
       </AnimatePresence>
 
-      {/* â”€â”€ Loading radar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Loading radar ───────────────────────────────────────────────────── */}
       <AnimatePresence>
         {carregando && (
           <motion.div
@@ -375,7 +371,7 @@ export default function InstaRadarPage() {
                     className="pulse-dot mr-2 inline-block align-middle"
                     style={{ background: "#d6249f" }}
                   />
-                  Varrendo perfis no Instagramâ€¦
+                  Varrendo perfis no Instagram…
                 </p>
                 <motion.p
                   animate={{ opacity: [0.4, 1, 0.4] }}
@@ -383,7 +379,7 @@ export default function InstaRadarPage() {
                   className="mono text-[10px] uppercase tracking-widest"
                   style={{ color: "#d6249f" }}
                 >
-                  Instagram Â· Facebook Â· OpenStreetMap
+                  Instagram · Facebook · OpenStreetMap
                 </motion.p>
               </div>
             </div>
@@ -391,7 +387,7 @@ export default function InstaRadarPage() {
         )}
       </AnimatePresence>
 
-      {/* â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Results ─────────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {resultados && !carregando && (
           <motion.div
@@ -406,41 +402,50 @@ export default function InstaRadarPage() {
                 className="mono text-[11px] uppercase tracking-widest"
                 style={{ color: "var(--ink-dim)" }}
               >
-                <span style={{ color: "#d6249f" }}>â—</span>{" "}
+                <span style={{ color: "#d6249f" }}>●</span>{" "}
                 {resultados.length} perfis detectados
               </p>
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => salvarEmLote()}
-                  disabled={salvandoTodos || naoSalvosCount === 0}
-                  className="btn-3d text-[10px] px-2 py-1"
-                  style={{ background: "transparent", color: "#d6249f", border: "1px solid rgba(214,36,159,0.35)", boxShadow: "0 3px 0 rgba(214,36,159,0.15)" }}
-                >
-                  {salvandoTodos ? "Salvando..." : `+ Todos (${naoSalvosCount})`}
-                </button>
-                <button
-                  onClick={() => salvarEmLote("quente")}
-                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "quente" && !salvos.has(e.osmId)).length === 0}
-                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[var(--signal)]"
-                >
-                  + Quentes
-                </button>
-                <button
-                  onClick={() => salvarEmLote("morno")}
-                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "morno" && !salvos.has(e.osmId)).length === 0}
-                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#facc15]"
-                >
-                  + Mornos
-                </button>
-                <button
-                  onClick={() => salvarEmLote("frio")}
-                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "frio" && !salvos.has(e.osmId)).length === 0}
-                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#3b82f6]"
-                >
-                  + Frios
-                </button>
-              </div>
+              {/* 3D ghost button — IG theme */}
+              <motion.button
+                onClick={salvarTodos}
+                disabled={salvandoTodos || naoSalvosCount === 0}
+                whileHover={
+                  salvandoTodos || naoSalvosCount === 0
+                    ? {}
+                    : {
+                        y: -2,
+                        borderColor: "rgba(214,36,159,0.65)",
+                        boxShadow:
+                          "0 5px 0 rgba(214,36,159,0.25), 0 15px 40px rgba(214,36,159,0.12)",
+                      }
+                }
+                whileTap={
+                  salvandoTodos || naoSalvosCount === 0 ? {} : { y: 2 }
+                }
+                style={{
+                  background: "transparent",
+                  color: "#d6249f",
+                  border: "1px solid rgba(214,36,159,0.35)",
+                  borderRadius: "0.75rem",
+                  padding: "0.45rem 1.1rem",
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  cursor:
+                    salvandoTodos || naoSalvosCount === 0
+                      ? "not-allowed"
+                      : "pointer",
+                  boxShadow:
+                    "0 3px 0 rgba(214,36,159,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+                  opacity: naoSalvosCount === 0 ? 0.4 : 1,
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {salvandoTodos
+                  ? "Salvando…"
+                  : `+ Salvar todos (${naoSalvosCount})`}
+              </motion.button>
             </div>
 
             {/* Cards */}
@@ -468,9 +473,7 @@ export default function InstaRadarPage() {
                   : null;
 
                 let fotoUrl = emp.foto;
-                if (!fotoUrl && igHandle) {
-                  fotoUrl = `https://unavatar.io/instagram/${igHandle}?fallback=false`;
-                } else if (!fotoUrl && (emp.website || emp.instagram)) {
+                if (!fotoUrl && (emp.website || emp.instagram)) {
                   const u = emp.website || emp.instagram;
                   fotoUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${u}&size=128`;
                 }
@@ -543,7 +546,7 @@ export default function InstaRadarPage() {
                               color: "#38bdf8",
                             }}
                           >
-                            âœ‰ Email
+                            ✉ Email
                           </span>
                         )}
 
@@ -570,7 +573,7 @@ export default function InstaRadarPage() {
                               color: "#ef4444",
                             }}
                           >
-                            ðŸ”¥ Quente
+                            🔥 Quente
                           </span>
                         )}
                       </div>
@@ -580,7 +583,7 @@ export default function InstaRadarPage() {
                         style={{ color: "var(--ink-dim)" }}
                       >
                         {emp.cidade}
-                        {emp.pais ? ` Â· ${emp.pais}` : ""}
+                        {emp.pais ? ` · ${emp.pais}` : ""}
                         {igUrl && (
                           <a
                             href={igUrl}
@@ -589,13 +592,13 @@ export default function InstaRadarPage() {
                             className="ml-3 font-semibold hover:underline"
                             style={{ color: "#d6249f" }}
                           >
-                            â†— Ver no Instagram
+                            ↗ Ver no Instagram
                           </a>
                         )}
                       </p>
                     </div>
 
-                    {/* Save button â€” IG 3D */}
+                    {/* Save button — IG 3D */}
                     <motion.button
                       onClick={() => salvar(emp)}
                       disabled={salvo}
@@ -643,7 +646,7 @@ export default function InstaRadarPage() {
                             }
                       }
                     >
-                      {salvo ? "âœ“ Travado" : "+ Travar Alvo"}
+                      {salvo ? "✓ Travado" : "+ Travar Alvo"}
                     </motion.button>
                   </motion.div>
                 );
@@ -655,5 +658,3 @@ export default function InstaRadarPage() {
     </div>
   );
 }
-
-

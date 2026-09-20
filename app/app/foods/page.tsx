@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ────────────────────────────────────────────────────────────────────
 type FoodResult = {
   osmId: string;
   nome: string;
@@ -21,7 +21,7 @@ type FoodResult = {
   foto?: string | null;
 };
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getFonteStyle(fonte: string) {
   if (fonte.includes("ifood"))
     return { bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.35)", color: "#ef4444", label: "iFood" };
@@ -38,7 +38,7 @@ function getFonteStyle(fonte: string) {
   return { bg: "rgba(148,163,184,0.1)", border: "rgba(148,163,184,0.2)", color: "#94a3b8", label: fonte };
 }
 
-// â”€â”€â”€ Animation variants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Animation variants ───────────────────────────────────────────────────────
 const pageVariants = {
   hidden: { opacity: 0, y: -20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -70,7 +70,7 @@ const cardVariants = (i: number) => ({
   },
 });
 
-// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function FoodsRadarPage() {
   const [nicho, setNicho] = useState("");
   const [cidade, setCidade] = useState("");
@@ -80,7 +80,7 @@ export default function FoodsRadarPage() {
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
   const [salvandoTodos, setSalvandoTodos] = useState(false);
 
-  // â”€â”€ Business logic (unchanged) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Business logic (unchanged) ─────────────────────────────────────────────
   async function buscar(e: React.FormEvent) {
     e.preventDefault();
     setCarregando(true);
@@ -125,16 +125,12 @@ export default function FoodsRadarPage() {
       .single();
     if (!error && data) setSalvos((s) => new Set(s).add(emp.osmId));
     else if (error)
-      setErro(error.code === "23505" ? `${emp.nome} jÃ¡ estÃ¡ salvo` : error.message);
+      setErro(error.code === "23505" ? `${emp.nome} já está salvo` : error.message);
   }
 
-  async function salvarEmLote(nivel?: "quente" | "morno" | "frio") {
+  async function salvarTodos() {
     if (!resultados) return;
-    let lista = resultados;
-    if (nivel) {
-      lista = lista.filter(e => e.nivel === nivel);
-    }
-    const naoSalvos = lista.filter((e) => !salvos.has(e.osmId));
+    const naoSalvos = resultados.filter((e) => !salvos.has(e.osmId));
     if (naoSalvos.length === 0) return;
     setSalvandoTodos(true);
     const sb = supabaseBrowser();
@@ -171,10 +167,10 @@ export default function FoodsRadarPage() {
     ? resultados.filter((e) => !salvos.has(e.osmId)).length
     : 0;
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div>
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <motion.div variants={pageVariants} initial="hidden" animate="visible">
         <p className="eyebrow" style={{ color: "#f97316" }}>
           Food Intelligence
@@ -188,17 +184,17 @@ export default function FoodsRadarPage() {
             backgroundClip: "text",
           }}
         >
-          Radar Foods ðŸ•
+          Radar Foods 🍕
         </h1>
         <p
           className="mono mt-1 text-[11px] uppercase tracking-widest"
           style={{ color: "var(--ink-dim)" }}
         >
-          iFood Â· UberEats Â· Glovo Â· Rappi Â· TripAdvisor Â· OpenStreetMap Global
+          iFood · UberEats · Glovo · Rappi · TripAdvisor · OpenStreetMap Global
         </p>
       </motion.div>
 
-      {/* â”€â”€ Search Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Search Form ─────────────────────────────────────────────────────── */}
       <motion.form
         onSubmit={buscar}
         variants={formVariants}
@@ -231,13 +227,13 @@ export default function FoodsRadarPage() {
         <input
           value={nicho}
           onChange={(e) => setNicho(e.target.value)}
-          placeholder="Nicho (ex: Hamburgueria, Sushi, Pizzariaâ€¦)"
+          placeholder="Nicho (ex: Hamburgueria, Sushi, Pizzaria…)"
           className="field mono min-w-44 flex-1 text-xs"
         />
         <input
           value={cidade}
           onChange={(e) => setCidade(e.target.value)}
-          placeholder="Cidade (ex: SÃ£o Paulo, Roma, Mundial)"
+          placeholder="Cidade (ex: São Paulo, Roma, Mundial)"
           className="field mono min-w-36 text-xs"
         />
 
@@ -279,16 +275,15 @@ export default function FoodsRadarPage() {
                 className="pulse-dot"
                 style={{ background: "#f97316", display: "inline-block" }}
               />
-              CaÃ§ando...
+              Caçando…
             </>
           ) : (
-            "ðŸ” CaÃ§ar Delivery"
+            "🍕 Caçar Delivery"
           )}
         </motion.button>
-        
       </motion.form>
 
-      {/* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Error ───────────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {erro && (
           <motion.p
@@ -304,12 +299,12 @@ export default function FoodsRadarPage() {
               color: "var(--alert)",
             }}
           >
-            âš  {erro}
+            ⚠ {erro}
           </motion.p>
         )}
       </AnimatePresence>
 
-      {/* â”€â”€ Loading radar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Loading radar ───────────────────────────────────────────────────── */}
       <AnimatePresence>
         {carregando && (
           <motion.div
@@ -347,7 +342,7 @@ export default function FoodsRadarPage() {
                     className="pulse-dot mr-2 inline-block align-middle"
                     style={{ background: "#f97316" }}
                   />
-                  Varrendo apps de delivery globaisâ€¦
+                  Varrendo apps de delivery globais…
                 </p>
                 <motion.p
                   animate={{ opacity: [0.4, 1, 0.4] }}
@@ -355,7 +350,7 @@ export default function FoodsRadarPage() {
                   className="mono text-[10px] uppercase tracking-widest"
                   style={{ color: "#f97316" }}
                 >
-                  iFood Â· UberEats Â· Glovo Â· Rappi Â· TripAdvisor
+                  iFood · UberEats · Glovo · Rappi · TripAdvisor
                 </motion.p>
               </div>
             </div>
@@ -363,7 +358,7 @@ export default function FoodsRadarPage() {
         )}
       </AnimatePresence>
 
-      {/* â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Results ─────────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {resultados && !carregando && (
           <motion.div
@@ -378,41 +373,49 @@ export default function FoodsRadarPage() {
                 className="mono text-[11px] uppercase tracking-widest"
                 style={{ color: "var(--ink-dim)" }}
               >
-                <span style={{ color: "#f97316" }}>â—</span>{" "}
+                <span style={{ color: "#f97316" }}>●</span>{" "}
                 {resultados.length} restaurantes detectados
               </p>
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => salvarEmLote()}
-                  disabled={salvandoTodos || naoSalvosCount === 0}
-                  className="btn-3d text-[10px] px-2 py-1"
-                  style={{ background: "transparent", color: "#f97316", border: "1px solid rgba(249,115,22,0.35)", boxShadow: "0 3px 0 rgba(249,115,22,0.15)" }}
-                >
-                  {salvandoTodos ? "Salvando..." : `+ Todos (${naoSalvosCount})`}
-                </button>
-                <button
-                  onClick={() => salvarEmLote("quente")}
-                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "quente" && !salvos.has(e.osmId)).length === 0}
-                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[var(--signal)]"
-                >
-                  + Quentes
-                </button>
-                <button
-                  onClick={() => salvarEmLote("morno")}
-                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "morno" && !salvos.has(e.osmId)).length === 0}
-                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#facc15]"
-                >
-                  + Mornos
-                </button>
-                <button
-                  onClick={() => salvarEmLote("frio")}
-                  disabled={salvandoTodos || resultados.filter(e => e.nivel === "frio" && !salvos.has(e.osmId)).length === 0}
-                  className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#3b82f6]"
-                >
-                  + Frios
-                </button>
-              </div>
+              <motion.button
+                onClick={salvarTodos}
+                disabled={salvandoTodos || naoSalvosCount === 0}
+                whileHover={
+                  salvandoTodos || naoSalvosCount === 0
+                    ? {}
+                    : {
+                        y: -2,
+                        borderColor: "rgba(249,115,22,0.65)",
+                        boxShadow:
+                          "0 5px 0 rgba(249,115,22,0.25), 0 15px 40px rgba(249,115,22,0.12)",
+                      }
+                }
+                whileTap={
+                  salvandoTodos || naoSalvosCount === 0 ? {} : { y: 2 }
+                }
+                style={{
+                  background: "transparent",
+                  color: "#f97316",
+                  border: "1px solid rgba(249,115,22,0.35)",
+                  borderRadius: "0.75rem",
+                  padding: "0.45rem 1.1rem",
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  cursor:
+                    salvandoTodos || naoSalvosCount === 0
+                      ? "not-allowed"
+                      : "pointer",
+                  boxShadow:
+                    "0 3px 0 rgba(249,115,22,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+                  opacity: naoSalvosCount === 0 ? 0.4 : 1,
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {salvandoTodos
+                  ? "Salvando…"
+                  : `+ Salvar todos (${naoSalvosCount})`}
+              </motion.button>
             </div>
 
             {/* Cards */}
@@ -431,7 +434,8 @@ export default function FoodsRadarPage() {
               {resultados.map((emp, i) => {
                 const salvo = salvos.has(emp.osmId);
                 const fonteInfo = getFonteStyle(emp.fonte);
-                let fotoUrl = emp.foto; if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(emp.nome + " " + emp.cidade)}`; }
+                let fotoUrl = emp.foto;
+                if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(emp.nome + " " + emp.cidade)}`; }
 
                 return (
                   <motion.div
@@ -499,7 +503,7 @@ export default function FoodsRadarPage() {
                               color: "#38bdf8",
                             }}
                           >
-                            âœ‰ Email
+                            ✉ Email
                           </span>
                         )}
 
@@ -512,7 +516,7 @@ export default function FoodsRadarPage() {
                               color: "#ef4444",
                             }}
                           >
-                            ðŸ”¥ Quente
+                            🔥 Quente
                           </span>
                         )}
                       </div>
@@ -522,7 +526,7 @@ export default function FoodsRadarPage() {
                         style={{ color: "var(--ink-dim)" }}
                       >
                         {emp.cidade}
-                        {emp.pais ? ` Â· ${emp.pais}` : ""}
+                        {emp.pais ? ` · ${emp.pais}` : ""}
                         {emp.website && (
                           <a
                             href={emp.website}
@@ -531,7 +535,7 @@ export default function FoodsRadarPage() {
                             className="ml-3 font-semibold hover:underline"
                             style={{ color: fonteInfo.color }}
                           >
-                            â†— Ver no app
+                            ↗ Ver no app
                           </a>
                         )}
                       </p>
@@ -585,7 +589,7 @@ export default function FoodsRadarPage() {
                             }
                       }
                     >
-                      {salvo ? "âœ“ Travado" : "+ Travar Alvo"}
+                      {salvo ? "✓ Travado" : "+ Travar Alvo"}
                     </motion.button>
                   </motion.div>
                 );
@@ -597,6 +601,3 @@ export default function FoodsRadarPage() {
     </div>
   );
 }
-
-
-
