@@ -54,3 +54,4 @@ const btnRecuperar = `<button type="button" onClick={recuperarSenha} className="
 login = login.replace(/<\/motion\.div>\n\s*<motion\.div initial=\{\{ opacity: 0, y: 10 \}\} animate=\{\{ opacity: 1, y: 0 \}\} transition=\{\{ delay: 0\.3 \}\} className="pt-2">/g, `</motion.div>\n            ${btnRecuperar}\n            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="pt-2">`);
 
 fs.writeFileSync('app/login/page.tsx', login);
+

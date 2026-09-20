@@ -20,3 +20,4 @@ fs.writeFileSync('app/app/insta/page.tsx', insta);
 let page = fs.readFileSync('app/app/page.tsx', 'utf-8');
 page = page.replace(/if \(!fotoUrl && \(l\.website \|\| l\.instagram\)\) \{\s*const u = l\.website \|\| l\.instagram;\s*fotoUrl = `https:\/\/t0\.gstatic\.com\/faviconV2\?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=\$\{u\}&size=128`;\s*\}/, 'if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(l.nome + " " + l.cidade)}`; }');
 fs.writeFileSync('app/app/page.tsx', page);
+

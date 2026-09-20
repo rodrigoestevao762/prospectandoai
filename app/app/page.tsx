@@ -232,15 +232,21 @@ export default function LeadsPage() {
     setAviso(`${paraExcluir.length} leads excluídos com sucesso.`);
   }
 
-  async function gerarDMsEmLote() {
-    const paraGerar = visiveis.filter(l => l.instagram && !msgAberta[l.id]);
-    if (paraGerar.length === 0) return setAviso("Nenhum lead disponível para gerar mensagens (ou já geradas).");
+  async function gerarMensagensEmLote(canal: "instagram" | "whatsapp" | "email" | "facebook") {
+    const paraGerar = visiveis.filter(l => {
+      if (msgAberta[l.id]) return false;
+      if (canal === "instagram") return !!l.instagram;
+      if (canal === "whatsapp") return !!l.telefone;
+      if (canal === "facebook") return !!l.facebook;
+      if (canal === "email") return !!l.email;
+      return false;
+    });
+
+    if (paraGerar.length === 0) return setAviso(`Nenhum lead com ${canal} disponível para gerar mensagens (ou já geradas).`);
     if (!confirm(`Deseja gerar mensagens persuasivas via IA para ${paraGerar.length} leads simultaneamente?`)) return;
     
     let sucessos = 0;
     
-    // Processamento Turbo: lotes paralelos de 5 para máxima velocidade. 
-    // Se o limite do Gemini Free (15 RPM) for atingido, o backend agora traduzirá os templates automaticamente sem delay.
     const batchSize = 5;
     for (let i = 0; i < paraGerar.length; i += batchSize) {
       const lote = paraGerar.slice(i, i + batchSize);
@@ -250,7 +256,7 @@ export default function LeadsPage() {
         setOcupado(l.id + ":gerar");
         try {
           const res = await fetch("/api/gerar-mensagem", {
-            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: l.id }),
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: l.id, canal }),
           });
           const json = await res.json();
           if (res.ok) {
@@ -263,12 +269,11 @@ export default function LeadsPage() {
         }
         setOcupado(null);
       }));
-      // Apenas um respiro mínimo para o navegador não travar
       await new Promise(r => setTimeout(r, 100));
     }
     
     setOcupado(null);
-    setAviso(`DMs geradas para ${sucessos} leads!`);
+    if (sucessos > 0) setAviso(`Geração concluída! ${sucessos} mensagens criadas prontas para envio.`);
   }
 
   async function limparTodos() {
@@ -422,9 +427,15 @@ export default function LeadsPage() {
         <button onClick={disparoEmLote} disabled={!!ocupado} className="btn-3d btn-3d-amber">
           ✉ Disparo E-mails
         </button>
-        <button onClick={gerarDMsEmLote} disabled={!!ocupado} className="btn-3d btn-3d-insta">
-          📸 Gerar DMs
-        </button>
+        <button onClick={() => gerarMensagensEmLote("whatsapp")} disabled={!!ocupado} className="btn-3d" style={{ background: '#25D366', color: '#fff', boxShadow: '0 4px 0 #075E54, 0 8px 24px rgba(37,211,102,0.3)' }}>
+            💬 Gerar Wpp
+          </button>
+          <button onClick={() => gerarMensagensEmLote("instagram")} disabled={!!ocupado} className="btn-3d btn-3d-insta">
+            📸 Gerar Insta
+          </button>
+          <button onClick={() => gerarMensagensEmLote("facebook")} disabled={!!ocupado} className="btn-3d" style={{ background: '#1877F2', color: '#fff', boxShadow: '0 4px 0 #1a3a7a, 0 8px 24px rgba(24,119,242,0.3)' }}>
+            📘 Gerar FB
+          </button>
         <button onClick={limparSemRedes} disabled={!!ocupado} className="btn-3d btn-3d-dark">
           🗑 s/ Insta
         </button>
