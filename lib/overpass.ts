@@ -32,12 +32,14 @@ function esc(s: string) {
 export async function geocodificar(cidade: string, pais?: string): Promise<{ lat: number; lng: number; radiusM: number; paisNome: string } | null> {
   const q = pais ? `${cidade}, ${pais}` : cidade;
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
+  
   let res;
-    try {
-      res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(4000) });
-    } catch (err) {
-      return null;
-    }
+  try {
+    res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(3000) });
+  } catch (err) {
+    return null;
+  }
+
   if (!res.ok) return null;
   const data = await res.json();
   if (!data?.length) return null;
@@ -78,38 +80,31 @@ export async function buscarEmpresas(
   // Limite massivo de 15000 resultados para velocidade e volume de extração extremo
   const query = `[out:json][timeout:10];(${selectors.join("")});out center 15000;`;
 
+  
   const UA = { "User-Agent": "ProspectandoAI/1.0 (prospeccao de empresas)" };
 
-  // Tenta cada endpoint; em caso de erro de rede ou 5xx/429 passa para o próximo.
+  const fetchOverpass = async (url: string) => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
+      body: "data=" + encodeURIComponent(query),
+      signal: AbortSignal.timeout(7500),
+    });
+    if (!res.ok) throw new Error(`Overpass ${res.status}`);
+    const data = await res.json();
+    if (!data || !data.elements) throw new Error("Invalid JSON");
+    return data;
+  };
+
   let json: { elements?: any[] } | null = null;
-  let ultimoErro: Error | null = null;
-  for (const url of OVERPASS_ENDPOINTS.slice(0, 2)) {
-    for (let tentativa = 0; tentativa < 1; tentativa++) {
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
-          body: "data=" + encodeURIComponent(query),
-          signal: AbortSignal.timeout(4000),
-        });
-        if (res.ok) {
-          json = await res.json();
-          break;
-        }
-        ultimoErro = new Error(`Overpass ${res.status}`);
-        if (res.status === 400) throw ultimoErro; // query inválida: não adianta repetir
-      } catch (e) {
-        ultimoErro = e instanceof Error ? e : new Error(String(e));
-        if (ultimoErro.message.startsWith("Overpass 400")) throw ultimoErro;
-      }
-      // pequena pausa antes de repetir o mesmo endpoint
-      // no sleep in serverless
-    }
-    if (json) break;
+  try {
+    json = await Promise.any(OVERPASS_ENDPOINTS.map(url => fetchOverpass(url)));
+  } catch (e) {
+    throw new Error("Os servidores do mapa estão sobrecarregados no momento. Por favor, tente novamente em alguns segundos.");
   }
-  if (!json) throw ultimoErro || new Error("Overpass indisponível");
 
   const seen = new Set<string>();
+
   const out: EmpresaOSM[] = [];
   for (const el of json.elements || []) {
     const t = el.tags || {};

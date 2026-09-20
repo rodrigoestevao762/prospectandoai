@@ -1,4 +1,8 @@
-import { NextResponse } from "next/server";
+import fs from 'fs';
+
+let buscarRoute = fs.readFileSync('app/api/buscar/route.ts', 'utf-8');
+
+const newBuscarContent = `import { NextResponse } from "next/server";
 import { geocodificar, buscarEmpresas } from "@/lib/overpass";
 import { getCategoria, CATEGORIAS } from "@/lib/categorias";
 import { qualificar } from "@/lib/qualificacao";
@@ -23,7 +27,7 @@ export async function POST(req: Request) {
 
       if (motor === "google") {
         const { buscarOutscraper } = await import("@/lib/outscraper");
-        const searchQuery = `"${cat ? cat.label : 'empresas'}" em ${cidade}, ${geo.paisNome}`;
+        const searchQuery = \`"\${cat ? cat.label : 'empresas'}" em \${cidade}, \${geo.paisNome}\`;
         const results = await buscarOutscraper(searchQuery, process.env.OUTSCRAPER_API_KEY || "");
         empresas = results.map((e: any) => {
           const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
@@ -59,3 +63,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ erro: msg }, { status: 500 });
   }
 }
+`;
+
+fs.writeFileSync('app/api/buscar/route.ts', newBuscarContent);

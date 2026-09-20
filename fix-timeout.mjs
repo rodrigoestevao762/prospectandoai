@@ -27,3 +27,4 @@ enrichment = enrichment.replaceAll(
 // Actually, safePromise is defined using const, so in each function it will be local.
 
 fs.writeFileSync('lib/enrichment.ts', enrichment);
+
