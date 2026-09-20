@@ -254,3 +254,4 @@ const regexRadarFoods = /export async function radarFoods\([\s\S]*?return Array\
 enrichment = enrichment.replace(regexRadarFoods, newRadarFoods);
 
 fs.writeFileSync('lib/enrichment.ts', enrichment);
+

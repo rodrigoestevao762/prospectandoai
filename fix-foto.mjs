@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import fs from 'fs';
+
+const routeContent = `import { NextResponse } from "next/server";
 import { buscarOutscraper } from "@/lib/outscraper";
 
 // 1x1 transparent PNG
@@ -31,3 +33,6 @@ export async function GET(req: Request) {
     return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
   }
 }
+`;
+
+fs.writeFileSync('app/api/foto-maps/route.ts', routeContent);

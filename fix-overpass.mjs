@@ -16,3 +16,4 @@ overpass = overpass.replace(/\[timeout:60\]/g, '[timeout:10]');
 overpass = overpass.replace('for (let tentativa = 0; tentativa < 2; tentativa++) {', 'for (let tentativa = 0; tentativa < 1; tentativa++) {');
 
 fs.writeFileSync('lib/overpass.ts', overpass);
+

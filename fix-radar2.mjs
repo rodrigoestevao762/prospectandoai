@@ -133,3 +133,4 @@ if (oldFoodsIndex !== -1) {
   enrichment += newRadarFoods;
   fs.writeFileSync('lib/enrichment.ts', enrichment);
 }
+

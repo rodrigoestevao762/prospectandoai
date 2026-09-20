@@ -7,3 +7,4 @@ overpass = overpass.replace('for (const url of OVERPASS_ENDPOINTS) {', 'for (con
 overpass = overpass.replace(/AbortSignal\.timeout\(5000\)/g, 'AbortSignal.timeout(4000)');
 
 fs.writeFileSync('lib/overpass.ts', overpass);
+
