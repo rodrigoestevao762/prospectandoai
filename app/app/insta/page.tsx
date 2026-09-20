@@ -148,9 +148,10 @@ export default function InstaRadarPage() {
       );
   }
 
-  async function salvarTodos() {
+  async function salvarTodos(nivel?: "quente" | "morno" | "frio") {
     if (!resultados) return;
-    const naoSalvos = resultados.filter((e) => !salvos.has(e.osmId));
+    let naoSalvos = resultados.filter((e) => !salvos.has(e.osmId));
+      if (nivel) naoSalvos = naoSalvos.filter(r => r.nivel === nivel);
     if (naoSalvos.length === 0) return;
     setSalvandoTodos(true);
     const sb = supabaseBrowser();
@@ -407,45 +408,20 @@ export default function InstaRadarPage() {
               </p>
 
               {/* 3D ghost button — IG theme */}
-              <motion.button
-                onClick={salvarTodos}
-                disabled={salvandoTodos || naoSalvosCount === 0}
-                whileHover={
-                  salvandoTodos || naoSalvosCount === 0
-                    ? {}
-                    : {
-                        y: -2,
-                        borderColor: "rgba(214,36,159,0.65)",
-                        boxShadow:
-                          "0 5px 0 rgba(214,36,159,0.25), 0 15px 40px rgba(214,36,159,0.12)",
-                      }
-                }
-                whileTap={
-                  salvandoTodos || naoSalvosCount === 0 ? {} : { y: 2 }
-                }
-                style={{
-                  background: "transparent",
-                  color: "#d6249f",
-                  border: "1px solid rgba(214,36,159,0.35)",
-                  borderRadius: "0.75rem",
-                  padding: "0.45rem 1.1rem",
-                  fontFamily: "var(--font-mono, monospace)",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  cursor:
-                    salvandoTodos || naoSalvosCount === 0
-                      ? "not-allowed"
-                      : "pointer",
-                  boxShadow:
-                    "0 3px 0 rgba(214,36,159,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
-                  opacity: naoSalvosCount === 0 ? 0.4 : 1,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {salvandoTodos
-                  ? "Salvando…"
-                  : `+ Salvar todos (${naoSalvosCount})`}
-              </motion.button>
+              <div className="flex flex-wrap gap-2 items-center">
+                  <button onClick={() => salvarTodos()} disabled={carregando || resultados.every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1">
+                    + Salvar Todos
+                  </button>
+                  <button onClick={() => salvarTodos("quente")} disabled={carregando || resultados.filter(e => e.nivel === "quente").every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[var(--signal)]">
+                    + Quentes
+                  </button>
+                  <button onClick={() => salvarTodos("morno")} disabled={carregando || resultados.filter(e => e.nivel === "morno").every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#facc15]">
+                    + Mornos
+                  </button>
+                  <button onClick={() => salvarTodos("frio")} disabled={carregando || resultados.filter(e => e.nivel === "frio").every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#3b82f6]">
+                    + Frios
+                  </button>
+                </div>
             </div>
 
             {/* Cards */}

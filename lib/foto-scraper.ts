@@ -1,34 +1,30 @@
 import * as cheerio from 'cheerio';
 
-export async function scrapeFoto(query: string) {
+export async function scrapeFotoGoogle(query: string): Promise<string | null> {
   try {
-    const q = encodeURIComponent(query + " fachada externa");
-    const res = await fetch(`https://html.duckduckgo.com/html/?q=${q}`, {
+    const url = `https://www.google.com/search?q=\${encodeURIComponent(query + ' fachada')}&tbm=isch`;
+    const res = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
+    
+    if (!res.ok) return null;
     const html = await res.text();
     const $ = cheerio.load(html);
     
-    // Pega a primeira imagem de resultado na DuckDuckGo
-    let imgUrl = $('.result__snippet').first().parent().find('img.result__icon__img').attr('src');
+    // As imagens de cache do Google Images normalmente vêm em tags img
+    let fotoUrl: string | null = null;
     
-    if (!imgUrl) {
-       imgUrl = $('img.result__icon__img').first().attr('src');
-    }
-
-    if (imgUrl) {
-      if (imgUrl.startsWith('//')) {
-        return 'https:' + imgUrl;
+    $('img').each((i, el) => {
+      const src = $(el).attr('src');
+      if (src && src.startsWith('http') && !src.includes('branding/googlelogo')) {
+        if (!fotoUrl) fotoUrl = src;
       }
-      return imgUrl;
-    }
-    
-    return null;
-  } catch(e) {
+    });
+
+    return fotoUrl;
+  } catch (e) {
     return null;
   }
 }

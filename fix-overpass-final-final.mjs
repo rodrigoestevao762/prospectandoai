@@ -10,3 +10,4 @@ fs.writeFileSync('lib/overpass.ts', overpass);
 let enrichment = fs.readFileSync('lib/enrichment.ts', 'utf-8');
 enrichment = enrichment.replace(/,\s*signal:\s*AbortSignal\.timeout\(\d+\)\s*(?=\})?/g, '');
 fs.writeFileSync('lib/enrichment.ts', enrichment);
+

@@ -110,9 +110,10 @@ export default function MapaPage() {
     else if (error) setErro(error.code === "23505" ? `${emp.nome} já está nos seus leads` : error.message);
   }
 
-  async function salvarTodos() {
+  async function salvarTodos(nivel?: "quente" | "morno" | "frio") {
     if (!resultados) return;
-    const naoSalvos = resultados.filter(e => !salvos.has(e.osmId));
+    let naoSalvos = resultados.filter(e => !salvos.has(e.osmId));
+      if (nivel) naoSalvos = naoSalvos.filter(r => r.nivel === nivel);
     if (naoSalvos.length === 0) return;
     
     setCarregando(true);
@@ -205,10 +206,20 @@ export default function MapaPage() {
                 📍 {centro.cidade}{centro.pais ? `, ${centro.pais}` : ""} — {resultados?.length} alvos encontrados
               </p>
               {resultados && resultados.length > 0 && (
-                <button onClick={salvarTodos} disabled={carregando || resultados.every(e => salvos.has(e.osmId))}
-                  className="btn-3d btn-3d-primary py-1.5 px-4 text-[10px]">
-                  + salvar todos
-                </button>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <button onClick={() => salvarTodos()} disabled={carregando || resultados.every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1">
+                    + Salvar Todos
+                  </button>
+                  <button onClick={() => salvarTodos("quente")} disabled={carregando || resultados.filter(e => e.nivel === "quente").every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[var(--signal)]">
+                    + Quentes
+                  </button>
+                  <button onClick={() => salvarTodos("morno")} disabled={carregando || resultados.filter(e => e.nivel === "morno").every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#facc15]">
+                    + Mornos
+                  </button>
+                  <button onClick={() => salvarTodos("frio")} disabled={carregando || resultados.filter(e => e.nivel === "frio").every(e => salvos.has(e.osmId))} className="btn-3d btn-3d-ghost text-[10px] px-2 py-1 text-[#3b82f6]">
+                    + Frios
+                  </button>
+                </div>
               )}
             </motion.div>
           )}

@@ -1,7 +1,9 @@
+export const runtime = 'edge';
+
 import { NextResponse } from "next/server";
 import { buscarOutscraper } from "@/lib/outscraper";
+import { scrapeFotoGoogle } from "@/lib/foto-scraper";
 
-// 1x1 transparent PNG
 const TRANSPARENT_PIXEL = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
   "base64"
@@ -25,7 +27,12 @@ export async function GET(req: Request) {
       } catch (e) {}
     }
 
-    // Retorna pixel transparente se não tiver chave ou não achar foto no Google Maps
+    // Fallback: Scrape Google Images se nǜo tiver Outscraper
+    const fallbackFoto = await scrapeFotoGoogle(q);
+    if (fallbackFoto) {
+      return NextResponse.redirect(fallbackFoto);
+    }
+
     return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
   } catch (e) {
     return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
