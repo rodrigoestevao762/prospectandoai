@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabaseBrowser } from "@/lib/supabase-browser";
+import { supabaseBrowser } from "@/lib/supabase-browser"; import { MapPin } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type FoodResult = {
@@ -410,8 +410,8 @@ export default function FoodsRadarPage() {
               {resultados.map((emp, i) => {
                 const salvo = salvos.has(emp.osmId);
                 const fonteInfo = getFonteStyle(emp.fonte);
-                let fotoUrl = emp.foto;
-                if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(emp.nome + " " + emp.cidade)}`; }
+                
+                
 
                 return (
                   <motion.div
@@ -440,13 +440,10 @@ export default function FoodsRadarPage() {
                     />
 
                     <div className="shrink-0 z-10">
-                      {fotoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={fotoUrl} alt={emp.nome} className="w-10 h-10 rounded-full object-cover border border-white/10" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest" style={{ color: fonteInfo.color }}>
-                          {emp.nome ? emp.nome.substring(0, 2) : "??"}
-                        </div>
+  <a href={https://www.google.com/maps/search/?api=1&query=} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors shadow-lg" title="Ver no Google Maps">
+    <MapPin className="w-5 h-5" style={{ color: fonteInfo.color }} />
+  </a>
+</div>
                       )}
                     </div>
 

@@ -258,11 +258,8 @@ export default function BuscaPage() {
             {/* CARDS COM FOTOS GRANDES ENCIMA */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {(somenteInstagram ? resultados.filter(e => e.instagram) : resultados).map((emp, i) => {
-                let fotoUrl = emp.foto;
-                if (!fotoUrl) {
-                  fotoUrl = `/api/foto-maps?q=${encodeURIComponent(emp.nome + " " + emp.cidade)}`;
-                }
                 const accent = NIVEL_ACCENT[emp.nivel];
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`;
 
                 return (
                   <motion.div 
@@ -274,17 +271,14 @@ export default function BuscaPage() {
                   >
                     <div className="absolute top-0 inset-x-0 h-32 blur-[50px] opacity-10 group-hover:opacity-20 pointer-events-none transition-opacity" style={{ backgroundColor: accent }} />
                     
-                    {/* BANNED DE FOTO (HERO) */}
-                    <div className="w-full h-40 bg-black/50 relative border-b border-white/5 flex items-center justify-center overflow-hidden">
-                      {fotoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={fotoUrl} alt={emp.nome} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-500" />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-white/20">
-                          <Target className="w-10 h-10 mb-2 opacity-50" />
-                          <span className="mono text-[10px] uppercase tracking-widest font-bold">Sem imagem</span>
-                        </div>
-                      )}
+                    {/* Maps Redirect Header (Super Fast) */}
+                    <div className="w-full h-24 bg-gradient-to-b from-white/5 to-transparent relative border-b border-white/5 flex items-center justify-center overflow-hidden">
+                      <a href={mapsUrl} target="_blank" rel="noopener noreferrer" 
+                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] mono uppercase tracking-widest text-white transition-all shadow-[0_0_10px_rgba(255,255,255,0.05)] hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:scale-105">
+                        <MapPin className="w-4 h-4 text-[var(--signal)]" />
+                        Ver no Google Maps
+                      </a>
+
                       {/* Distintivo de Nível flutuante */}
                       <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border border-white/10 flex items-center gap-1">
                         <span>{emp.nivel === "quente" ? "🔥" : emp.nivel === "morno" ? "💡" : "❄"}</span>
