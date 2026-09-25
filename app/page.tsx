@@ -160,11 +160,11 @@ function FloatingLeadCard({ delay, duration = 6, yOffset = -15, top, left, right
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.9 }}
-      animate={{ opacity: 1, y: [0, yOffset, 0], scale: 1 }}
+      animate={{ opacity: 1, y: yOffset, scale: 1 }}
       transition={{ 
         opacity: { delay, duration: 1 },
         scale: { delay, duration: 1 },
-        y: { repeat: Infinity, duration: duration, ease: "easeInOut", delay }
+        y: { repeat: Infinity, repeatType: "reverse", duration: duration, ease: "easeInOut", delay }
       }}
       style={{ top, left, right, bottom }}
       className="absolute z-20 pointer-events-auto"
@@ -309,57 +309,16 @@ export default function ProspectandoAILanding() {
             Mais conexões. Mais negócios. Sem fronteiras.
           </motion.p>
 
-          {/* Floating Cards (React Components) */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden hidden xl:block">
-            <FloatingLeadCard 
-              delay={0.5} duration={7.5} top="12%" left="4%" 
-              title="Empresa de Tecnologia" location="São Paulo, Brasil"
-              desc="Soluções em cloud e segurança." btn="Enviar proposta"
-              icon={Server}
-            />
-            <FloatingLeadCard 
-              delay={0.7} duration={6} top="42%" left="2%" 
-              title="Cliente em Potencial" location="Nova York, EUA"
-              desc="Interessado em soluções de marketing digital." btn="Conectar"
-              icon={TrendingUp}
-            />
-            <FloatingLeadCard 
-              delay={0.9} duration={8} bottom="15%" left="6%" 
-              title="Loja de Varejo" location="Buenos Aires, Argentina"
-              desc="Busca fornecedores de tecnologia." btn="Entrar em contato"
-              icon={Store}
-            />
-            
-            <FloatingLeadCard 
-              delay={0.6} duration={7} top="16%" right="4%" 
-              title="Empresa de Serviços" location="Paris, França"
-              desc="Interessa-se em expansão para novos mercados." btn="Ver detalhes"
-              icon={Package}
-            />
-            <FloatingLeadCard 
-              delay={0.8} duration={6.5} top="46%" right="2%" 
-              title="Fornecedor Global" location="Cingapura"
-              desc="Produtos com alta demanda no mercado internacional." btn="Fazer contato"
-              icon={Ship}
-            />
-            <FloatingLeadCard 
-              delay={1.0} duration={8.5} bottom="18%" right="6%" 
-              title="Distribuidor" location="Dubai, Emirados Árabes"
-              desc="Procurando novos parceiros comerciais." btn="Conectar"
-              icon={Building2}
-            />
-          </div>
-          
-          {/* Bottom Footer Area */}
+          {/* Central Metrics Area (Replacing Search Bar) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 1 }}
-            className="absolute bottom-6 md:bottom-10 left-4 md:left-10 right-4 md:right-10 flex flex-col xl:flex-row justify-between items-center xl:items-end text-left pointer-events-none gap-6 xl:gap-0"
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="flex flex-col xl:flex-row items-center gap-6 z-20 pointer-events-auto mt-4"
           >
             {/* 4 Status Icons Group */}
-            <div className="flex flex-col md:flex-row gap-6 md:gap-10 bg-black/40 backdrop-blur-md p-5 rounded-2xl border border-[#00CFFF]/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
-              <div className="flex items-start gap-4 md:border-r border-white/10 md:pr-8">
+            <div className="flex flex-col md:flex-row gap-6 md:gap-8 bg-[#000000]/50 backdrop-blur-xl p-6 rounded-2xl border border-[#00CFFF]/20 shadow-[0_16px_40px_rgba(0,0,0,0.8)]">
+              <div className="flex items-start gap-4 md:border-r border-white/10 md:pr-6">
                 <Globe2 className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div className="flex items-center h-full">
                   <p className="mono text-[11px] md:text-[12px] tracking-[0.2em] text-[#FFFFFF] uppercase font-bold w-32 md:leading-snug">
@@ -367,36 +326,77 @@ export default function ProspectandoAILanding() {
                   </p>
                 </div>
               </div>
-              <div className="hidden md:flex items-start gap-4 border-r border-white/10 pr-8">
+              <div className="hidden md:flex items-start gap-4 border-r border-white/10 pr-6">
                 <MessageCircle className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div>
                   <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">BUSQUE</p>
-                  <p className="text-[12px] md:text-[13px] text-[#E0E0E0] w-36">Clientes e empresas em todo o mundo</p>
+                  <p className="text-[12px] text-[#E0E0E0] w-32">Clientes e empresas em todo o mundo</p>
                 </div>
               </div>
-              <div className="hidden md:flex items-start gap-4 border-r border-white/10 pr-8">
+              <div className="hidden md:flex items-start gap-4 border-r border-white/10 pr-6">
                 <Network className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div>
                   <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CONECTE</p>
-                  <p className="text-[12px] md:text-[13px] text-[#E0E0E0] w-36">Faça parcerias e expanda seu negócio</p>
+                  <p className="text-[12px] text-[#E0E0E0] w-32">Faça parcerias e expanda seu negócio</p>
                 </div>
               </div>
               <div className="hidden md:flex items-start gap-4">
                 <TrendingUp className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div>
                   <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CRESÇA</p>
-                  <p className="text-[12px] md:text-[13px] text-[#E0E0E0] w-36">Sem limites. Sem fronteiras.</p>
+                  <p className="text-[12px] text-[#E0E0E0] w-32">Sem limites. Sem fronteiras.</p>
                 </div>
               </div>
             </div>
 
             {/* Right Side List */}
-            <div className="hidden xl:block text-right pb-4 pr-4 bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/5">
-              <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest mb-3 opacity-90 cursor-default">+ CONEXÕES</p>
-              <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest mb-3 opacity-90 cursor-default">+ OPORTUNIDADES</p>
-              <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest opacity-90 cursor-default">+ RESULTADOS</p>
+            <div className="hidden xl:flex flex-col justify-center text-left bg-[#000000]/40 backdrop-blur-xl p-6 px-8 rounded-2xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.8)] h-full">
+              <p className="font-bold text-[13px] text-[#00CFFF] tracking-widest mb-3 cursor-default hover:text-white transition-colors">+ CONEXÕES</p>
+              <p className="font-bold text-[13px] text-[#00CFFF] tracking-widest mb-3 cursor-default hover:text-white transition-colors">+ OPORTUNIDADES</p>
+              <p className="font-bold text-[13px] text-[#00CFFF] tracking-widest cursor-default hover:text-white transition-colors">+ RESULTADOS</p>
             </div>
           </motion.div>
+
+          {/* Floating Cards (React Components) */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden hidden xl:block z-10">
+            <FloatingLeadCard 
+              delay={0.2} duration={4} yOffset={-30} top="12%" left="4%" 
+              title="Empresa de Tecnologia" location="São Paulo, Brasil"
+              desc="Soluções em cloud e segurança." btn="Enviar proposta"
+              icon={Server}
+            />
+            <FloatingLeadCard 
+              delay={0.4} duration={5} yOffset={-25} top="42%" left="2%" 
+              title="Cliente em Potencial" location="Nova York, EUA"
+              desc="Interessado em soluções de marketing digital." btn="Conectar"
+              icon={TrendingUp}
+            />
+            <FloatingLeadCard 
+              delay={0.6} duration={4.5} yOffset={-35} bottom="15%" left="6%" 
+              title="Loja de Varejo" location="Buenos Aires, Argentina"
+              desc="Busca fornecedores de tecnologia." btn="Entrar em contato"
+              icon={Store}
+            />
+            
+            <FloatingLeadCard 
+              delay={0.3} duration={5.5} yOffset={-28} top="16%" right="4%" 
+              title="Empresa de Serviços" location="Paris, França"
+              desc="Interessa-se em expansão para novos mercados." btn="Ver detalhes"
+              icon={Package}
+            />
+            <FloatingLeadCard 
+              delay={0.5} duration={4.2} yOffset={-32} top="46%" right="2%" 
+              title="Fornecedor Global" location="Cingapura"
+              desc="Produtos com alta demanda no mercado internacional." btn="Fazer contato"
+              icon={Ship}
+            />
+            <FloatingLeadCard 
+              delay={0.7} duration={6} yOffset={-25} bottom="18%" right="6%" 
+              title="Distribuidor" location="Dubai, Emirados Árabes"
+              desc="Procurando novos parceiros comerciais." btn="Conectar"
+              icon={Building2}
+            />
+          </div>
         </motion.div>
 
         {/* Bottom fade */}
