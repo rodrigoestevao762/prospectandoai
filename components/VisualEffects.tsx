@@ -7,7 +7,11 @@ import * as random from 'maath/random/dist/maath-random.esm';
 
 export function ParticleStarfield() {
   const ref = useRef<any>();
-  const sphere = useMemo(() => random.inSphere(new Float32Array(5000), { radius: 1.5 }), []);
+  const [sphere, setSphere] = React.useState<Float32Array | null>(null);
+
+  React.useEffect(() => {
+    setSphere(random.inSphere(new Float32Array(5000), { radius: 1.5 }) as Float32Array);
+  }, []);
 
   useFrame((state, delta) => {
     if (ref.current) {
@@ -15,6 +19,8 @@ export function ParticleStarfield() {
       ref.current.rotation.y -= delta / 15;
     }
   });
+
+  if (!sphere) return null;
 
   return (
     <group rotation={[0, 0, Math.PI / 4]}>
