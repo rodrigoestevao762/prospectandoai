@@ -157,18 +157,15 @@ function FeaturePill({ icon, label }: { icon: React.ReactNode; label: string }) 
 export default function ProspectandoAILanding() {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
+  const heroYRaw = useTransform(scrollYProgress, [0, 1], [0, 40]);
+  const smoothYRaw = useSpring(heroYRaw, { stiffness: 80, damping: 20 });
+  const smoothY = useTransform(smoothYRaw, (val) => `${val}%`);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
-  const smoothY = useSpring(heroY, { stiffness: 80, damping: 20 });
 
   return (
     <main className="cyber-theme relative min-h-screen text-white overflow-x-hidden" style={{ background: "var(--void)" }}>
       <CyberBackground />
-
-      <style>{`
-        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-      `}</style>
 
       {/* ── NAV ── */}
       <motion.nav
