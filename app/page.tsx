@@ -8,7 +8,8 @@ import { useTilt3D } from "@/hooks/useAnimations";
 import {
   ArrowRight, Search, Activity, BarChart3,
   MessageSquare, TrendingUp, Lock, Crosshair,
-  Globe, Zap, ChevronDown, Check
+  Globe, Zap, ChevronDown, Check,
+  Server, Package, Ship, Store, Building2, MessageCircle, Network, Globe2
 } from "lucide-react";
 
 /* ─── MARQUEE ─── */
@@ -154,7 +155,7 @@ function FeaturePill({ icon, label }: { icon: React.ReactNode; label: string }) 
 }
 
 /* ─── FLOATING LEAD CARD ─── */
-function FloatingLeadCard({ delay, top, left, right, bottom, title, location, desc, btn }: any) {
+function FloatingLeadCard({ delay, top, left, right, bottom, title, location, desc, btn, icon: Icon }: any) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -168,24 +169,32 @@ function FloatingLeadCard({ delay, top, left, right, bottom, title, location, de
       className="absolute z-20 pointer-events-auto"
     >
       <div className="relative group w-[280px]">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <div className="relative p-4 rounded-2xl bg-[#0a0a14]/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] hover:border-indigo-500/40 transition-colors duration-300">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-              <Activity className="w-4 h-4 text-white/70" />
+        {/* Glow behind the card */}
+        <div className="absolute inset-0 bg-[#00CFFF]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        {/* Card Body */}
+        <div className="relative p-4 rounded-2xl bg-gradient-to-b from-black/80 to-[#050510]/90 backdrop-blur-md border border-[#00CFFF]/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] group-hover:border-[#00CFFF]/60 transition-colors duration-300">
+          
+          <div className="flex items-start gap-3 mb-2">
+            <div className="w-9 h-9 rounded-lg bg-[#00CFFF]/10 border border-[#00CFFF]/20 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,207,255,0.2)]">
+              <Icon className="w-5 h-5 text-[#00CFFF]" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white leading-tight">{title}</h3>
-              <div className="flex items-center gap-1 mt-1">
-                <Globe className="w-3 h-3 text-white/40" />
-                <span className="text-[10px] text-white/40">{location}</span>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-[#FFFFFF] leading-tight mb-1">{title}</h3>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-[#A020F0]">📍</span>
+                <span className="text-[10px] text-[#E0E0E0]">{location}</span>
               </div>
             </div>
           </div>
-          <p className="text-xs text-white/60 mb-4 line-clamp-2">{desc}</p>
-          <button className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold tracking-wider text-white uppercase transition-colors">
-            {btn}
-          </button>
+          
+          <p className="text-[11px] text-[#E0E0E0] leading-relaxed mb-4">{desc}</p>
+          
+          <div className="flex justify-end">
+            <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#00BFFF] to-[#2060FF] hover:brightness-110 text-[10px] font-bold tracking-wider text-white uppercase transition-all shadow-[0_0_10px_rgba(0,191,255,0.4)] flex items-center gap-1">
+              {btn} <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -250,125 +259,155 @@ export default function ProspectandoAILanding() {
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
         {/* Full-screen Background Image */}
         <div className="absolute inset-0 z-0">
-            <img src="/hero-bg.jpg" alt="Global Network" className="w-full h-full object-cover opacity-60 mix-blend-screen" />
-            <div className="absolute inset-0 bg-gradient-to-b from-[var(--void)] via-transparent to-[var(--void)]" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--void)] via-transparent to-[var(--void)]" />
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-          </div>
+          <img src="/hero-bg-clean.jpg" alt="Global Network" className="w-full h-full object-cover opacity-80 mix-blend-screen" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#000000]/50 via-transparent to-[#000000]/90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/60 via-transparent to-[#000000]/60" />
+        </div>
 
-          <motion.div
-            style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
-            className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center pt-20"
+        <motion.div
+          style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
+          className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center pt-24"
+        >
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.8 }}
+            className="text-[16px] md:text-[20px] uppercase text-[#FFFFFF] mb-4 font-light tracking-[0.2em]"
           >
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.8 }}
-              className="mono text-[11px] tracking-[0.4em] uppercase text-white/70 mb-6 font-bold"
-            >
-              Conectando o Mundo
-            </motion.p>
-            
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display font-black tracking-tight text-white mb-6 leading-[1.1]"
-              style={{ fontSize: "clamp(42px, 6vw, 72px)" }}
-            >
-              Pessoas, Empresas e<br />
-              <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #a5b4fc 0%, #c084fc 100%)" }}>
-                Oportunidades
-              </span>
-            </motion.h1>
+            CONECTANDO O MUNDO
+          </motion.p>
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="font-display font-bold tracking-tight text-[#00CFFF] mb-6 leading-[1.1] drop-shadow-[0_0_20px_rgba(0,207,255,0.4)]"
+            style={{ fontSize: "clamp(48px, 7vw, 84px)" }}
+          >
+            Pessoas, Empresas e<br />
+            Oportunidades
+          </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="max-w-2xl mx-auto text-sm md:text-base text-white/70 leading-relaxed mb-12"
-            >
-              A maior plataforma global de busca por clientes e empresas.<br />
-              Mais conexões. Mais negócios. Sem fronteiras.
-            </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="max-w-3xl mx-auto text-lg md:text-xl text-[#FFFFFF] font-medium leading-relaxed mb-12 drop-shadow-md"
+          >
+            A maior plataforma global de busca por clientes e empresas.<br />
+            Mais conexões. Mais negócios. Sem fronteiras.
+          </motion.p>
 
-            {/* Search Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="relative w-full max-w-xl mx-auto group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative flex items-center bg-black/50 backdrop-blur-xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-                <Search className="w-5 h-5 text-white/40" />
-                <input 
-                  type="text" 
-                  placeholder="Qual é o seu objetivo?" 
-                  className="flex-1 bg-transparent border-none outline-none text-white px-4 placeholder:text-white/30 text-sm"
-                />
-                <Link href="/login" className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                  <ArrowRight className="w-4 h-4 text-white" />
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Floating Cards (React Components) */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <FloatingLeadCard 
-                delay={0.5} top="15%" left="10%" 
-                title="Empresa de Tecnologia" location="São Paulo, Brasil"
-                desc="Soluções em cloud e segurança." btn="Enviar proposta"
+          {/* Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="relative w-full max-w-2xl mx-auto group"
+          >
+            <div className="absolute inset-0 bg-[#00CFFF]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="relative flex items-center bg-gradient-to-r from-[#000000]/80 to-[#050510]/80 backdrop-blur-xl border border-[#00CFFF]/40 rounded-full p-2 pl-6 shadow-[0_8px_32px_rgba(0,0,0,0.8)]">
+              <span className="text-xl mr-3 opacity-60">🔍</span>
+              <input 
+                type="text" 
+                placeholder="Qual é o seu objetivo?" 
+                className="flex-1 bg-transparent border-none outline-none text-[#FFFFFF] placeholder:text-[#E0E0E0]/60 text-[16px]"
               />
-              <FloatingLeadCard 
-                delay={0.7} top="40%" left="5%" 
-                title="Cliente em Potencial" location="Nova York, EUA"
-                desc="Interessado em marketing digital." btn="Conectar"
-              />
-              <FloatingLeadCard 
-                delay={0.9} bottom="20%" left="12%" 
-                title="Loja de Varejo" location="Buenos Aires, Argentina"
-                desc="Busca fornecedores de tecnologia." btn="Entrar em contato"
-              />
-              
-              <FloatingLeadCard 
-                delay={0.6} top="20%" right="8%" 
-                title="Empresa de Serviços" location="Paris, França"
-                desc="Expansão para novos mercados." btn="Ver detalhes"
-              />
-              <FloatingLeadCard 
-                delay={0.8} top="45%" right="12%" 
-                title="Fornecedor Global" location="Singapura"
-                desc="Produtos com alta demanda." btn="Fazer contato"
-              />
-              <FloatingLeadCard 
-                delay={1.0} bottom="25%" right="10%" 
-                title="Distribuidor" location="Dubai, E.A.U."
-                desc="Procura novos parceiros." btn="Conectar"
-              />
+              <Link href="/login" className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00BFFF] to-[#2060FF] flex items-center justify-center hover:brightness-110 transition-all shadow-[0_0_15px_rgba(0,191,255,0.4)]">
+                <ArrowRight className="w-5 h-5 text-white" />
+              </Link>
             </div>
-            
-            {/* Bottom Metrics */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 1 }}
-              className="absolute bottom-10 inset-x-0 flex justify-center gap-16 text-left"
-            >
-              <div>
-                <p className="mono text-[10px] tracking-[0.2em] text-white/40 uppercase mb-1">Busque</p>
-                <p className="text-xs text-white/70">Clientes e empresas<br/>em todo o mundo</p>
-              </div>
-              <div>
-                <p className="mono text-[10px] tracking-[0.2em] text-white/40 uppercase mb-1">Conecte</p>
-                <p className="text-xs text-white/70">Faça parcerias<br/>e expanda seu negócio</p>
-              </div>
-              <div>
-                <p className="mono text-[10px] tracking-[0.2em] text-white/40 uppercase mb-1">Cresça</p>
-                <p className="text-xs text-white/70">Sem limites.<br/>Sem fronteiras.</p>
-              </div>
-            </motion.div>
           </motion.div>
+
+          {/* Floating Cards (React Components) */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <FloatingLeadCard 
+              delay={0.5} top="15%" left="8%" 
+              title="Empresa de Tecnologia" location="São Paulo, Brasil"
+              desc="Soluções em cloud e segurança." btn="Enviar proposta"
+              icon={Server}
+            />
+            <FloatingLeadCard 
+              delay={0.7} top="45%" left="4%" 
+              title="Cliente em Potencial" location="Nova York, EUA"
+              desc="Interessado em soluções de marketing digital." btn="Conectar"
+              icon={TrendingUp}
+            />
+            <FloatingLeadCard 
+              delay={0.9} bottom="20%" left="10%" 
+              title="Loja de Varejo" location="Buenos Aires, Argentina"
+              desc="Busca fornecedores de tecnologia." btn="Entrar em contato"
+              icon={Store}
+            />
+            
+            <FloatingLeadCard 
+              delay={0.6} top="18%" right="6%" 
+              title="Empresa de Serviços" location="Paris, França"
+              desc="Interessa-se em expansão para novos mercados." btn="Ver detalhes"
+              icon={Package}
+            />
+            <FloatingLeadCard 
+              delay={0.8} top="48%" right="8%" 
+              title="Fornecedor Global" location="Cingapura"
+              desc="Produtos com alta demanda no mercado internacional." btn="Fazer contato"
+              icon={Ship}
+            />
+            <FloatingLeadCard 
+              delay={1.0} bottom="22%" right="5%" 
+              title="Distribuidor" location="Dubai, Emirados Árabes"
+              desc="Procurando novos parceiros comerciais." btn="Conectar"
+              icon={Building2}
+            />
+          </div>
+          
+          {/* Bottom Footer Area */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 1 }}
+            className="absolute bottom-10 left-10 right-10 flex justify-between items-end text-left pointer-events-none"
+          >
+            {/* 4 Status Icons Group */}
+            <div className="flex gap-10 bg-black/40 backdrop-blur-md p-5 rounded-2xl border border-[#00CFFF]/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+              <div className="flex items-start gap-4 border-r border-white/10 pr-8">
+                <Globe2 className="w-6 h-6 text-[#00CFFF]" />
+                <div className="flex items-center h-full">
+                  <p className="mono text-[12px] tracking-[0.2em] text-[#FFFFFF] uppercase font-bold w-32 leading-snug">
+                    NEGÓCIOS GLOBAIS EM UM SÓ LUGAR
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 border-r border-white/10 pr-8">
+                <MessageCircle className="w-6 h-6 text-[#00CFFF]" />
+                <div>
+                  <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">BUSQUE</p>
+                  <p className="text-[13px] text-[#E0E0E0] w-36">Clientes e empresas em todo o mundo</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 border-r border-white/10 pr-8">
+                <Network className="w-6 h-6 text-[#00CFFF]" />
+                <div>
+                  <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CONECTE</p>
+                  <p className="text-[13px] text-[#E0E0E0] w-36">Faça parcerias e expanda seu negócio</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <TrendingUp className="w-6 h-6 text-[#00CFFF]" />
+                <div>
+                  <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CRESÇA</p>
+                  <p className="text-[13px] text-[#E0E0E0] w-36">Sem limites. Sem fronteiras.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side List */}
+            <div className="text-right pb-4 pr-4 bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/5">
+              <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest mb-3 opacity-90 cursor-default">+ CONEXÕES</p>
+              <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest mb-3 opacity-90 cursor-default">+ OPORTUNIDADES</p>
+              <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest opacity-90 cursor-default">+ RESULTADOS</p>
+            </div>
+          </motion.div>
+        </motion.div>
 
         {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[var(--void)] to-transparent pointer-events-none z-10" />
