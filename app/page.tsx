@@ -618,40 +618,55 @@ export default function ProspectandoAILanding() {
             >Escolha seu nível</motion.h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {/* Starter */}
-            <BentoCard className="p-8" delay={0} glow="var(--signal)">
-              <div className="mb-6">
-                <p className="mono text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Iniciante</p>
-                <h3 className="font-display text-4xl font-black text-white">Free</h3>
-                <p className="text-sm text-white/40 mt-1">Para explorar o sistema</p>
+            <BentoCard className="p-10 relative bg-gradient-to-b from-[#050512]/80 to-[#000000]/90 border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.8)] overflow-hidden" delay={0} glow="#A020F0">
+              {/* Subtle accent glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#A020F0]/10 blur-3xl rounded-full" />
+              
+              <div className="mb-8 relative z-10">
+                <p className="mono text-[11px] uppercase tracking-[0.3em] text-[#E0E0E0]/60 mb-2 font-bold">Iniciante</p>
+                <h3 className="font-display text-5xl font-black text-white mb-2">Free</h3>
+                <p className="text-[14px] text-[#E0E0E0]/60 font-light">Para explorar o sistema</p>
               </div>
-              <div className="space-y-3 mb-8">
+              
+              <div className="space-y-4 mb-10 relative z-10">
                 {["50 buscas/mês", "10 cold messages", "Pipeline CRM básico", "Suporte por e-mail"].map(f => (
-                  <div key={f} className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-[var(--signal)] shrink-0" />
-                    <span className="text-sm text-white/60">{f}</span>
+                  <div key={f} className="flex items-center gap-4">
+                    <div className="w-6 h-6 rounded-full bg-[#A020F0]/10 flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 text-[#A020F0]" />
+                    </div>
+                    <span className="text-[14px] text-[#E0E0E0]">{f}</span>
                   </div>
                 ))}
               </div>
+              
               <Link href="/login"
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-[var(--signal)]/30 text-[var(--signal)] mono text-sm font-bold tracking-[0.08em] uppercase hover:bg-[var(--signal)]/10 transition-all"
+                className="relative z-10 w-full flex items-center justify-center gap-2 py-4 rounded-xl border border-[#A020F0]/30 text-[#A020F0] mono text-[12px] font-bold tracking-[0.1em] uppercase hover:bg-[#A020F0]/10 transition-colors duration-300"
               >
                 Começar Grátis <ArrowRight className="w-4 h-4" />
               </Link>
             </BentoCard>
 
-            {/* Pro */}
-            <BentoCard className="p-8 relative" delay={0.1} glow="var(--signal)">
-              <div className="absolute top-5 right-5">
-                <span className="mono text-[9px] font-black px-3 py-1 rounded-full bg-[var(--signal)] text-black tracking-[0.15em] uppercase">POPULAR</span>
+            {/* Pro - Elite */}
+            <BentoCard className="p-10 relative bg-gradient-to-b from-[#00CFFF]/5 to-[#000000]/90 border border-[#00CFFF]/30 shadow-[0_16px_40px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(0,207,255,0.2)] overflow-hidden" delay={0.1} glow="#00CFFF">
+              {/* Elite glowing backdrop */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-[#00CFFF]/15 blur-[60px] rounded-full pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#2060FF]/15 blur-[60px] rounded-full pointer-events-none" />
+
+              <div className="absolute top-6 right-6 z-10">
+                <span className="mono text-[10px] font-black px-4 py-1.5 rounded-full bg-gradient-to-r from-[#00BFFF] to-[#2060FF] text-white tracking-[0.15em] uppercase shadow-[0_0_15px_rgba(0,191,255,0.4)]">
+                  POPULAR
+                </span>
               </div>
-              <div className="mb-6">
-                <p className="mono text-[10px] uppercase tracking-[0.2em] text-[var(--signal)] mb-1 font-bold">Elite</p>
-                <h3 className="font-display text-4xl font-black text-white">Acesso Total</h3>
-                <p className="text-sm text-white/40 mt-1">Para quem está no jogo</p>
+              
+              <div className="mb-8 relative z-10">
+                <p className="mono text-[11px] uppercase tracking-[0.3em] text-[#00CFFF] mb-2 font-bold drop-shadow-[0_0_8px_rgba(0,207,255,0.6)]">Elite</p>
+                <h3 className="font-display text-5xl font-black text-white mb-2">Acesso Total</h3>
+                <p className="text-[14px] text-[#E0E0E0]/80 font-light">Para quem está no jogo</p>
               </div>
-              <div className="space-y-3 mb-8">
+              
+              <div className="space-y-4 mb-10 relative z-10">
                 {[
                   "Buscas ilimitadas globais",
                   "Cold messages ilimitadas",
@@ -660,14 +675,17 @@ export default function ProspectandoAILanding() {
                   "Controle de Manutenção / MRR",
                   "Suporte prioritário"
                 ].map(f => (
-                  <div key={f} className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-[var(--signal)] shrink-0" />
-                    <span className="text-sm text-white/80">{f}</span>
+                  <div key={f} className="flex items-center gap-4">
+                    <div className="w-6 h-6 rounded-full bg-[#00CFFF]/20 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(0,207,255,0.3)]">
+                      <Check className="w-3.5 h-3.5 text-[#00CFFF]" />
+                    </div>
+                    <span className="text-[14px] text-white font-medium">{f}</span>
                   </div>
                 ))}
               </div>
+              
               <Link href="/login"
-                className="group w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[var(--signal)] text-black mono text-sm font-black tracking-[0.08em] uppercase hover:brightness-110 transition-all shadow-[0_0_30px_rgba(56,189,248,0.3)] overflow-hidden relative"
+                className="group relative z-10 w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-[#00BFFF] to-[#2060FF] text-white mono text-[12px] font-black tracking-[0.1em] uppercase hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(0,191,255,0.4)] hover:shadow-[0_0_30px_rgba(0,191,255,0.6)] overflow-hidden"
               >
                 <span className="relative z-10">Acessar o Sistema</span>
                 <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
@@ -681,8 +699,8 @@ export default function ProspectandoAILanding() {
       {/* ── FINAL CTA ── */}
       <section className="relative z-10 py-40 px-6 text-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(56,189,248,0.1)_0%,transparent_70%)]" />
-          <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--signal)]/15 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(0,207,255,0.1)_0%,transparent_60%)]" />
+          <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00CFFF]/30 to-transparent shadow-[0_0_10px_rgba(0,207,255,0.5)]" />
         </div>
 
         <motion.div
@@ -692,48 +710,50 @@ export default function ProspectandoAILanding() {
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10 max-w-4xl mx-auto"
         >
-          <p className="mono text-[11px] tracking-[0.3em] uppercase text-[var(--signal)] mb-6 font-bold">Assuma o controle</p>
-          <h2 className="font-display font-black tracking-tight text-white mb-6 leading-[1.0]"
-            style={{ fontSize: "clamp(52px, 8vw, 88px)" }}>
+          <p className="mono text-[12px] tracking-[0.3em] uppercase text-[#00CFFF] mb-6 font-bold drop-shadow-[0_0_10px_rgba(0,207,255,0.5)]">
+            Assuma o controle
+          </p>
+          <h2 className="font-display font-black tracking-tight text-white mb-8 leading-[1.05]"
+            style={{ fontSize: "clamp(48px, 8vw, 84px)" }}>
             PROSPECTE MAIS.<br />
             <span className="bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(135deg, var(--signal) 0%, #7dd3fc 100%)" }}>
+              style={{ backgroundImage: "linear-gradient(135deg, #00CFFF 0%, #A020F0 100%)", filter: "drop-shadow(0px 0px 20px rgba(0,207,255,0.3))" }}>
               VENDA MAIS.
             </span>
           </h2>
-          <p className="text-white/50 text-lg mb-12 max-w-xl mx-auto leading-relaxed">
+          <p className="text-[#E0E0E0] text-[16px] md:text-[20px] mb-12 max-w-2xl mx-auto leading-relaxed font-light">
             Junte-se à nova geração de vendedores que usam inteligência de dados para criar negócios à escala global.
           </p>
 
           <Link href="/login"
-            className="group inline-flex items-center gap-3 px-12 py-5 text-[15px] font-black tracking-[0.06em] uppercase text-black bg-[var(--signal)] rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(56,189,248,0.5),0_8px_60px_rgba(56,189,248,0.4)] hover:shadow-[0_0_0_1px_rgba(56,189,248,0.9),0_12px_80px_rgba(56,189,248,0.6)] transition-all duration-300 relative"
+            className="group inline-flex items-center gap-3 px-12 py-5 text-[14px] font-black tracking-[0.1em] uppercase text-white bg-gradient-to-r from-[#00BFFF] to-[#2060FF] rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(0,207,255,0.3),0_8px_40px_rgba(0,191,255,0.4)] hover:shadow-[0_0_0_1px_rgba(0,207,255,0.6),0_12px_60px_rgba(0,191,255,0.6)] transition-all duration-300 relative hover:scale-105"
           >
-            <span className="relative z-10 mono">Começar Agora</span>
+            <span className="relative z-10">Começar Agora</span>
             <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-            <div className="absolute inset-0 bg-white/25 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-600 skew-x-12" />
+            <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-600 skew-x-12" />
           </Link>
 
-          <p className="mt-6 mono text-[10px] uppercase tracking-[0.2em] text-white/25">
+          <p className="mt-8 mono text-[11px] uppercase tracking-[0.2em] text-[#E0E0E0]/50 font-medium">
             Acesso imediato · Sem cartão de crédito
           </p>
         </motion.div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="relative z-10 border-t border-white/[0.05] py-8 px-6">
-        <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[var(--signal)] to-[#0284c7] flex items-center justify-center">
-              <Crosshair className="w-3.5 h-3.5 text-black" />
+      <footer className="relative z-10 border-t border-white/[0.05] py-10 px-6 bg-[#000000]/60 backdrop-blur-lg">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00CFFF] to-[#2060FF] flex items-center justify-center shadow-[0_0_15px_rgba(0,207,255,0.4)]">
+              <Crosshair className="w-4 h-4 text-white" />
             </div>
-            <span className="mono text-[13px] font-black tracking-[0.12em] uppercase text-white">ProspectandoAI</span>
+            <span className="mono text-[14px] font-black tracking-[0.12em] uppercase text-white">ProspectandoAI</span>
           </div>
-          <span className="mono text-[9px] text-white/25 uppercase tracking-[0.15em]">
+          <span className="mono text-[10px] text-[#E0E0E0]/40 uppercase tracking-[0.2em]">
             © 2026 · Motor de Prospecção Global
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-            <span className="mono text-[9px] text-[#10b981] uppercase tracking-[0.15em] font-bold">Sistemas Online</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#10b981]/10 border border-[#10b981]/20">
+            <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
+            <span className="mono text-[10px] text-[#10b981] uppercase tracking-[0.15em] font-bold">Sistemas Online</span>
           </div>
         </div>
       </footer>
