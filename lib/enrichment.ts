@@ -9,7 +9,7 @@ async function fetchHtml(url: string): Promise<string> {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      signal: AbortSignal.timeout(6000)
+      signal: AbortSignal.timeout(40000)
     });
     return await res.text();
   } catch (err) {
@@ -101,7 +101,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
       const key = process.env.OUTSCRAPER_API_KEY;
       if (key) {
         const query = `${nic} ${cid || "Brasil"}`.trim();
-        const results = await buscarOutscraper(query, key, 100);
+        const results = await buscarOutscraper(query, key, 500);
         return results.map((r: any) => ({
           osmId: r.osmId,
           nome: r.nome,
@@ -169,7 +169,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
       }
     }
 
-    return Array.from(usernames).slice(0, 100).map(user => {
+    return Array.from(usernames).slice(0, 1500).map(user => {
       const nomeFormatado = user.replace(/[._]/g, " ").replace(/\b\w/g, l => l.toUpperCase());
       return {
         osmId: "insta_" + user,
@@ -196,7 +196,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
     if (!map.has(key)) map.set(key, item);
   }
   
-  return Array.from(map.values()).slice(0, 200);
+  return Array.from(map.values()).slice(0, 3000);
 }
 
 export async function radarFoods(nicho: string, cidade: string) {
@@ -214,7 +214,7 @@ export async function radarFoods(nicho: string, cidade: string) {
       const key = process.env.OUTSCRAPER_API_KEY;
       if (key) {
         const query = `${nic} delivery ${cid || "Brasil"}`.trim();
-        const results = await buscarOutscraper(query, key, 100);
+        const results = await buscarOutscraper(query, key, 500);
         return results.map((r: any) => ({
           osmId: r.osmId,
           nome: r.nome,
@@ -289,7 +289,7 @@ export async function radarFoods(nicho: string, cidade: string) {
       } catch (e) {}
     }
 
-    return Array.from(restaurantes.values()).slice(0, 100).map((r, i) => ({
+    return Array.from(restaurantes.values()).slice(0, 1500).map((r, i) => ({
       osmId: `osint_food_${i}`,
       nome: r.nome,
       categoria: nicho || "Delivery/Restaurante",
@@ -313,5 +313,5 @@ export async function radarFoods(nicho: string, cidade: string) {
     if (!map.has(key)) map.set(key, item);
   }
 
-  return Array.from(map.values()).slice(0, 200);
+  return Array.from(map.values()).slice(0, 3000);
 }

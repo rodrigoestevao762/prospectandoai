@@ -42,7 +42,7 @@ export async function geocodificar(cidade: string, pais?: string): Promise<{ lat
   if (bbox.length === 4) {
     const dLat = Math.abs(parseFloat(bbox[1]) - parseFloat(bbox[0])) * 111000;
     const dLng = Math.abs(parseFloat(bbox[3]) - parseFloat(bbox[2])) * 111000;
-    radiusM = Math.min(10000, Math.max(2000, Math.round(Math.max(dLat, dLng) / 2)));
+    radiusM = Math.min(50000, Math.max(3000, Math.round(Math.max(dLat, dLng) / 2)));
   }
   return { lat: parseFloat(d.lat), lng: parseFloat(d.lon), radiusM, paisNome: d.display_name?.split(",").pop()?.trim() || pais || "" };
 }
@@ -67,7 +67,8 @@ export async function buscarEmpresas(
     return `nw["${k}"="${esc(v)}"]${around};`;
   });
   
-  const query = `[out:json][timeout:20];(${selectors.join("")});out center 3000;`;
+  // Aumentar o limite do timeout para 50s e o teto de resultados para 10000
+  const query = `[out:json][timeout:50];(${selectors.join("")});out center 10000;`;
   const UA = { "User-Agent": "ProspectandoAI/1.0 (prospeccao de empresas)" };
 
   let json: { elements?: any[] } | null = null;
@@ -79,7 +80,8 @@ export async function buscarEmpresas(
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
         body: "data=" + encodeURIComponent(query),
-        signal: AbortSignal.timeout(7000),
+        // Timeout maior para garantir puxadas de milhares de leads
+        signal: AbortSignal.timeout(50000),
         
       });
       if (res.ok) {

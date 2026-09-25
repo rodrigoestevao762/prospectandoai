@@ -1,4 +1,4 @@
-export async function buscarOutscraper(query: string, apiKey: string, limit: number = 150) {
+export async function buscarOutscraper(query: string, apiKey: string, limit: number = 300) {
   const params = new URLSearchParams({
     query: query,
     limit: limit.toString(),
@@ -10,7 +10,7 @@ export async function buscarOutscraper(query: string, apiKey: string, limit: num
     res = await fetch(`https://api.outscraper.com/maps/search-v3?${params.toString()}`, {
       method: "GET",
       headers: { "X-API-KEY": apiKey },
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(50000)
     });
   } catch (err) {
     console.error("Outscraper timeout/erro:", err);
