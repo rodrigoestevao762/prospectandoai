@@ -1,16 +1,21 @@
-export async function buscarOutscraper(query: string, apiKey: string, limit: number = 50) {
+export async function buscarOutscraper(query: string, apiKey: string, limit: number = 150) {
   const params = new URLSearchParams({
     query: query,
     limit: limit.toString(),
     language: "pt",
   });
 
-  const res = await fetch(`https://api.outscraper.com/maps/search-v3?${params.toString()}`, {
-    method: "GET",
-    headers: {
-      "X-API-KEY": apiKey,
-    },
-  });
+  let res;
+  try {
+    res = await fetch(`https://api.outscraper.com/maps/search-v3?${params.toString()}`, {
+      method: "GET",
+      headers: { "X-API-KEY": apiKey },
+      signal: AbortSignal.timeout(8000)
+    });
+  } catch (err) {
+    console.error("Outscraper timeout/erro:", err);
+    return [];
+  }
 
   if (!res.ok) throw new Error("Erro na API Outscraper: " + res.status);
 

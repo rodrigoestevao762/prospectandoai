@@ -28,3 +28,4 @@ content = content.replace(
 );
 
 fs.writeFileSync('lib/enrichment.ts', content);
+

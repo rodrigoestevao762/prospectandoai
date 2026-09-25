@@ -29,7 +29,7 @@ export async function geocodificar(cidade: string, pais?: string): Promise<{ lat
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
   let res;
   try {
-    res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" },  });
+    res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(5000) });
   } catch (err) {
     return null;
   }
@@ -42,7 +42,7 @@ export async function geocodificar(cidade: string, pais?: string): Promise<{ lat
   if (bbox.length === 4) {
     const dLat = Math.abs(parseFloat(bbox[1]) - parseFloat(bbox[0])) * 111000;
     const dLng = Math.abs(parseFloat(bbox[3]) - parseFloat(bbox[2])) * 111000;
-    radiusM = Math.min(45000, Math.max(3000, Math.round(Math.max(dLat, dLng) / 2)));
+    radiusM = Math.min(10000, Math.max(2000, Math.round(Math.max(dLat, dLng) / 2)));
   }
   return { lat: parseFloat(d.lat), lng: parseFloat(d.lon), radiusM, paisNome: d.display_name?.split(",").pop()?.trim() || pais || "" };
 }
@@ -61,10 +61,10 @@ export async function buscarEmpresas(
   const selectors = tags.map((t) => {
     if (t.includes("~")) {
       const [k, v] = t.split("~");
-      return `nwr["${k}"~"${esc(v)}",i]${around};`;
+      return `nw["${k}"~"${esc(v)}",i]${around};`;
     }
     const [k, v] = t.split("=");
-    return `nwr["${k}"="${esc(v)}"]${around};`;
+    return `nw["${k}"="${esc(v)}"]${around};`;
   });
   
   const query = `[out:json][timeout:20];(${selectors.join("")});out center 3000;`;
@@ -79,6 +79,7 @@ export async function buscarEmpresas(
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
         body: "data=" + encodeURIComponent(query),
+        signal: AbortSignal.timeout(7000),
         
       });
       if (res.ok) {
@@ -93,7 +94,9 @@ export async function buscarEmpresas(
     }
   }
 
-  if (!json) throw ultimoErro || new Error("Overpass indisponível");
+  if (!json) {
+    return [];
+  }
 
   const seen = new Set<string>();
   const out: EmpresaOSM[] = [];

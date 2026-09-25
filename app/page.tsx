@@ -2,398 +2,544 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
-import RealisticGlobe from "@/components/RealisticGlobe";
-import UltraRadar from "@/components/UltraRadar";
-import SpinningSatellite from "@/components/SpinningSatellite";
+import { motion, useScroll, useTransform, AnimatePresence, useInView } from "framer-motion";
+import { CyberBackground } from "@/components/VisualEffects";
+import { useTilt3D } from "@/hooks/useAnimations";
+import {
+  ArrowRight, Search, Zap, Target, Globe, Shield,
+  Activity, FileCode, ChevronRight, BarChart3,
+  MessageSquare, Layers, TrendingUp, Lock, Crosshair
+} from "lucide-react";
 
-const FEATURES = [
-  { n: "01", titulo: "MAPEAMENTO GLOBAL OSINT", desc: "O radar varre o globo em tempo real. Nossa engine OSINT identifica milhares de empresas desprotegidas por segundo, varrendo as coordenadas de todos os pólos comerciais do planeta.", cor: "#38bdf8", colSpan: "md:col-span-2", icon: "🌍" },
-  { n: "02", titulo: "MOTOR DE IA POLIGLOTA", desc: "Cada alvo recebe uma abordagem neural nativa. A IA traduz perfeitamente e redige cold e-mails de conversão extrema em mais de 15 idiomas simultaneamente.", cor: "#8b5cf6", colSpan: "md:col-span-1", icon: "🧠" },
-  { n: "03", titulo: "BYPASS DE SPAM FANTASMA", desc: "Infraestrutura de envios corporativa. Rotacionamos domínios e IPs para garantir 99.8% de taxa de entrega na caixa principal. O alvo nem saberá de onde veio a interceptação.", cor: "#ec4899", colSpan: "md:col-span-1", icon: "👻" },
-  { n: "04", titulo: "QUALIFICAÇÃO HEURÍSTICA", desc: "O algoritmo não apenas encontra empresas, ele pontua os alvos baseando-se em ausência de site e presença digital, entregando um 'Threat-Score' instantâneo para priorização.", cor: "#10b981", colSpan: "md:col-span-2", icon: "🎯" },
-  { n: "05", titulo: "BLINDAGEM DE DOMÍNIO", desc: "Aquecimento contínuo automatizado. A IA simula diálogos humanos nas suas caixas de saída 24/7 para construir sua reputação como emissor autoritário.", cor: "#f59e0b", colSpan: "md:col-span-2", icon: "🛡️" },
-  { n: "06", titulo: "VISÃO TÁTICA (CRM)", desc: "Seu dashboard de comando. Acompanhe a abertura dos payloads, intercepte respostas quentes e gerencie o faturamento através de um HUD de alto contraste.", cor: "#38bdf8", colSpan: "md:col-span-1", icon: "💻" },
-];
-
-export default function CyberpunkLanding() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const heroTextRef = useRef<HTMLHeadingElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
-
-  // Framer Motion scroll logic
-  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end end"] });
-  const springScroll = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  const yBg = useTransform(springScroll, [0, 1], ["0%", "50%"]);
+/* ─── COUNTER ANIMATION ─── */
+function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffix?: string; prefix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    // Lenis Smooth Scroll Setup
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      touchMultiplier: 2,
-    });
+    if (!isInView) return;
+    let start = 0;
+    const duration = 2000;
+    const step = end / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) { setCount(end); clearInterval(timer); }
+      else setCount(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [isInView, end]);
 
-    gsap.registerPlugin(ScrollTrigger);
+  return <span ref={ref}>{prefix}{count.toLocaleString("pt-BR")}{suffix}</span>;
+}
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+/* ─── SCAN LINE EFFECT ─── */
+function ScanLine() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <motion.div
+        className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--signal)]/40 to-transparent"
+        initial={{ top: "0%" }}
+        animate={{ top: ["0%", "100%", "0%"] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+      />
+    </div>
+  );
+}
+
+/* ─── TERMINAL TYPING ─── */
+function TerminalText({ lines }: { lines: string[] }) {
+  const [displayed, setDisplayed] = useState<string[]>([]);
+  const [lineIndex, setLineIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+
+  useEffect(() => {
+    if (lineIndex >= lines.length) return;
+    if (charIndex < lines[lineIndex].length) {
+      const t = setTimeout(() => {
+        setDisplayed(prev => {
+          const next = [...prev];
+          next[lineIndex] = (next[lineIndex] || "") + lines[lineIndex][charIndex];
+          return next;
+        });
+        setCharIndex(c => c + 1);
+      }, 30);
+      return () => clearTimeout(t);
+    } else {
+      const t = setTimeout(() => {
+        setLineIndex(l => l + 1);
+        setCharIndex(0);
+      }, 400);
+      return () => clearTimeout(t);
     }
-    requestAnimationFrame(raf);
-
-    // GSAP Parallax and Reveal
-    const ctx = gsap.context(() => {
-      // Hero text glitch entry
-      gsap.fromTo(heroTextRef.current, 
-        { opacity: 0, scale: 0.8, filter: "blur(10px)", y: 50 },
-        { opacity: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 1.5, ease: "expo.out", delay: 0.2 }
-      );
-
-      // Section reveals
-      gsap.utils.toArray(".cyber-reveal").forEach((elem: any) => {
-        gsap.fromTo(elem,
-          { opacity: 0, y: 100, rotationX: 45 },
-          { 
-            scrollTrigger: { trigger: elem, start: "top 85%" },
-            opacity: 1, y: 0, rotationX: 0,
-            duration: 1.2, ease: "power4.out"
-          }
-        );
-      });
-    }, containerRef);
-
-    return () => {
-      lenis.destroy();
-      ctx.revert();
-    };
-  }, []);
+  }, [lineIndex, charIndex, lines]);
 
   return (
-    <main ref={containerRef} className="bg-void relative min-h-screen overflow-hidden text-white font-sans selection:bg-[#38bdf8] selection:text-black">
-      
-      {/* Background Parallax Image - Satellite Slider */}
-      <motion.div 
-        ref={bgRef}
-        className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
-        style={{ y: yBg }}
+    <div className="font-mono text-xs space-y-1 text-left">
+      {displayed.map((line, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="text-[var(--signal)] opacity-70">›</span>
+          <span className={i === lines.length - 1 ? "text-white" : "text-[var(--ink-dim)]"}>{line}</span>
+        </div>
+      ))}
+      {lineIndex < lines.length && (
+        <div className="flex items-center gap-2">
+          <span className="text-[var(--signal)] opacity-70">›</span>
+          <span className="w-[7px] h-[14px] bg-[var(--signal)] animate-pulse inline-block" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── 3D TILT FEATURE CARD ─── */
+function EliteCard({
+  icon, title, desc, color, badge, delay = 0
+}: {
+  icon: React.ReactNode; title: string; desc: string;
+  color: string; badge?: string; delay?: number;
+}) {
+  const { ref, rotateX, rotateY, scale, glare, handleMouseMove, handleMouseEnter, handleMouseLeave } = useTilt3D({ maxRotation: 10 });
+
+  return (
+    <motion.div
+      ref={ref}
+      style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
+      onMouseMove={handleMouseMove} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className="relative rounded-[28px] p-7 bg-gradient-to-b from-white/[0.05] to-transparent border border-white/10 hover:border-white/20 cursor-pointer group overflow-hidden"
+    >
+      {/* Glare */}
+      <div
+        className="absolute inset-0 z-20 pointer-events-none rounded-[28px] transition-opacity duration-300"
+        style={{ opacity: glare.opacity, background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,0.12) 0%, transparent 55%)` }}
+      />
+
+      {/* Ambient glow */}
+      <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full blur-[60px] opacity-0 group-hover:opacity-30 transition-all duration-700" style={{ backgroundColor: color }} />
+
+      {/* Top bar accent */}
+      <div className="absolute top-0 left-8 right-8 h-[1px]" style={{ background: `linear-gradient(90deg, transparent, ${color}60, transparent)` }} />
+
+      <div style={{ transform: "translateZ(20px)" }}>
+        {badge && (
+          <span className="inline-block mono text-[9px] tracking-[0.2em] uppercase px-2.5 py-1 rounded-full mb-4 border" style={{ color, borderColor: `${color}40`, backgroundColor: `${color}10` }}>
+            {badge}
+          </span>
+        )}
+        <div className="mb-6" style={{ color }}>{icon}</div>
+        <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{title}</h3>
+        <p className="text-sm text-[var(--ink-dim)] leading-relaxed">{desc}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── STAT CARD ─── */
+function StatCard({ value, label, sub, color }: { value: number; label: string; sub: string; color: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      className="relative p-6 rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden group"
+    >
+      <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full blur-[50px] opacity-0 group-hover:opacity-20 transition-all duration-700" style={{ backgroundColor: color }} />
+      <p className="font-display text-4xl font-black tracking-tight mb-1" style={{ color }}>
+        <AnimatedCounter end={value} suffix={value >= 1000 ? "+" : "%"} />
+      </p>
+      <p className="text-white font-semibold text-sm mb-0.5">{label}</p>
+      <p className="text-[var(--ink-faint)] text-xs mono uppercase tracking-widest">{sub}</p>
+    </motion.div>
+  );
+}
+
+/* ─── PROCESS STEP ─── */
+function ProcessStep({ num, title, desc, isLast }: { num: string; title: string; desc: string; isLast?: boolean }) {
+  return (
+    <div className="relative flex gap-6">
+      <div className="flex flex-col items-center">
+        <div className="w-10 h-10 rounded-xl bg-[var(--signal)]/10 border border-[var(--signal)]/30 flex items-center justify-center mono text-xs font-bold text-[var(--signal)] shrink-0 z-10">
+          {num}
+        </div>
+        {!isLast && <div className="w-[1px] flex-1 mt-2 bg-gradient-to-b from-[var(--signal)]/30 to-transparent" />}
+      </div>
+      <div className="pb-10">
+        <h4 className="text-white font-bold text-lg mb-2">{title}</h4>
+        <p className="text-[var(--ink-dim)] text-sm leading-relaxed max-w-sm">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── MAIN PAGE ─── */
+export default function ProspectandoAILanding() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef });
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  const terminalLines = [
+    "Conectando satélites OSINT...",
+    "Varrendo 14.293 alvos em São Paulo...",
+    "47 empresas sem presença digital detectadas.",
+    "Gerando payload de prospecção personalizado...",
+    "Taxa de abertura estimada: 71%",
+  ];
+
+  return (
+    <main className="cyber-theme relative min-h-screen text-white overflow-x-hidden" style={{ background: "var(--void)" }}>
+      <CyberBackground />
+
+      {/* ── NAV ── */}
+      <motion.nav
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="fixed top-0 inset-x-0 z-50 border-b border-white/[0.06] bg-black/50 backdrop-blur-2xl"
       >
-        <SatelliteBackground />
-      </motion.div>
-
-      {/* Cyberpunk Scanline */}
-      <div className="scan-line z-50 pointer-events-none opacity-50 mix-blend-screen" />
-
-      {/* ======================= NAV "OUT OF THIS WORLD" ======================= */}
-      <nav className="fixed top-6 inset-x-0 z-50 mx-auto w-[95%] max-w-7xl rounded-2xl border border-[#38bdf8]/20 bg-black/60 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden group transition-all hover:border-[#38bdf8]/50 hover:shadow-[0_0_40px_rgba(56,189,248,0.2)]">
-        {/* Animated laser scan line inside nav */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-           <div className="absolute top-0 left-[-100%] w-[200%] h-[1px] bg-gradient-to-r from-transparent via-[#38bdf8] to-transparent animate-[scan_3s_linear_infinite]" />
-        </div>
-        <div className="relative flex items-center justify-between px-6 py-4">
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-6 cursor-pointer"
-          >
-            <SpinningSatellite className="w-10 h-10" />
-            <div className="flex flex-col">
-              <span className="font-display text-xl font-black tracking-widest text-white leading-none">
-                PROSPECT<span className="text-[#38bdf8]">AI</span>
-              </span>
-              <span className="text-[9px] uppercase tracking-[0.3em] text-[#38bdf8]/60 mt-1">Uplink Estabelecido</span>
+        <div className="mx-auto max-w-7xl px-6 h-[72px] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative w-9 h-9 rounded-xl bg-[var(--signal)] flex items-center justify-center shadow-[0_0_20px_rgba(56,189,248,0.5)]">
+              <Crosshair className="w-5 h-5 text-black" />
+              <div className="absolute inset-0 rounded-xl bg-[var(--signal)] animate-ping opacity-20" />
             </div>
-          </motion.div>
-          
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] animate-pulse" />
-              <span className="text-[10px] mono text-[#10b981] uppercase tracking-widest">Sistemas Operacionais</span>
-            </div>
-            <Link href="/login" className="btn-3d px-6 py-3 rounded-xl border border-[#38bdf8]/30 bg-[#38bdf8]/10 text-xs font-bold tracking-widest uppercase text-[#38bdf8] hover:bg-[#38bdf8] hover:text-black transition-all shadow-[0_0_20px_rgba(56,189,248,0.1)]">
-              [ INICIAR CONEXÃO ]
-            </Link>
-          </motion.div>
-        </div>
-      </nav>
+            <span className="mono text-lg font-black tracking-[0.15em] text-white uppercase">
+              Prospecta<span className="text-[var(--signal)]">AI</span>
+            </span>
+          </div>
 
-      {/* ======================= HERO ======================= */}
-      <section id="inicio" className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 text-center pt-20 overflow-hidden">
-        
-        {/* Background Ultra Radars */}
-        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] opacity-30 pointer-events-none mix-blend-screen" style={{ transform: "perspective(1000px) rotateX(40deg) rotateY(20deg)" }}>
-          <UltraRadar color="#38bdf8" />
-        </div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] opacity-20 pointer-events-none mix-blend-screen" style={{ transform: "perspective(1000px) rotateX(-40deg) rotateY(-20deg)" }}>
-          <UltraRadar color="#8b5cf6" />
-        </div>
-
-        {/* Subtle top glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#38bdf8] opacity-15 blur-[120px] pointer-events-none rounded-full" />
-
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.8 }}
-          className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#38bdf8]/30 bg-[#38bdf8]/10 px-4 py-1.5 text-xs font-medium tracking-widest text-[#38bdf8]"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8] animate-pulse shadow-[0_0_8px_#38bdf8]" />
-          SISTEMA DE VARREDURA GLOBAL ONLINE
-        </motion.div>
-
-        <h1 ref={heroTextRef} className="font-display text-5xl sm:text-6xl md:text-8xl font-black tracking-tight text-white leading-[1.1] mb-6 flex flex-col items-center">
-          <span>DOMINE O</span>
-          <div className="flex text-transparent bg-clip-text bg-gradient-to-b from-[#38bdf8] to-[#0284c7] drop-shadow-[0_0_20px_rgba(56,189,248,0.3)] mt-2">
-            {"CYBERESPAÇO.".split("").map((char, index) => (
-              <motion.span
-                key={index}
-                whileHover={{ 
-                  y: -10, 
-                  color: "#fff",
-                  textShadow: "0px 10px 20px rgba(56,189,248,0.8)",
-                  transition: { duration: 0.2 } 
-                }}
-                className="inline-block cursor-crosshair transition-colors duration-300"
-              >
-                {char}
-              </motion.span>
+          <div className="hidden md:flex items-center gap-8">
+            {["Funcionalidades", "Como funciona", "Planos"].map((item) => (
+              <a key={item} href="#" className="mono text-[11px] uppercase tracking-[0.15em] text-[var(--ink-dim)] hover:text-white transition-colors">
+                {item}
+              </a>
             ))}
           </div>
-        </h1>
 
-        <motion.p 
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="max-w-2xl text-base md:text-lg text-[var(--ink-dim)] font-body leading-relaxed mb-10"
-        >
-          Extração de dados neurais. Varredura global OSINT. 
-          Encontre corporações vulneráveis (sem website) no mundo inteiro e hackeie suas caixas de entrada com inteligência artificial.
-        </motion.p>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+              <span className="mono text-[10px] text-[#10b981] uppercase tracking-[0.15em]">Online</span>
+            </div>
+            <Link href="/login"
+              className="relative group flex items-center gap-2 mono text-[11px] font-bold tracking-[0.1em] uppercase px-5 py-2.5 rounded-xl border border-[var(--signal)]/40 text-[var(--signal)] hover:bg-[var(--signal)] hover:text-black hover:border-transparent transition-all duration-300 overflow-hidden"
+            >
+              <span className="relative z-10">Acessar</span>
+              <ArrowRight className="w-3.5 h-3.5 relative z-10 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+        </div>
+      </motion.nav>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto"
+      {/* ── HERO ── */}
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-32 overflow-hidden">
+        <ScanLine />
+
+        {/* Decorative grid lines */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: "linear-gradient(rgba(56,189,248,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.04) 1px, transparent 1px)",
+          backgroundSize: "80px 80px"
+        }} />
+
+        <motion.style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto">
+
+          {/* Eyebrow pill */}
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.6 }}
+            className="mb-8 flex items-center gap-2.5 rounded-full px-4 py-2 border border-[var(--signal)]/30 bg-[var(--signal)]/[0.08] backdrop-blur-sm"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal)] animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
+            <span className="mono text-[10px] font-semibold tracking-[0.2em] uppercase text-[var(--signal)]">Motor de Prospecção Global — v3.0</span>
+          </motion.div>
+
+          {/* Main headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="font-display text-[clamp(56px,10vw,96px)] font-black tracking-[-0.03em] leading-[1.0] mb-6"
+          >
+            <span className="text-white">ENCONTRE.</span>
+            <br />
+            <span className="text-white">CONVERTA.</span>
+            <br />
+            <span className="bg-clip-text text-transparent"
+              style={{ backgroundImage: "linear-gradient(135deg, var(--signal) 0%, #7dd3fc 50%, #a5f3fc 100%)" }}>
+              ESCALE.
+            </span>
+          </motion.h1>
+
+          {/* Subheadline */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.7 }}
+            className="max-w-2xl text-lg md:text-xl text-[var(--ink-dim)] leading-relaxed mb-12 font-body"
+          >
+            O único sistema de prospecção que combina{" "}
+            <span className="text-white font-medium">varredura global OSINT</span>,{" "}
+            <span className="text-white font-medium">IA de mensagens</span> e{" "}
+            <span className="text-white font-medium">entrega de sites</span>{" "}
+            em uma plataforma de elite.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.7 }}
+            className="flex flex-col sm:flex-row gap-4 items-center mb-20"
+          >
+            <Link href="/login"
+              className="group relative flex items-center gap-3 px-10 py-4 text-sm font-bold tracking-[0.08em] uppercase text-black bg-[var(--signal)] rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(56,189,248,0.35)] hover:shadow-[0_0_60px_rgba(56,189,248,0.6)] transition-all duration-300"
+            >
+              <span className="relative z-10">Iniciar Agora</span>
+              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 skew-x-12" />
+            </Link>
+
+            <a href="#features"
+              className="flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-[0.08em] uppercase text-[var(--ink)] border border-white/10 rounded-2xl hover:border-white/20 hover:text-white hover:bg-white/[0.03] transition-all duration-300"
+            >
+              Ver Funcionalidades
+              <ChevronRight className="w-4 h-4 opacity-50" />
+            </a>
+          </motion.div>
+
+          {/* Terminal widget */}
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)]"
+          >
+            {/* Window chrome */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-white/[0.03]">
+              <div className="flex gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
+                <span className="w-3 h-3 rounded-full bg-[#28c840]" />
+              </div>
+              <div className="flex-1 text-center mono text-[10px] text-[var(--ink-faint)] tracking-widest uppercase">
+                prospectando-ai — radar.exe
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                <span className="mono text-[9px] text-[#10b981] uppercase tracking-widest">LIVE</span>
+              </div>
+            </div>
+            <div className="p-5">
+              <TerminalText lines={terminalLines} />
+            </div>
+          </motion.div>
+        </motion.style>
+
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[var(--void)] to-transparent pointer-events-none z-10" />
+      </section>
+
+      {/* ── STATS BAND ── */}
+      <section className="relative z-10 border-y border-white/[0.06] bg-black/30 backdrop-blur-xl py-16">
+        <div className="mx-auto max-w-6xl px-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <StatCard value={14293} label="Empresas Capturadas" sub="Últimas 24h" color="var(--signal)" />
+          <StatCard value={71} label="Taxa de Abertura" sub="Cold messages" color="var(--amber)" />
+          <StatCard value={8400} label="Sites Entregues" sub="Landing pages" color="#10b981" />
+          <StatCard value={98} label="Taxa de Entrega" sub="Email inbox" color="#ec4899" />
+        </div>
+      </section>
+
+      {/* ── FEATURES GRID ── */}
+      <section id="features" className="relative z-10 py-32 mx-auto max-w-7xl px-6">
+        <div className="text-center mb-20">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mono text-[11px] tracking-[0.3em] uppercase text-[var(--signal)] mb-4"
+          >
+            Arsenal Completo
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="font-display text-5xl md:text-6xl font-black tracking-tight text-white"
+          >
+            Tudo que você precisa para<br />
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, var(--signal), #7dd3fc)" }}>
+              dominar a prospecção
+            </span>
+          </motion.h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <EliteCard delay={0} icon={<Search size={36} />} color="var(--signal)" badge="OSINT" title="Radar de Varredura Global" desc="Vasculhe o planeta com nossa IA de extração em tempo real. Encontre empresas sem site em qualquer país, nicho ou cidade." />
+          <EliteCard delay={0.05} icon={<MessageSquare size={36} />} color="var(--amber)" badge="IA NATIVA" title="Mensagens de Alta Conversão" desc="IA gera cold e-mails e mensagens WhatsApp ultra-personalizadas analisando a empresa-alvo, setor e persona do decisor." />
+          <EliteCard delay={0.1} icon={<Globe size={36} />} color="#10b981" badge="1 CLIQUE" title="Entrega de Sites" desc="Empresa sem presença digital? Crie, hospede e entregue uma landing page profissional do zero com um clique." />
+          <EliteCard delay={0.15} icon={<BarChart3 size={36} />} color="#ec4899" badge="CRM" title="Pipeline Kanban Pro" desc="Gerencie leads e contratos num sistema Kanban visual com arrastar-e-soltar, registros de valor e links de sites entregues." />
+          <EliteCard delay={0.2} icon={<TrendingUp size={36} />} color="#8b5cf6" badge="RECEITA" title="Manutenção & Cobranças" desc="Controle mensalidades, gere mensagens de cobrança automáticas e acompanhe o MRR dos seus clientes em tempo real." />
+          <EliteCard delay={0.25} icon={<Lock size={36} />} color="var(--alert)" badge="ULTRA SEGURO" title="Infraestrutura Elite" desc="Dados criptografados, domínios rotacionados e sistema de inboxing garantem entrega impecável e taxa zero de spam." />
+        </div>
+      </section>
+
+      {/* ── PROCESS SECTION ── */}
+      <section className="relative z-10 py-32 border-y border-white/[0.06] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--signal)]/[0.03] via-transparent to-[var(--amber)]/[0.02]" />
+        <div className="mx-auto max-w-6xl px-6 grid lg:grid-cols-2 gap-24 items-center relative z-10">
+
+          {/* Left: Steps */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <p className="mono text-[11px] tracking-[0.3em] uppercase text-[var(--signal)] mb-4">Como funciona</p>
+            <h2 className="font-display text-4xl md:text-5xl font-black tracking-tight text-white mb-12">
+              Da captura ao<br />fechamento em
+              <span className="text-[var(--signal)]"> minutos</span>
+            </h2>
+
+            <div>
+              <ProcessStep num="01" title="Configure o Radar" desc="Defina o nicho, cidade e perfil alvo. O sistema usa 7+ fontes de dados globais para varrer e detectar empresas vulneráveis." />
+              <ProcessStep num="02" title="IA Enriquece & Qualifica" desc="Cada empresa recebe um Threat-Score automaticamente. Nossa IA busca e-mail, Instagram, telefone e nível de presença digital." />
+              <ProcessStep num="03" title="Disparo em Massa" desc="Com 1 clique, a IA cria mensagens personalizadas e dispara cold e-mails ou mensagens WhatsApp para centenas de alvos." />
+              <ProcessStep num="04" title="Feche & Entregue" desc="Mova os leads no Kanban, registre os valores, entregue o site e acompanhe o faturamento recorrente no seu painel central." isLast />
+            </div>
+          </motion.div>
+
+          {/* Right: Live Preview Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="relative"
+          >
+            {/* Mock Dashboard Card */}
+            <div className="rounded-3xl border border-white/10 bg-black/70 backdrop-blur-2xl overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.9)]">
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-[var(--signal)]" />
+                  <span className="mono text-xs uppercase tracking-[0.15em] text-[var(--ink-dim)]">Radar — Ao Vivo</span>
+                </div>
+                <span className="flex items-center gap-1.5 mono text-[10px] text-[#10b981] uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />3 novos alvos
+                </span>
+              </div>
+
+              {/* Mock Leads */}
+              <div className="p-4 space-y-3">
+                {[
+                  { name: "Clínica Odonto Sorrir", city: "São Paulo", heat: "🔥", score: 94, badge: "S/ Site" },
+                  { name: "Pizzaria Don Carlos", city: "Curitiba", heat: "💡", score: 72, badge: "Instagram" },
+                  { name: "Studio Arquitetura", city: "Rio de Janeiro", heat: "🔥", score: 88, badge: "S/ Site" },
+                ].map((lead, i) => (
+                  <motion.div
+                    key={lead.name}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:border-[var(--signal)]/30 transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0 font-bold"
+                      style={{ background: `linear-gradient(135deg, var(--signal)20, var(--signal)05)`, border: "1px solid rgba(56,189,248,0.2)" }}>
+                      {lead.name[0]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">{lead.name}</p>
+                      <p className="mono text-[10px] text-[var(--ink-faint)] uppercase tracking-widest">📍 {lead.city}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="mono text-xs font-black text-[var(--signal)]">{lead.score}</p>
+                      <span className="mono text-[9px] px-2 py-0.5 rounded-full border border-[var(--alert)]/30 bg-[var(--alert)]/10 text-[var(--alert)]">{lead.badge}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Bottom */}
+              <div className="px-6 py-4 border-t border-white/[0.06] flex justify-between items-center">
+                <span className="mono text-[10px] text-[var(--ink-faint)] uppercase tracking-widest">47 alvos aguardando</span>
+                <button className="mono text-[10px] font-bold text-[var(--signal)] uppercase tracking-widest hover:underline flex items-center gap-1">
+                  Disparar tudo <Zap className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* Floating accent glows */}
+            <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-[80px] opacity-15 pointer-events-none bg-[var(--signal)]" />
+            <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full blur-[80px] opacity-10 pointer-events-none bg-[var(--amber)]" />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="relative z-10 py-40 px-6 text-center overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(56,189,248,0.12)_0%,transparent_70%)] pointer-events-none" />
+
+        {/* Horizontal glowing lines */}
+        <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--signal)]/20 to-transparent pointer-events-none" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-4xl mx-auto"
         >
-          <Link href="/login" className="btn-3d px-10 py-5 text-[11px] rounded-xl text-[#082f49] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_6px_0_#0284c7,0_8px_30px_rgba(56,189,248,0.4)]" style={{ background: "linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)" }}>
-            <span className="mr-2">▶</span> ACESSO AO TERMINAL
-          </Link>
-          <a href="#matrix" className="btn-3d btn-3d-dark px-10 py-5 text-[11px] rounded-xl border border-white/10 hover:border-[#38bdf8]/50">
-            VISÃO TÁTICA
-          </a>
+          <p className="mono text-[11px] tracking-[0.3em] uppercase text-[var(--signal)] mb-6">Assuma o controle</p>
+          <h2 className="font-display text-6xl md:text-8xl font-black tracking-tight text-white mb-8 leading-none">
+            PROSPECTE MAIS.<br />
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, var(--signal) 0%, #7dd3fc 100%)" }}>
+              VENDA MAIS.
+            </span>
+          </h2>
+          <p className="text-[var(--ink-dim)] text-lg mb-12 max-w-xl mx-auto leading-relaxed">
+            Junte-se à nova geração de vendedores que usam inteligência de dados para criar negócios à escala global.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <Link href="/login"
+              className="group relative flex items-center gap-3 px-12 py-5 text-base font-bold tracking-[0.08em] uppercase text-black bg-[var(--signal)] rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(56,189,248,0.4)] hover:shadow-[0_0_80px_rgba(56,189,248,0.7)] transition-all duration-300"
+            >
+              <span className="relative z-10">Começar Gratuitamente</span>
+              <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 skew-x-12" />
+            </Link>
+          </div>
+
+          <p className="mt-8 mono text-[10px] uppercase tracking-[0.2em] text-[var(--ink-faint)]">
+            Sem cartão de crédito · Acesso imediato · Dados 100% seguros
+          </p>
         </motion.div>
       </section>
 
-      {/* ======================= GLOBAL TRACKING WIDGET (GLOBE) ======================= */}
-      <section className="relative z-10 border-y border-[#38bdf8]/20 bg-black/80 backdrop-blur-3xl overflow-hidden py-16 md:py-32">
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.15)_0%,transparent_60%)]" />
-        
-        <div className="mx-auto max-w-7xl px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
-          {/* Globe Container */}
-          <div className="cyber-reveal relative w-full h-[500px] md:h-[600px] rounded-3xl border border-white/10 bg-black/40 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-md">
-            <RealisticGlobe />
-            
-            {/* Holographic Overlays */}
-            <div className="absolute top-6 left-6 pointer-events-none z-40">
-              <div className="mono text-[#38bdf8] text-[10px] tracking-widest flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#38bdf8] animate-pulse" />
-                GLOBAL UPLINK ACTIVE
-              </div>
-              <div className="mono text-white/40 text-[9px] mt-1">SCANNING NEURAL NETWORKS...</div>
-            </div>
-            
-            <div className="absolute bottom-6 right-6 pointer-events-none text-right z-40">
-              <div className="mono text-white/80 text-xl font-bold tracking-widest">14,293</div>
-              <div className="mono text-[var(--ink-dim)] text-[9px]">ALVOS DETECTADOS (24H)</div>
-            </div>
+      {/* ── FOOTER ── */}
+      <footer className="relative z-10 border-t border-white/[0.06] py-8 px-6">
+        <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Crosshair className="w-4 h-4 text-[var(--signal)]" />
+            <span className="mono text-xs font-bold tracking-[0.15em] uppercase">ProspectandoAI</span>
           </div>
-
-          {/* Globe Content */}
-          <div className="cyber-reveal">
-            <div className="mono text-[#38bdf8] text-xs tracking-[0.4em] mb-4">MÓDULO DE RADAR ESPACIAL</div>
-            <h2 className="headline text-4xl md:text-5xl font-black uppercase leading-tight mb-6">
-              Varredura de <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-cyan-500">Nível Global</span>
-            </h2>
-            <p className="text-[var(--ink-dim)] mb-8 leading-relaxed">
-              O sistema não se limita a fronteiras. Interaja com o globo holográfico para visualizar concentrações de alvos B2B espalhados pelos principais polos tecnológicos e comerciais do mundo. Onde houver uma empresa desconectada, nós a encontraremos.
-            </p>
-            
-            <div className="flex flex-col gap-4">
-              <div className="p-4 border border-white/5 rounded-xl bg-white/[0.02] flex items-center gap-4 hover:border-[#38bdf8]/30 transition-colors">
-                <div className="w-12 h-12 rounded-full border border-[#38bdf8]/50 flex items-center justify-center text-[#38bdf8] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-                </div>
-                <div>
-                  <h4 className="text-white font-bold tracking-wide text-sm">Rastreamento Multilíngue</h4>
-                  <p className="text-[var(--ink-faint)] text-xs mt-1">IA capaz de traduzir e prospectar em 12+ idiomas instantaneamente.</p>
-                </div>
-              </div>
-
-              <div className="p-4 border border-white/5 rounded-xl bg-white/[0.02] flex items-center gap-4 hover:border-[#8b5cf6]/30 transition-colors">
-                <div className="w-12 h-12 rounded-full border border-[#8b5cf6]/50 flex items-center justify-center text-[#8b5cf6] shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                </div>
-                <div>
-                  <h4 className="text-white font-bold tracking-wide text-sm">Ultra Baixa Latência</h4>
-                  <p className="text-[var(--ink-faint)] text-xs mt-1">Conexões assíncronas escaneiam milhares de empresas por segundo.</p>
-                </div>
-              </div>
-            </div>
+          <span className="mono text-[10px] text-[var(--ink-faint)] uppercase tracking-[0.15em]">
+            © 2026 · Motor de Prospecção Global
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+            <span className="mono text-[10px] text-[#10b981] uppercase tracking-[0.15em]">Sistemas Operacionais</span>
           </div>
         </div>
-      </section>
-
-      {/* ======================= ARQUITETURA DE DADOS (NOVA PARTE DE BAIXO) ======================= */}
-      <section id="matrix" className="relative z-10 mx-auto max-w-7xl px-6 py-32">
-        <div className="cyber-reveal text-center mb-16">
-          <h2 className="headline text-4xl font-black uppercase tracking-tight text-white">
-            Protocolos de <span className="text-[#38bdf8]">Infiltração</span>
-          </h2>
-          <p className="mono mt-4 text-[var(--ink-dim)] tracking-widest text-xs">MECANISMOS DE CONVERSÃO EXTREMA</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6 auto-rows-[auto]">
-          {FEATURES.map((p, i) => (
-            <div key={p.n} className={`cyber-reveal group relative p-px rounded-3xl bg-gradient-to-b from-white/10 to-transparent overflow-hidden ${p.colSpan}`}>
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 blur-[80px] opacity-0 group-hover:opacity-30 transition-all duration-700" style={{ backgroundColor: p.cor }} />
-              
-              <div className="relative h-full bg-[#0a121b]/80 backdrop-blur-xl rounded-[23px] p-8 lg:p-10 flex flex-col justify-between border border-white/5 group-hover:border-white/20 transition-all duration-500 group-hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
-                
-                <div>
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="text-4xl filter drop-shadow-lg transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">{p.icon}</div>
-                    <div className="mono text-5xl font-black text-white/5 group-hover:text-white/20 transition-colors">
-                      {p.n}
-                    </div>
-                  </div>
-                  
-                  <h3 className="font-display text-xl lg:text-2xl font-bold uppercase tracking-wide mb-4 text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/60 transition-all">
-                    {p.titulo}
-                  </h3>
-                  <p className="text-[var(--ink-dim)] text-sm lg:text-base leading-relaxed group-hover:text-white/80 transition-colors duration-500">
-                    {p.desc}
-                  </p>
-                </div>
-
-                <div className="mt-10 flex items-center justify-between border-t border-white/5 pt-6">
-                  <div className="flex gap-1.5">
-                    <div className="h-1.5 w-2 rounded-full opacity-20 group-hover:opacity-100 transition-all delay-75" style={{ backgroundColor: p.cor }} />
-                    <div className="h-1.5 w-4 rounded-full opacity-20 group-hover:opacity-100 transition-all delay-100" style={{ backgroundColor: p.cor }} />
-                    <div className="h-1.5 w-8 rounded-full opacity-20 group-hover:opacity-100 transition-all delay-150" style={{ backgroundColor: p.cor }} />
-                  </div>
-                  <span className="mono text-[10px] tracking-widest uppercase opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: p.cor }}>sys.run()</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ======================= CTA FINAL REDESENHADO (OUT OF THIS WORLD) ======================= */}
-      <section className="relative z-10 py-40 border-t border-[#38bdf8]/10 bg-black overflow-hidden group">
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_bottom,rgba(56,189,248,0.05)_0%,black_70%)] group-hover:bg-[radial-gradient(ellipse_at_bottom,rgba(56,189,248,0.15)_0%,black_70%)] transition-colors duration-1000" />
-        
-        {/* Animated grid floor */}
-        <div className="absolute bottom-[-20%] inset-x-0 h-96 bg-grid opacity-20 [mask-image:linear-gradient(to_bottom,transparent,white)]" style={{ transform: "perspective(500px) rotateX(60deg) scale(2)" }} />
-
-        <div className="mx-auto max-w-4xl px-6 text-center cyber-reveal relative z-10">
-          
-          {/* Interactive Logo/Symbol */}
-          <motion.div 
-            whileHover={{ scale: 1.1, rotate: 180 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="w-32 h-32 mx-auto border border-[#38bdf8]/30 rounded-full flex items-center justify-center mb-10 relative cursor-pointer group/icon"
-          >
-            {/* Spinning orbital rings */}
-            <div className="absolute inset-[-20%] border border-[#38bdf8]/20 rounded-full animate-[spin_10s_linear_infinite] group-hover/icon:border-[#38bdf8]/60 transition-colors" style={{ borderTopColor: "#38bdf8", borderBottomColor: "transparent" }} />
-            <div className="absolute inset-[-40%] border border-[#8b5cf6]/20 rounded-full animate-[spin_15s_linear_infinite_reverse] group-hover/icon:border-[#8b5cf6]/60 transition-colors" style={{ borderLeftColor: "#8b5cf6", borderRightColor: "transparent" }} />
-            <div className="absolute inset-0 border border-[#38bdf8] rounded-full animate-ping opacity-10 group-hover/icon:opacity-30 transition-opacity" />
-            
-            {/* AI Core Icon */}
-            <svg className="w-12 h-12 text-[#38bdf8] filter drop-shadow-[0_0_15px_rgba(56,189,248,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-            </svg>
-          </motion.div>
-          
-          <h2 className="font-display text-5xl md:text-7xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 mb-6 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-            ASSUMA O COMANDO
-          </h2>
-          
-          <p className="font-body text-[var(--ink-dim)] text-lg md:text-xl mb-12 max-w-2xl mx-auto leading-relaxed group-hover:text-white/80 transition-colors duration-700">
-            A arma definitiva de extração B2B. Abandone processos manuais e planilhas obsoletas. 
-            Conecte-se à rede <span className="text-[#38bdf8] font-bold">ProspectAI</span> e escale sua aquisição de clientes para nível global.
-          </p>
-
-          <Link href="/login" className="relative inline-flex items-center justify-center px-12 py-6 text-sm font-bold tracking-widest text-black uppercase bg-[#38bdf8] rounded-2xl overflow-hidden group/btn hover:scale-105 hover:shadow-[0_0_50px_rgba(56,189,248,0.6)] transition-all duration-300">
-            <span className="absolute inset-0 bg-gradient-to-r from-[#0284c7] to-[#38bdf8] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
-            <div className="absolute inset-0 bg-white/40 blur-xl transform -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-out" />
-            <span className="relative flex items-center text-black group-hover/btn:text-white transition-colors duration-300 drop-shadow-md">
-              <span className="mr-3 group-hover/btn:rotate-90 transition-transform duration-300">⚡</span>
-              INICIAR EXTRAÇÃO
-            </span>
-          </Link>
-
-          {/* Micro-data stats hovering around */}
-          <div className="absolute left-0 bottom-10 hidden lg:block text-left opacity-0 group-hover:opacity-100 transition-opacity duration-1000 delay-300">
-            <div className="mono text-[#38bdf8] text-[10px] tracking-widest">STATUS DO SERVIDOR</div>
-            <div className="text-white text-sm font-bold">ONLINE & OPERACIONAL</div>
-          </div>
-          <div className="absolute right-0 bottom-10 hidden lg:block text-right opacity-0 group-hover:opacity-100 transition-opacity duration-1000 delay-500">
-            <div className="mono text-[#8b5cf6] text-[10px] tracking-widest">LATÊNCIA DO NODE</div>
-            <div className="text-white text-sm font-bold">14ms (SP-BR)</div>
-          </div>
-        </div>
-      </section>
-
+      </footer>
     </main>
-  );
-}
-
-const SATELLITE_IMAGES = [
-  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2000&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1551808525-51a94da548ce?q=80&w=2000&auto=format&fit=crop",
-];
-
-function SatelliteBackground() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % SATELLITE_IMAGES.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="absolute inset-0">
-      <AnimatePresence mode="popLayout">
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 0.6, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 3, ease: "easeInOut" }}
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('${SATELLITE_IMAGES[index]}')` }}
-        />
-      </AnimatePresence>
-      <div className="absolute inset-0 bg-gradient-to-b from-[#030603]/10 via-[#030603]/40 to-[#030603]/90" />
-      <div className="bg-grid absolute inset-0 opacity-20 mix-blend-overlay" />
-    </div>
-  );
-}
-
-// Micro-component Radar so we don't depend on external if missing
-function Radar({ className }: { className?: string }) {
-  return (
-    <div className={`radar ${className || ""}`}>
-      <div className="radar-sweep" />
-      <div className="crosshair-v" style={{ left: "50%", top: "6%", bottom: "6%", width: 1 }} />
-      <div className="crosshair-h" style={{ top: "50%", left: "6%", right: "6%", height: 1 }} />
-      <span className="blip" style={{ left: "28%", top: "34%", animationDelay: "0.6s" }} />
-      <span className="blip" style={{ left: "62%", top: "22%", animationDelay: "2.1s" }} />
-      <span className="blip amber" style={{ left: "70%", top: "58%", animationDelay: "1.2s" }} />
-    </div>
   );
 }
