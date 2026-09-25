@@ -317,36 +317,41 @@ export default function ProspectandoAILanding() {
             className="flex flex-col xl:flex-row items-stretch justify-center gap-6 z-20 pointer-events-auto mt-20"
           >
             {/* 4 Status Icons Group */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 bg-[#000000]/50 backdrop-blur-xl p-6 rounded-2xl border border-[#00CFFF]/20 shadow-[0_16px_40px_rgba(0,0,0,0.8)]">
-              <div className="flex items-center justify-center gap-4 md:border-r border-white/10 md:pr-6">
-                <Globe2 className="w-6 h-6 text-[#00CFFF] shrink-0" />
+            <div className="flex flex-col md:flex-row items-center md:items-stretch justify-center w-full max-w-sm md:max-w-none mx-auto bg-[#000000]/50 backdrop-blur-xl p-6 rounded-2xl border border-[#00CFFF]/20 shadow-[0_16px_40px_rgba(0,0,0,0.8)]">
+              
+              <div className="flex items-center justify-center gap-4 border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-6 w-full md:w-auto">
+                <Globe2 className="w-8 h-8 md:w-6 md:h-6 text-[#00CFFF] shrink-0" />
                 <div className="flex items-center h-full">
-                  <p className="mono text-[11px] md:text-[12px] tracking-[0.2em] text-[#FFFFFF] uppercase font-bold w-32 md:leading-snug text-left">
+                  <p className="mono text-[12px] tracking-[0.2em] text-[#FFFFFF] uppercase font-bold w-40 md:w-32 md:leading-snug text-left">
                     NEGÓCIOS GLOBAIS EM UM SÓ LUGAR
                   </p>
                 </div>
               </div>
-              <div className="hidden md:flex items-center justify-center gap-4 border-r border-white/10 pr-6">
-                <MessageCircle className="w-6 h-6 text-[#00CFFF] shrink-0" />
+              
+              <div className="flex items-center justify-center gap-4 border-b md:border-b-0 md:border-r border-white/10 py-6 md:py-0 md:px-6 w-full md:w-auto">
+                <MessageCircle className="w-8 h-8 md:w-6 md:h-6 text-[#00CFFF] shrink-0" />
                 <div className="text-left">
-                  <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">BUSQUE</p>
-                  <p className="text-[12px] text-[#E0E0E0] w-32">Clientes e empresas em todo o mundo</p>
+                  <p className="mono text-[12px] md:text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">BUSQUE</p>
+                  <p className="text-[13px] md:text-[12px] text-[#E0E0E0] w-40 md:w-32">Clientes e empresas em todo o mundo</p>
                 </div>
               </div>
-              <div className="hidden md:flex items-center justify-center gap-4 border-r border-white/10 pr-6">
-                <Network className="w-6 h-6 text-[#00CFFF] shrink-0" />
+              
+              <div className="flex items-center justify-center gap-4 border-b md:border-b-0 md:border-r border-white/10 py-6 md:py-0 md:px-6 w-full md:w-auto">
+                <Network className="w-8 h-8 md:w-6 md:h-6 text-[#00CFFF] shrink-0" />
                 <div className="text-left">
-                  <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CONECTE</p>
-                  <p className="text-[12px] text-[#E0E0E0] w-32">Faça parcerias e expanda seu negócio</p>
+                  <p className="mono text-[12px] md:text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CONECTE</p>
+                  <p className="text-[13px] md:text-[12px] text-[#E0E0E0] w-40 md:w-32">Faça parcerias e expanda seu negócio</p>
                 </div>
               </div>
-              <div className="hidden md:flex items-center justify-center gap-4">
-                <TrendingUp className="w-6 h-6 text-[#00CFFF] shrink-0" />
+              
+              <div className="flex items-center justify-center gap-4 pt-6 md:pt-0 md:pl-6 w-full md:w-auto">
+                <TrendingUp className="w-8 h-8 md:w-6 md:h-6 text-[#00CFFF] shrink-0" />
                 <div className="text-left">
-                  <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CRESÇA</p>
-                  <p className="text-[12px] text-[#E0E0E0] w-32">Sem limites. Sem fronteiras.</p>
+                  <p className="mono text-[12px] md:text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CRESÇA</p>
+                  <p className="text-[13px] md:text-[12px] text-[#E0E0E0] w-40 md:w-32">Sem limites. Sem fronteiras.</p>
                 </div>
               </div>
+              
             </div>
 
             {/* Right Side List */}
@@ -717,7 +722,7 @@ export default function ProspectandoAILanding() {
             style={{ fontSize: "clamp(48px, 8vw, 84px)" }}>
             PROSPECTE MAIS.<br />
             <span className="bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(135deg, #00CFFF 0%, #A020F0 100%)", filter: "drop-shadow(0px 0px 20px rgba(0,207,255,0.3))" }}>
+              style={{ backgroundImage: "linear-gradient(135deg, #00CFFF 0%, #2060FF 100%)", filter: "drop-shadow(0px 0px 20px rgba(0,207,255,0.3))" }}>
               VENDA MAIS.
             </span>
           </h2>
