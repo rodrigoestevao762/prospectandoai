@@ -234,50 +234,35 @@ export default function ProspectandoAILanding() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.6 }}
-            className="inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 mb-10 border border-[var(--signal)]/25 bg-[var(--signal)]/[0.07] backdrop-blur-sm"
+            className="inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 mb-8 border border-[var(--signal)]/25 bg-[var(--signal)]/[0.07] backdrop-blur-sm"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal)] animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
             <span className="mono text-[10px] font-bold tracking-[0.22em] uppercase text-[var(--signal)]">
-              Motor de Prospecção Global — v3.0
+              Plataforma Operacional Global
             </span>
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+          {/* Cover Image Frame */}
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.25, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="font-display leading-[1.0] tracking-[-0.04em] mb-8"
-            style={{ fontSize: "clamp(56px, 9vw, 100px)" }}
+            className="relative max-w-5xl mx-auto rounded-3xl p-1 mb-12"
           >
-            <span className="text-white block">ENCONTRE.</span>
-            <span className="text-white block">CONVERTA.</span>
-            <span className="block bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(135deg, var(--signal) 0%, #7dd3fc 45%, #bae6fd 100%)" }}>
-              ESCALE.
-            </span>
-          </motion.h1>
-
-          {/* Sub */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="max-w-2xl mx-auto text-lg md:text-xl text-white/50 leading-[1.7] mb-12"
-          >
-            O único sistema que une{" "}
-            <span className="text-white font-semibold">varredura OSINT global</span>,{" "}
-            <span className="text-white font-semibold">IA de cold messages</span> e{" "}
-            <span className="text-white font-semibold">entrega de sites</span>{" "}
-            em uma plataforma de elite para quem vende no digital.
-          </motion.p>
+            <div className="absolute inset-0 bg-gradient-to-b from-[var(--signal)]/30 to-transparent rounded-3xl blur-md" />
+            <div className="relative rounded-[22px] overflow-hidden border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+              <img src="/hero-bg.jpg" alt="ProspectandoAI Cover" className="w-full h-auto object-cover" />
+              {/* Overlay shadow to integrate with the dark background */}
+              <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.6)] pointer-events-none" />
+            </div>
+          </motion.div>
 
           {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.7 }}
-            className="flex flex-col sm:flex-row gap-3 items-center justify-center mb-20"
+            className="flex flex-col sm:flex-row gap-3 items-center justify-center mb-16"
           >
             <Link href="/login"
               className="group relative flex items-center gap-3 px-10 py-4 text-sm font-bold tracking-[0.06em] uppercase text-black bg-[var(--signal)] rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(56,189,248,0.5),0_8px_40px_rgba(56,189,248,0.35)] hover:shadow-[0_0_0_1px_rgba(56,189,248,0.8),0_12px_60px_rgba(56,189,248,0.5)] transition-all duration-300"
@@ -286,11 +271,6 @@ export default function ProspectandoAILanding() {
               <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-600 skew-x-12" />
             </Link>
-            <a href="#como-funciona"
-              className="flex items-center gap-2 px-8 py-4 text-sm mono font-bold tracking-[0.06em] uppercase text-white/50 border border-white/10 rounded-2xl hover:text-white hover:border-white/25 hover:bg-white/[0.03] transition-all duration-300"
-            >
-              Como funciona <ChevronDown className="w-4 h-4 opacity-60" />
-            </a>
           </motion.div>
 
           {/* Feature pills */}
@@ -298,23 +278,13 @@ export default function ProspectandoAILanding() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.65, duration: 0.8 }}
-            className="flex flex-wrap gap-2 items-center justify-center mb-20"
+            className="flex flex-wrap gap-2 items-center justify-center"
           >
             <FeaturePill icon={<Globe className="w-3.5 h-3.5" />} label="Varredura Global" />
             <FeaturePill icon={<MessageSquare className="w-3.5 h-3.5" />} label="Cold Messages IA" />
             <FeaturePill icon={<BarChart3 className="w-3.5 h-3.5" />} label="Pipeline CRM" />
             <FeaturePill icon={<TrendingUp className="w-3.5 h-3.5" />} label="MRR Tracking" />
             <FeaturePill icon={<Lock className="w-3.5 h-3.5" />} label="Infraestrutura Elite" />
-          </motion.div>
-
-          {/* Terminal */}
-          <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.75, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-2xl mx-auto"
-          >
-            <Terminal />
           </motion.div>
         </motion.div>
 
