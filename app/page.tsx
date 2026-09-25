@@ -269,10 +269,10 @@ export default function ProspectandoAILanding() {
             fill
             priority
             quality={100}
-            className="object-cover opacity-90 mix-blend-screen" 
+            className="object-cover opacity-100" 
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#000000]/50 via-transparent to-[#000000]/90" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/60 via-transparent to-[#000000]/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#000000]/30 via-transparent to-[#000000]/80" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
 
         <motion.div
