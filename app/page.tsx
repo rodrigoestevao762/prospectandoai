@@ -245,7 +245,7 @@ export default function ProspectandoAILanding() {
           backgroundSize: "80px 80px"
         }} />
 
-        <motion.style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto">
+        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto">
 
           {/* Eyebrow pill */}
           <motion.div
@@ -338,7 +338,7 @@ export default function ProspectandoAILanding() {
               <TerminalText lines={terminalLines} />
             </div>
           </motion.div>
-        </motion.style>
+        </motion.div>
 
         {/* Bottom gradient fade */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[var(--void)] to-transparent pointer-events-none z-10" />
