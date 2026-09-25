@@ -155,15 +155,15 @@ function FeaturePill({ icon, label }: { icon: React.ReactNode; label: string }) 
 }
 
 /* ─── FLOATING LEAD CARD ─── */
-function FloatingLeadCard({ delay, top, left, right, bottom, title, location, desc, btn, icon: Icon }: any) {
+function FloatingLeadCard({ delay, duration = 6, yOffset = -15, top, left, right, bottom, title, location, desc, btn, icon: Icon }: any) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
-      animate={{ opacity: 1, y: [0, -15, 0], scale: 1 }}
+      animate={{ opacity: 1, y: [0, yOffset, 0], scale: 1 }}
       transition={{ 
         opacity: { delay, duration: 0.8 },
         scale: { delay, duration: 0.8 },
-        y: { repeat: Infinity, duration: 6 + Math.random() * 2, ease: "easeInOut", delay }
+        y: { repeat: Infinity, duration: duration, ease: "easeInOut", delay }
       }}
       style={{ top, left, right, bottom }}
       className="absolute z-20 pointer-events-auto"
@@ -298,62 +298,41 @@ export default function ProspectandoAILanding() {
             Mais conexões. Mais negócios. Sem fronteiras.
           </motion.p>
 
-          {/* Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="relative w-full max-w-2xl mx-auto group"
-          >
-            <div className="absolute inset-0 bg-[#00CFFF]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <div className="relative flex items-center bg-gradient-to-r from-[#000000]/80 to-[#050510]/80 backdrop-blur-xl border border-[#00CFFF]/40 rounded-full p-2 pl-6 shadow-[0_8px_32px_rgba(0,0,0,0.8)]">
-              <span className="text-xl mr-3 opacity-60">🔍</span>
-              <input 
-                type="text" 
-                placeholder="Qual é o seu objetivo?" 
-                className="flex-1 bg-transparent border-none outline-none text-[#FFFFFF] placeholder:text-[#E0E0E0]/60 text-[16px]"
-              />
-              <Link href="/login" className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00BFFF] to-[#2060FF] flex items-center justify-center hover:brightness-110 transition-all shadow-[0_0_15px_rgba(0,191,255,0.4)]">
-                <ArrowRight className="w-5 h-5 text-white" />
-              </Link>
-            </div>
-          </motion.div>
-
           {/* Floating Cards (React Components) */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden hidden xl:block">
             <FloatingLeadCard 
-              delay={0.5} top="15%" left="8%" 
+              delay={0.5} duration={7.5} top="12%" left="4%" 
               title="Empresa de Tecnologia" location="São Paulo, Brasil"
               desc="Soluções em cloud e segurança." btn="Enviar proposta"
               icon={Server}
             />
             <FloatingLeadCard 
-              delay={0.7} top="45%" left="4%" 
+              delay={0.7} duration={6} top="42%" left="2%" 
               title="Cliente em Potencial" location="Nova York, EUA"
               desc="Interessado em soluções de marketing digital." btn="Conectar"
               icon={TrendingUp}
             />
             <FloatingLeadCard 
-              delay={0.9} bottom="20%" left="10%" 
+              delay={0.9} duration={8} bottom="15%" left="6%" 
               title="Loja de Varejo" location="Buenos Aires, Argentina"
               desc="Busca fornecedores de tecnologia." btn="Entrar em contato"
               icon={Store}
             />
             
             <FloatingLeadCard 
-              delay={0.6} top="18%" right="6%" 
+              delay={0.6} duration={7} top="16%" right="4%" 
               title="Empresa de Serviços" location="Paris, França"
               desc="Interessa-se em expansão para novos mercados." btn="Ver detalhes"
               icon={Package}
             />
             <FloatingLeadCard 
-              delay={0.8} top="48%" right="8%" 
+              delay={0.8} duration={6.5} top="46%" right="2%" 
               title="Fornecedor Global" location="Cingapura"
               desc="Produtos com alta demanda no mercado internacional." btn="Fazer contato"
               icon={Ship}
             />
             <FloatingLeadCard 
-              delay={1.0} bottom="22%" right="5%" 
+              delay={1.0} duration={8.5} bottom="18%" right="6%" 
               title="Distribuidor" location="Dubai, Emirados Árabes"
               desc="Procurando novos parceiros comerciais." btn="Conectar"
               icon={Building2}
@@ -365,43 +344,43 @@ export default function ProspectandoAILanding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 1 }}
-            className="absolute bottom-10 left-10 right-10 flex justify-between items-end text-left pointer-events-none"
+            className="absolute bottom-6 md:bottom-10 left-4 md:left-10 right-4 md:right-10 flex flex-col xl:flex-row justify-between items-center xl:items-end text-left pointer-events-none gap-6 xl:gap-0"
           >
             {/* 4 Status Icons Group */}
-            <div className="flex gap-10 bg-black/40 backdrop-blur-md p-5 rounded-2xl border border-[#00CFFF]/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
-              <div className="flex items-start gap-4 border-r border-white/10 pr-8">
-                <Globe2 className="w-6 h-6 text-[#00CFFF]" />
+            <div className="flex flex-col md:flex-row gap-6 md:gap-10 bg-black/40 backdrop-blur-md p-5 rounded-2xl border border-[#00CFFF]/20 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+              <div className="flex items-start gap-4 md:border-r border-white/10 md:pr-8">
+                <Globe2 className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div className="flex items-center h-full">
-                  <p className="mono text-[12px] tracking-[0.2em] text-[#FFFFFF] uppercase font-bold w-32 leading-snug">
+                  <p className="mono text-[11px] md:text-[12px] tracking-[0.2em] text-[#FFFFFF] uppercase font-bold w-32 md:leading-snug">
                     NEGÓCIOS GLOBAIS EM UM SÓ LUGAR
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 border-r border-white/10 pr-8">
-                <MessageCircle className="w-6 h-6 text-[#00CFFF]" />
+              <div className="hidden md:flex items-start gap-4 border-r border-white/10 pr-8">
+                <MessageCircle className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div>
                   <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">BUSQUE</p>
-                  <p className="text-[13px] text-[#E0E0E0] w-36">Clientes e empresas em todo o mundo</p>
+                  <p className="text-[12px] md:text-[13px] text-[#E0E0E0] w-36">Clientes e empresas em todo o mundo</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 border-r border-white/10 pr-8">
-                <Network className="w-6 h-6 text-[#00CFFF]" />
+              <div className="hidden md:flex items-start gap-4 border-r border-white/10 pr-8">
+                <Network className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div>
                   <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CONECTE</p>
-                  <p className="text-[13px] text-[#E0E0E0] w-36">Faça parcerias e expanda seu negócio</p>
+                  <p className="text-[12px] md:text-[13px] text-[#E0E0E0] w-36">Faça parcerias e expanda seu negócio</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4">
-                <TrendingUp className="w-6 h-6 text-[#00CFFF]" />
+              <div className="hidden md:flex items-start gap-4">
+                <TrendingUp className="w-6 h-6 text-[#00CFFF] shrink-0" />
                 <div>
                   <p className="mono text-[11px] tracking-[0.2em] text-[#FFFFFF] uppercase mb-1 font-bold">CRESÇA</p>
-                  <p className="text-[13px] text-[#E0E0E0] w-36">Sem limites. Sem fronteiras.</p>
+                  <p className="text-[12px] md:text-[13px] text-[#E0E0E0] w-36">Sem limites. Sem fronteiras.</p>
                 </div>
               </div>
             </div>
 
             {/* Right Side List */}
-            <div className="text-right pb-4 pr-4 bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/5">
+            <div className="hidden xl:block text-right pb-4 pr-4 bg-black/30 backdrop-blur-md p-6 rounded-2xl border border-white/5">
               <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest mb-3 opacity-90 cursor-default">+ CONEXÕES</p>
               <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest mb-3 opacity-90 cursor-default">+ OPORTUNIDADES</p>
               <p className="font-medium text-[14px] text-[#FFFFFF] tracking-widest opacity-90 cursor-default">+ RESULTADOS</p>
