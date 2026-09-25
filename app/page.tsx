@@ -261,15 +261,11 @@ export default function ProspectandoAILanding() {
 
       {/* ── HERO ── */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
-        {/* Full-screen Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image 
+        <div className="absolute inset-0 z-0 bg-[#030609]">
+          <img 
             src="/hero-bg-final.jpg" 
             alt="Global Network" 
-            fill
-            priority
-            quality={100}
-            className="object-cover opacity-100" 
+            className="w-full h-full object-cover opacity-100" 
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#000000]/30 via-transparent to-[#000000]/80" />
           <div className="absolute inset-0 bg-black/20" />
