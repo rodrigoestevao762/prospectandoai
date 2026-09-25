@@ -153,6 +153,45 @@ function FeaturePill({ icon, label }: { icon: React.ReactNode; label: string }) 
   );
 }
 
+/* ─── FLOATING LEAD CARD ─── */
+function FloatingLeadCard({ delay, top, left, right, bottom, title, location, desc, btn }: any) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      animate={{ opacity: 1, y: [0, -15, 0], scale: 1 }}
+      transition={{ 
+        opacity: { delay, duration: 0.8 },
+        scale: { delay, duration: 0.8 },
+        y: { repeat: Infinity, duration: 6 + Math.random() * 2, ease: "easeInOut", delay }
+      }}
+      style={{ top, left, right, bottom }}
+      className="absolute z-20 pointer-events-auto"
+    >
+      <div className="relative group w-[280px]">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative p-4 rounded-2xl bg-[#0a0a14]/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] hover:border-indigo-500/40 transition-colors duration-300">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+              <Activity className="w-4 h-4 text-white/70" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white leading-tight">{title}</h3>
+              <div className="flex items-center gap-1 mt-1">
+                <Globe className="w-3 h-3 text-white/40" />
+                <span className="text-[10px] text-white/40">{location}</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-white/60 mb-4 line-clamp-2">{desc}</p>
+          <button className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold tracking-wider text-white uppercase transition-colors">
+            {btn}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 /* ─── MAIN ─── */
 export default function ProspectandoAILanding() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -207,86 +246,127 @@ export default function ProspectandoAILanding() {
         </div>
       </motion.nav>
 
-      {/* ── HERO ── */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
-        {/* Grid perspectivo */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.04]" style={{
-          backgroundImage: "linear-gradient(var(--signal) 1px, transparent 1px), linear-gradient(90deg, var(--signal) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-          maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%)"
-        }} />
+          {/* Full-screen Background Image */}
+          <div className="absolute inset-0 z-0">
+            <img src="/hero-bg.jpg" alt="Global Network" className="w-full h-full object-cover opacity-60 mix-blend-screen" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[var(--void)] via-transparent to-[var(--void)]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--void)] via-transparent to-[var(--void)]" />
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          </div>
 
-        {/* Scan line */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
-            className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--signal)]/30 to-transparent"
-            animate={{ top: ["0%", "100%", "0%"] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          />
-        </div>
-
-        <motion.div
-          style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
-          className="relative z-10 mx-auto max-w-6xl px-6 text-center"
-        >
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.6 }}
-            className="inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 mb-8 border border-[var(--signal)]/25 bg-[var(--signal)]/[0.07] backdrop-blur-sm"
+            style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
+            className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center pt-20"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal)] animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
-            <span className="mono text-[10px] font-bold tracking-[0.22em] uppercase text-[var(--signal)]">
-              Plataforma Operacional Global
-            </span>
-          </motion.div>
-
-          {/* Cover Image Frame */}
-          <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.25, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="relative max-w-5xl mx-auto rounded-3xl p-1 mb-12"
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-[var(--signal)]/30 to-transparent rounded-3xl blur-md" />
-            <div className="relative rounded-[22px] overflow-hidden border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
-              <img src="/hero-bg.jpg" alt="ProspectandoAI Cover" className="w-full h-auto object-cover" />
-              {/* Overlay shadow to integrate with the dark background */}
-              <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.6)] pointer-events-none" />
-            </div>
-          </motion.div>
-
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.7 }}
-            className="flex flex-col sm:flex-row gap-3 items-center justify-center mb-16"
-          >
-            <Link href="/login"
-              className="group relative flex items-center gap-3 px-10 py-4 text-sm font-bold tracking-[0.06em] uppercase text-black bg-[var(--signal)] rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(56,189,248,0.5),0_8px_40px_rgba(56,189,248,0.35)] hover:shadow-[0_0_0_1px_rgba(56,189,248,0.8),0_12px_60px_rgba(56,189,248,0.5)] transition-all duration-300"
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.8 }}
+              className="mono text-[11px] tracking-[0.4em] uppercase text-white/70 mb-6 font-bold"
             >
-              <span className="relative z-10 font-black mono">Acessar o Sistema</span>
-              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-600 skew-x-12" />
-            </Link>
-          </motion.div>
+              Conectando o Mundo
+            </motion.p>
+            
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display font-black tracking-tight text-white mb-6 leading-[1.1]"
+              style={{ fontSize: "clamp(42px, 6vw, 72px)" }}
+            >
+              Pessoas, Empresas e<br />
+              <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #a5b4fc 0%, #c084fc 100%)" }}>
+                Oportunidades
+              </span>
+            </motion.h1>
 
-          {/* Feature pills */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.65, duration: 0.8 }}
-            className="flex flex-wrap gap-2 items-center justify-center"
-          >
-            <FeaturePill icon={<Globe className="w-3.5 h-3.5" />} label="Varredura Global" />
-            <FeaturePill icon={<MessageSquare className="w-3.5 h-3.5" />} label="Cold Messages IA" />
-            <FeaturePill icon={<BarChart3 className="w-3.5 h-3.5" />} label="Pipeline CRM" />
-            <FeaturePill icon={<TrendingUp className="w-3.5 h-3.5" />} label="MRR Tracking" />
-            <FeaturePill icon={<Lock className="w-3.5 h-3.5" />} label="Infraestrutura Elite" />
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="max-w-2xl mx-auto text-sm md:text-base text-white/70 leading-relaxed mb-12"
+            >
+              A maior plataforma global de busca por clientes e empresas.<br />
+              Mais conexões. Mais negócios. Sem fronteiras.
+            </motion.p>
+
+            {/* Search Bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="relative w-full max-w-xl mx-auto group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="relative flex items-center bg-black/50 backdrop-blur-xl border border-white/10 rounded-full p-2 pl-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+                <Search className="w-5 h-5 text-white/40" />
+                <input 
+                  type="text" 
+                  placeholder="Qual é o seu objetivo?" 
+                  className="flex-1 bg-transparent border-none outline-none text-white px-4 placeholder:text-white/30 text-sm"
+                />
+                <Link href="/login" className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Floating Cards (React Components) */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <FloatingLeadCard 
+                delay={0.5} top="15%" left="10%" 
+                title="Empresa de Tecnologia" location="São Paulo, Brasil"
+                desc="Soluções em cloud e segurança." btn="Enviar proposta"
+              />
+              <FloatingLeadCard 
+                delay={0.7} top="40%" left="5%" 
+                title="Cliente em Potencial" location="Nova York, EUA"
+                desc="Interessado em marketing digital." btn="Conectar"
+              />
+              <FloatingLeadCard 
+                delay={0.9} bottom="20%" left="12%" 
+                title="Loja de Varejo" location="Buenos Aires, Argentina"
+                desc="Busca fornecedores de tecnologia." btn="Entrar em contato"
+              />
+              
+              <FloatingLeadCard 
+                delay={0.6} top="20%" right="8%" 
+                title="Empresa de Serviços" location="Paris, França"
+                desc="Expansão para novos mercados." btn="Ver detalhes"
+              />
+              <FloatingLeadCard 
+                delay={0.8} top="45%" right="12%" 
+                title="Fornecedor Global" location="Singapura"
+                desc="Produtos com alta demanda." btn="Fazer contato"
+              />
+              <FloatingLeadCard 
+                delay={1.0} bottom="25%" right="10%" 
+                title="Distribuidor" location="Dubai, E.A.U."
+                desc="Procura novos parceiros." btn="Conectar"
+              />
+            </div>
+            
+            {/* Bottom Metrics */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 1 }}
+              className="absolute bottom-10 inset-x-0 flex justify-center gap-16 text-left"
+            >
+              <div>
+                <p className="mono text-[10px] tracking-[0.2em] text-white/40 uppercase mb-1">Busque</p>
+                <p className="text-xs text-white/70">Clientes e empresas<br/>em todo o mundo</p>
+              </div>
+              <div>
+                <p className="mono text-[10px] tracking-[0.2em] text-white/40 uppercase mb-1">Conecte</p>
+                <p className="text-xs text-white/70">Faça parcerias<br/>e expanda seu negócio</p>
+              </div>
+              <div>
+                <p className="mono text-[10px] tracking-[0.2em] text-white/40 uppercase mb-1">Cresça</p>
+                <p className="text-xs text-white/70">Sem limites.<br/>Sem fronteiras.</p>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
 
         {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[var(--void)] to-transparent pointer-events-none z-10" />
