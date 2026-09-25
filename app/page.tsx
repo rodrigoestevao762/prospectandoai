@@ -246,8 +246,10 @@ export default function ProspectandoAILanding() {
         </div>
       </motion.nav>
 
-          {/* Full-screen Background Image */}
-          <div className="absolute inset-0 z-0">
+      {/* ── HERO ── */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
+        {/* Full-screen Background Image */}
+        <div className="absolute inset-0 z-0">
             <img src="/hero-bg.jpg" alt="Global Network" className="w-full h-full object-cover opacity-60 mix-blend-screen" />
             <div className="absolute inset-0 bg-gradient-to-b from-[var(--void)] via-transparent to-[var(--void)]" />
             <div className="absolute inset-0 bg-gradient-to-r from-[var(--void)] via-transparent to-[var(--void)]" />
