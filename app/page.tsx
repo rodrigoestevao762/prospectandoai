@@ -264,7 +264,7 @@ export default function ProspectandoAILanding() {
         {/* Full-screen Background Image */}
         <div className="absolute inset-0 z-0">
           <Image 
-            src="/hero-bg-clean.jpg" 
+            src="/hero-bg.jpg" 
             alt="Global Network" 
             fill
             priority
