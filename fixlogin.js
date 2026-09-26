@@ -1,0 +1,1 @@
+const fs = require('fs'); let c = fs.readFileSync('app/login/page.tsx', 'utf8'); c = c.replace(/<motion\.div initial=\{\{ opacity: 0 \}\} animate=\{\{ opacity: 1 \}\} transition=\{\{ delay: 0\.4 \}\}[\s\S]*?<AnimatePresence mode=\"wait\">/, '<AnimatePresence mode=\"wait\">'); fs.writeFileSync('app/login/page.tsx', c, 'utf8');

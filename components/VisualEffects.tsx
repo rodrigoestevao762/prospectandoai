@@ -37,7 +37,7 @@ export function CyberBackground() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.15)_0%,transparent_60%)]" />
       <div className="absolute inset-0 bg-grid opacity-10 mix-blend-screen" />
       <div className="absolute inset-0 w-full h-full opacity-60">
-        <Canvas camera={{ position: [0, 0, 1] }}>
+        <Canvas camera={{ position: [0, 0, 1] }} dpr={[1, 1.5]} gl={{ antialias: false, powerPreference: "high-performance" }}>
           <ParticleStarfield />
         </Canvas>
       </div>

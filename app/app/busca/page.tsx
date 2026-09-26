@@ -254,11 +254,7 @@ export default function BuscaPage() {
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`;
 
                 return (
-                  <motion.div 
-                    key={emp.osmId}
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: Math.min(i * 0.05, 0.5) }}
+                  <div key={emp.osmId}
                     className="relative flex flex-col rounded-3xl bg-[#05080c] border border-white/10 hover:border-white/20 hover:-translate-y-1 transition-all group overflow-hidden shadow-lg"
                   >
                     <div className="absolute top-0 inset-x-0 h-32 blur-[50px] opacity-10 group-hover:opacity-20 pointer-events-none transition-opacity" style={{ backgroundColor: accent }} />
@@ -303,9 +299,9 @@ export default function BuscaPage() {
                         </button>
                       </div>
                     </div>
-                  </motion.div>
-                );
-              })}
+                  </div>
+                  );
+                })}
             </div>
           </motion.div>
         ) : null}

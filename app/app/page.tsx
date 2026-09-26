@@ -519,11 +519,7 @@ export default function LeadsPage() {
     // If Favicon API returns the default globe, it's technically a placeholder, but it works perfectly.
 
     return (
-      <motion.div
-        key={l.id}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: Math.min(i * 0.04, 0.5), duration: 0.35, ease: "easeOut" }}
+      <div key={l.id}
         className="lead-card p-4 flex gap-4"
         style={{ '--lead-accent': accent } as React.CSSProperties}
       >
@@ -647,10 +643,11 @@ export default function LeadsPage() {
               {ocupado === l.id + ":excluir" ? "..." : "🗑 Excluir"}
             </button>
           </div>
+          </div>
         </div>
-      </motion.div>
-    );
-  })}
+      );
+    })}
+  </div>
 </div>
 </div>
 );

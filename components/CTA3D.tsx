@@ -54,7 +54,7 @@ function DataCore() {
 export default function CTA3D() {
   return (
     <div className="absolute inset-0 pointer-events-none z-0">
-      <Canvas camera={{ position: [0, 0, 6], fov: 60 }}>
+      <Canvas camera={{ position: [0, 0, 6], fov: 60 }} dpr={[1, 1.5]} gl={{ antialias: false, powerPreference: "high-performance" }}>
         <fog attach="fog" args={["#030609", 3, 10]} />
         <ambientLight intensity={0.5} />
         <Stars radius={10} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
