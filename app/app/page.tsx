@@ -643,11 +643,10 @@ export default function LeadsPage() {
               {ocupado === l.id + ":excluir" ? "..." : "🗑 Excluir"}
             </button>
           </div>
-          </div>
         </div>
-      );
-    })}
-  </div>
+      </div>
+    );
+  })}
 </div>
 </div>
 );
