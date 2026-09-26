@@ -111,9 +111,7 @@ export default function BuscaPage() {
           pedaco.forEach(emp => ns.add(emp.osmId));
           return ns;
         });
-      } else {
-        console.error('Erro ao salvar lote:', error);
-      }
+      } else { setErro('ERRO DB: ' + error.code + ' - ' + error.message); break; }
     }
     setCarregando(false);
   }
