@@ -254,7 +254,12 @@ export default function LeadsPage() {
     
     setAviso(`Excluindo ${paraExcluir.length} leads...`);
     const ids = paraExcluir.map(l => l.id);
-    await sb.from("leads").delete().in("id", ids);
+      
+      // Delete in batches of 50 to avoid URL too long issues
+      for (let i = 0; i < ids.length; i += 50) {
+        const lote = ids.slice(i, i + 50);
+        await sb.from("leads").delete().in("id", lote);
+      }
     setLeads((ls) => ls.filter((l) => !ids.includes(l.id)));
     setAviso(`${paraExcluir.length} leads excluídos com sucesso.`);
   }
