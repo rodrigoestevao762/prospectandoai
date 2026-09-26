@@ -666,7 +666,8 @@ export default function LeadsPage() {
                 📘 Facebook
               </button>
             )}
-            <button onClick={() => router.push(`/app/editor/${l.id}`)} className="btn-3d btn-3d-amber">
+            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.nome + " " + (l.endereco || l.cidade))}`} target="_blank" rel="noopener noreferrer" className="btn-3d btn-3d-ghost" style={{ color: "var(--signal)", borderColor: "rgba(56,189,248,0.3)" }}>📍 Google Maps</a>
+              <button onClick={() => router.push(`/app/editor/${l.id}`)} className="btn-3d btn-3d-amber">
               ✦ Landing
             </button>
             <button onClick={() => excluirLead(l.id)} disabled={!!ocupado} className="btn-3d btn-3d-danger ml-auto">
