@@ -190,7 +190,7 @@ export default function LeadsPage() {
   }
 
   async function enriquecerEmLote() {
-    const semInsta = visiveis.filter(l => !l.instagram && !l.email && !l.enriquecido_em);
+    const semInsta = visiveis.filter(l => !l.enriquecido_em);
     if (semInsta.length === 0) return setAviso("Nenhum lead visível precisa de enriquecimento.");
     if (!confirm(`Deseja acionar a IA para vasculhar a internet atrás dos contatos de ${semInsta.length} leads simultaneamente?`)) return;
     
