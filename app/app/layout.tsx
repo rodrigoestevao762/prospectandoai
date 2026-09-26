@@ -26,10 +26,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* SIDEBAR (Desktop) */}
       <aside className="hidden md:flex flex-col w-64 border-r border-white/5 bg-black/40 backdrop-blur-xl relative z-20">
         <div className="p-6 flex items-center gap-3 border-b border-white/5">
-          <div className="w-8 h-8 rounded-lg bg-[var(--signal)] flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.5)]">
-            <Target className="w-4 h-4 text-black" />
-          </div>
-          <span className="font-display font-black tracking-widest text-lg">PROSPECT<span className="text-[var(--signal)]">AI</span></span>
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 rounded-lg bg-[var(--signal)] flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.5)]">
+              <Target className="w-4 h-4 text-black" />
+            </div>
+            <span className="font-display font-black tracking-widest text-lg">PROSPECT<span className="text-[var(--signal)]">AI</span></span>
+          </Link>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
@@ -68,12 +70,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* MOBILE TOPBAR */}
       <header className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="w-6 h-6 rounded bg-[var(--signal)] flex items-center justify-center">
             <Target className="w-3 h-3 text-black" />
           </div>
           <span className="font-display font-black tracking-widest text-sm">PROSPECT<span className="text-[var(--signal)]">AI</span></span>
-        </div>
+        </Link>
       </header>
 
       {/* MAIN CONTENT AREA */}
