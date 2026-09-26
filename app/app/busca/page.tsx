@@ -74,7 +74,7 @@ export default function BuscaPage() {
           : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
         
         const empresasRaw = await buscarEmpresas(
-          cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, undefined, limitFinal
+          cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, undefined, limitFinal, geo.bbox
         );
         
         setErro("Qualificando " + empresasRaw.length + " leads encontrados...");
