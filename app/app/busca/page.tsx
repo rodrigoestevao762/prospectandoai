@@ -77,7 +77,7 @@ export default function BuscaPage() {
     if (!user) return;
     const { data, error } = await sb.from('leads').upsert({
       user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-      telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: emp.email,
+      telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: (emp.email && emp.email.includes('duckduckgo.com')) ? null : emp.email,
       fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
       osm_id: emp.osmId, score: emp.score, nivel: emp.nivel
     }, { onConflict: 'user_id,osm_id', ignoreDuplicates: true }).select('id').maybeSingle();
@@ -100,7 +100,7 @@ export default function BuscaPage() {
       const pedaco = naoSalvos.slice(i, i + chunkSize);
       const rows = pedaco.map(emp => ({
         user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-        telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: emp.email,
+        telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: (emp.email && emp.email.includes('duckduckgo.com')) ? null : emp.email,
         fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
         osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
       }));

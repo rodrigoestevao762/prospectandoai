@@ -576,7 +576,7 @@ export default function LeadsPage() {
 
           {/* Dados de contato */}
           <div className="mono mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
-            {l.email ? (
+            { (l.email && !l.email.includes('duckduckgo.com')) ? (
               <span className="flex items-center gap-1.5 text-[var(--ink)]">
                 <span style={{ color: 'var(--signal)' }}>✉</span>
                 <input defaultValue={l.email} className="w-52 rounded border border-transparent bg-transparent outline-none transition hover:border-[var(--line-strong)] focus:border-[var(--signal)]" onBlur={(e) => e.target.value !== l.email && atualizar(l.id, { email: e.target.value })} />
