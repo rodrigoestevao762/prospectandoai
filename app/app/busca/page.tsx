@@ -35,11 +35,7 @@ export default function BuscaPage() {
 
   async function checarRedes(emp: Empresa) {
     setChecando(emp.osmId);
-    const res = await fetch("/api/enrich-search", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade, pais: emp.pais }),
-    });
-    const json = await res.json();
+    const res = await fetch('/api/enrich-search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade, pais: emp.pais }) }); const text = await res.text(); let json = {}; try { json = JSON.parse(text); } catch { console.error('Enrich error:', text); }
     setChecando(null);
     if (res.ok && json.data) {
       setResultados(resul => resul?.map(r => r.osmId === emp.osmId ? { ...r, ...json.data } : r) || null);
@@ -62,11 +58,7 @@ export default function BuscaPage() {
     }
 
     try {
-      const res = await fetch(endpoint, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyData),
-      });
-      const json = await res.json();
+      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); const text = await res.text(); let json; try { json = JSON.parse(text); } catch (e) { setCarregando(false); if (text.includes('504') || text.includes('TIMEOUT') || text.includes('error o')) { return setErro('Tempo limite excedido na varredura. A regi�o � muito grande ou os servidores demoraram a responder (504).'); } return setErro('Erro no servidor (n�o retornou JSON). Resposta original: ' + text.substring(0, 40) + '...'); }
       setCarregando(false);
       
       if (!res.ok) return setErro(json.erro || "Erro na busca");
