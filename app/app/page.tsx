@@ -69,9 +69,24 @@ export default function LeadsPage() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-    const { data } = await supabaseBrowser()
-      .from("leads").select("*").order("score", { ascending: false }).order("nome");
-    setLeads((data || []) as Lead[]);
+          let allLeads = [];
+      let page = 0;
+      const limit = 1000;
+      while (true) {
+        const { data } = await supabaseBrowser()
+          .from('leads').select('*')
+          .order('score', { ascending: false }).order('nome')
+          .range(page * limit, (page + 1) * limit - 1);
+        
+        if (data && data.length > 0) {
+          allLeads = allLeads.concat(data);
+          if (data.length < limit) break;
+          page++;
+        } else {
+          break;
+        }
+      }
+      setLeads(allLeads);
     setCarregando(false);
   }, []);
 
