@@ -129,15 +129,24 @@ export default function LeadsPage() {
   }
 
   async function enviarAuto(l: Lead) {
-    setOcupado(l.id + ":auto"); setAviso(null);
-    const res = await fetch("/api/enviar-automatico", {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const storageKey = 'emails_sent_' + hoje;
+    let enviadosHoje = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    
+    if (enviadosHoje >= 450) {
+      return setAviso('Limite di�rio de 450 envios atingido por hoje. N�o enviaremos mais e-mails para proteger sua conta contra spam.');
+    }
+
+    setOcupado(l.id + ':auto'); setAviso(null);
+    const res = await fetch('/api/enviar-automatico', {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: l.id }),
     });
     const json = await res.json();
     setOcupado(null);
     if (!res.ok) return setAviso("Erro: " + json.erro);
     setMsgAberta((m) => ({ ...m, [l.id]: json.texto }));
-    await atualizar(l.id, { status: "enviado", canal: "email" });
+    await atualizar(l.id, { status: 'enviado', canal: 'email' });
+    localStorage.setItem(storageKey, (enviadosHoje + 1).toString());
     setAviso(`✓ e-mail enviado para ${l.email} — o lead saiu de "Para contato" e entrou em "Enviados"`);
   }
 
@@ -310,20 +319,33 @@ export default function LeadsPage() {
   }
 
   async function disparoEmLote() {
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const storageKey = 'emails_sent_' + hoje;
+    let enviadosHoje = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    
+    if (enviadosHoje >= 450) {
+      return setAviso('Limite di�rio de 450 envios atingido por hoje. N�o enviaremos mais e-mails para proteger sua conta contra spam.');
+    }
+
     const paraEnviar = visiveis.filter(l => 
       l.email && 
-      !l.email.includes("duckduckgo.com") && 
-      ["novo", "mensagem_gerada"].includes(l.status)
+      !l.email.includes('duckduckgo.com') && 
+      ['novo', 'mensagem_gerada'].includes(l.status)
     );
-    if (paraEnviar.length === 0) return setAviso("Nenhum lead com e-mail válido disponível para envio.");
-    if (!confirm(`Deseja disparar e-mails com IA para ${paraEnviar.length} leads simultaneamente?`)) return;
+    
+    if (paraEnviar.length === 0) return setAviso('Nenhum lead com e-mail v�lido dispon�vel para envio.');
+    
+    const qtdPermitida = 450 - enviadosHoje;
+    const loteLimitado = paraEnviar.slice(0, qtdPermitida);
+
+    if (!confirm('Voc� j� enviou ' + enviadosHoje + ' e-mails hoje. Deseja disparar e-mails para mais ' + loteLimitado.length + ' leads simultaneamente (Limite: 450/dia)?')) return;
     
     let sucessos = 0;
     let ultErro = "";
     const batchSize = 15; // Acelerado
 
-    for (let i = 0; i < paraEnviar.length; i += batchSize) {
-      const lote = paraEnviar.slice(i, i + batchSize);
+    for (let i = 0; i < loteLimitado.length; i += batchSize) {
+      const lote = loteLimitado.slice(i, i + batchSize);
       setAviso(`Enviando e-mails turbo... (${Math.min(i + batchSize, paraEnviar.length)}/${paraEnviar.length})`);
       
       await Promise.all(lote.map(async (l) => {
@@ -335,8 +357,9 @@ export default function LeadsPage() {
           const json = await res.json();
           if (res.ok) {
             setMsgAberta((m) => ({ ...m, [l.id]: json.texto }));
-            await atualizar(l.id, { status: "enviado", canal: "email" });
-            sucessos++;
+            await atualizar(l.id, { status: 'enviado', canal: 'email' });
+              sucessos++;
+              localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
           } else {
             ultErro = json.erro || "Erro desconhecido";
           }
@@ -538,19 +561,8 @@ export default function LeadsPage() {
         className="lead-card p-4 flex gap-4"
         style={{ '--lead-accent': accent } as React.CSSProperties}
       >
-        <div className="shrink-0 mt-1">
-          {fotoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={fotoUrl} alt={l.nome} className="w-12 h-12 rounded-full object-cover border border-white/10" />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold opacity-50 uppercase tracking-widest text-[var(--ink-dim)]">
-              {l.nome ? l.nome.substring(0, 2) : "??"}
-            </div>
-          )}
-        </div>
-        
         <div className="flex-1 min-w-0">
-          {/* Header do card */}
+            {/* Header do card */}
           <div className="flex flex-wrap items-center gap-2.5">
             <h2 className="font-semibold tracking-tight">{l.nome}</h2>
             <span className={`badge ${est.badge}`}>{est.icone} {l.nivel} · {l.score}</span>
