@@ -80,7 +80,7 @@ export default function BuscaPage() {
       telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: emp.email,
       fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
       osm_id: emp.osmId, score: emp.score, nivel: emp.nivel
-    }, { onConflict: 'osm_id', ignoreDuplicates: true }).select('id').maybeSingle();
+    }, { onConflict: 'user_id,osm_id', ignoreDuplicates: true }).select('id').maybeSingle();
     if (!error) setSalvos((s) => new Set(s).add(emp.osmId));
     else setErro(error.message);
   }
@@ -104,7 +104,7 @@ export default function BuscaPage() {
         fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
         osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
       }));
-      const { error } = await sb.from('leads').upsert(rows, { onConflict: 'osm_id', ignoreDuplicates: true });
+      const { error } = await sb.from('leads').upsert(rows, { onConflict: 'user_id,osm_id', ignoreDuplicates: true });
       if (!error) {
         setSalvos(s => {
           const ns = new Set(s);
