@@ -306,7 +306,9 @@ export default function LeadsPage() {
   async function limparTodos() {
     const sb = supabaseBrowser();
     if (visiveis.length === 0) return setAviso("Nenhum lead visível para excluir.");
-    if (!confirm(`⚠️ ATENÇÃO: Você está prestes a EXCLUIR DEFINITIVAMENTE ${visiveis.length} leads da tela atual.\n\nTem certeza absoluta?`)) return;
+    if (!confirm(`⚠️ ATENÇÃO: Você está prestes a EXCLUIR DEFINITIVAMENTE ${visiveis.length} leads da tela atual.
+
+Tem certeza absoluta?`)) return;
     
     setAviso(`Excluindo ${visiveis.length} leads...`);
     const ids = visiveis.map((l) => l.id);
@@ -352,25 +354,23 @@ export default function LeadsPage() {
       setAviso(`Enviando e-mails turbo... (${Math.min(i + batchSize, paraEnviar.length)}/${paraEnviar.length})`);
       
       await Promise.all(lote.map(async (l) => {
-        setOcupado(l.id + ":auto");
-        try {
-          const res = await fetch("/api/enviar-automatico", {
-            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: l.id }),
-          });
-          const json = await res.json();
-          if (res.ok) {
-            setMsgAberta((m) => ({ ...m, [l.id]: json.texto }));
-            await atualizar(l.id, { status: 'enviado', canal: 'email' });
+          try {
+            const res = await fetch('/api/enviar-automatico', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadId: l.id }),
+            });
+            const json = await res.json();
+            if (res.ok) {
+              await atualizar(l.id, { status: 'enviado', canal: 'email' });
               sucessos++;
               localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
-          } else {
-            ultErro = json.erro || "Erro desconhecido";
+            } else {
+              ultErro = json.erro || 'Erro desconhecido';
+            }
+          } catch (err) {
+            console.error(err);
           }
-        } catch (err) {
-          console.error(err);
-        }
-        setOcupado(null);
-      }));
+        }));
+        await new Promise(resolve => setTimeout(resolve, 1500));
     }
     
     setOcupado(null);
