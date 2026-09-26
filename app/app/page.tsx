@@ -58,6 +58,7 @@ export default function LeadsPage() {
   const [copiado, setCopiado] = useState<Record<string, boolean>>({});
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+    const [senderEmail, setSenderEmail] = useState('');
 
   const handleCopiar = (id: string, texto: string) => {
     navigator.clipboard.writeText(texto);
@@ -69,6 +70,8 @@ export default function LeadsPage() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
+      const { data: setts } = await supabaseBrowser().from('settings').select('remetente_email').maybeSingle();
+      if (setts?.remetente_email) setSenderEmail(setts.remetente_email);
           let allLeads = [];
       let page = 0;
       const limit = 1000;
@@ -130,7 +133,7 @@ export default function LeadsPage() {
 
   async function enviarAuto(l: Lead) {
     const hoje = new Date().toLocaleDateString('pt-BR');
-    const storageKey = 'emails_sent_' + hoje;
+    const storageKey = 'emails_sent_' + hoje + '_' + senderEmail;
     let enviadosHoje = parseInt(localStorage.getItem(storageKey) || '0', 10);
     
     if (enviadosHoje >= 450) {
@@ -320,7 +323,7 @@ export default function LeadsPage() {
 
   async function disparoEmLote() {
     const hoje = new Date().toLocaleDateString('pt-BR');
-    const storageKey = 'emails_sent_' + hoje;
+    const storageKey = 'emails_sent_' + hoje + '_' + senderEmail;
     let enviadosHoje = parseInt(localStorage.getItem(storageKey) || '0', 10);
     
     if (enviadosHoje >= 450) {
