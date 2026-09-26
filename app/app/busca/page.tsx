@@ -75,14 +75,14 @@ export default function BuscaPage() {
     const sb = supabaseBrowser();
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
-    const { data, error } = await sb.from("leads").insert({
+    const { data, error } = await sb.from('leads').upsert({
       user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
       telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: emp.email,
-      fonte: engine === "insta" ? "instagram" : engine === "foods" ? "ifood" : "osm", 
-      osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
-    }).select("id").single();
-    if (!error && data) setSalvos((s) => new Set(s).add(emp.osmId));
-    else if (error) setErro(error.code === "23505" ? `${emp.nome} já está salvo` : error.message);
+      fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
+      osm_id: emp.osmId, score: emp.score, nivel: emp.nivel
+    }, { onConflict: 'osm_id', ignoreDuplicates: true }).select('id').maybeSingle();
+    if (!error) setSalvos((s) => new Set(s).add(emp.osmId));
+    else setErro(error.message);
   }
 
   async function salvarEmLote(nivel?: 'quente' | 'morno' | 'frio') {
@@ -104,7 +104,7 @@ export default function BuscaPage() {
         fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
         osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
       }));
-      const { error } = await sb.from('leads').insert(rows);
+      const { error } = await sb.from('leads').upsert(rows, { onConflict: 'osm_id', ignoreDuplicates: true });
       if (!error) {
         setSalvos(s => {
           const ns = new Set(s);
