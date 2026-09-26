@@ -48,7 +48,8 @@ export async function enviarEmailDoLead(
   }
 
   const { data: settings } = await sb.from("settings").select("*").eq("user_id", user.id).single();
-  const gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD; // Usando a mesma coluna no banco
+  let gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD;
+  if (gmailPassword) gmailPassword = gmailPassword.replace(/\s+/g, ""); // Usando a mesma coluna no banco
   const gmailEmail = settings?.remetente_email || process.env.GMAIL_EMAIL;
 
   if (!gmailPassword || !gmailEmail) {
