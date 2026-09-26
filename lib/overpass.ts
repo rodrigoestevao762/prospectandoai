@@ -55,7 +55,8 @@ export async function buscarEmpresas(
   radiusM: number,
   cidade: string,
   pais: string,
-  classificar?: (t: Record<string, string>) => string
+  classificar?: (t: Record<string, string>) => string,
+  limit?: number
 ): Promise<EmpresaOSM[]> {
   const around = radiusM > 0 ? `(around:${radiusM},${lat},${lng})` : "";
   const selectors = tags.map((t) => {
@@ -68,7 +69,7 @@ export async function buscarEmpresas(
   });
   
   // Aumentar o limite do timeout para 50s e o teto de resultados para 10000
-  const query = `[out:json][timeout:50];(${selectors.join("")});out center 10000;`;
+  const query = `[out:json][timeout:50];(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
   const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
 
   let json: { elements?: any[] } | null = null;

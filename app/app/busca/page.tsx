@@ -22,6 +22,7 @@ const NIVEL_ACCENT: Record<Empresa["nivel"], string> = {
 export default function BuscaPage() {
   const [engine, setEngine] = useState<"osint" | "insta" | "foods">("osint");
   const [categoria, setCategoria] = useState("todos");
+  const [limite, setLimite] = useState("1000");
   const [nichoInsta, setNichoInsta] = useState("");
   const [cidade, setCidade] = useState("");
   const [pais, setPais] = useState("");
@@ -47,7 +48,7 @@ export default function BuscaPage() {
     setCarregando(true); setErro(null); setResultados(null); setSalvos(new Set());
     
     let endpoint = "/api/buscar";
-    let bodyData: any = { categoria, cidade, pais };
+    let bodyData: any = { categoria, cidade, pais, limit: parseInt(limite) || 1000 };
 
     if (engine === "insta") {
       endpoint = "/api/buscar-insta";
@@ -236,7 +237,15 @@ export default function BuscaPage() {
           </div>
         )}
 
-        <div className="flex-1 min-w-[200px] relative z-10">
+                  <div className="flex-none w-[100px] relative z-10">
+            <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">MÁX LEADS</label>
+            <div className="relative">
+              <input type="number" value={limite} onChange={(e) => setLimite(e.target.value)} required placeholder="1000"
+                className={`w-full bg-[#030609] border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none font-mono ${engine === 'foods' ? 'focus:border-[#facc15]' : engine === 'insta' ? 'focus:border-[#e879f9]' : 'focus:border-[var(--signal)]'}`} />
+            </div>
+          </div>
+
+<div className="flex-1 min-w-[200px] relative z-10">
           <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">Localização (Cidade)</label>
           <div className="relative">
             <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${engine === 'insta' ? 'text-[#e879f9]' : engine === 'foods' ? 'text-[#facc15]' : 'text-[var(--signal)]'}`} />
