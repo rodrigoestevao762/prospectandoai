@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useInView, useSpring, AnimatePresence } from "framer-motion";
 import { CyberBackground } from "@/components/VisualEffects";
+import CTA3D from "@/components/CTA3D";
 import { useTilt3D } from "@/hooks/useAnimations";
 import {
   ArrowRight, Search, Activity, BarChart3,
@@ -700,13 +701,14 @@ export default function ProspectAILanding() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section className="relative z-10 py-40 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(0,207,255,0.1)_0%,transparent_60%)]" />
-          <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00CFFF]/30 to-transparent shadow-[0_0_10px_rgba(0,207,255,0.5)]" />
-        </div>
+      <section className="relative z-10 py-40 px-6 text-center overflow-hidden bg-black">
+          <CTA3D />
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_100%_at_50%_50%,rgba(0,0,0,0.5)_0%,rgba(0,0,0,0.9)_80%,rgba(3,6,9,1)_100%)]" />
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00CFFF]/20 to-transparent shadow-[0_0_20px_rgba(0,207,255,0.3)]" />
+          </div>
 
-        <motion.div
+          <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -763,3 +765,5 @@ export default function ProspectAILanding() {
     </main>
   );
 }
+
+
