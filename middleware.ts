@@ -25,16 +25,29 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isAuthPage = path === "/login";
   const isPublic = path === "/" || path.startsWith("/demo") || path.startsWith("/s/");
+
+  // RESTRIÇÃO EXTREMA: Apenas rodrigoestevao762@gmail.com
+  const isAuthorizedUser = data?.user?.email === "rodrigoestevao762@gmail.com";
+
   if (!data.user && !isAuthPage && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
-  if (data.user && isAuthPage) {
+  
+  if (data.user && !isAuthorizedUser && !isAuthPage && !isPublic) {
+    // Se logou com e-mail errado, chuta pro login
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (data.user && isAuthorizedUser && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
   }
+  
   return response;
 }
 

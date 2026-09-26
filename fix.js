@@ -1,0 +1,1 @@
+const fs = require("fs"); let c = fs.readFileSync("lib/email.ts", "utf8"); c = c.replace("const gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD;", "let gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD;\n  if (gmailPassword) gmailPassword = gmailPassword.replace(/\\s+/g, \"\");"); fs.writeFileSync("lib/email.ts", c);

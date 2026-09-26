@@ -1,4 +1,4 @@
-Ôªø"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -36,7 +36,7 @@ export default function LoginPage() {
     } else {
       const { error } = await sb.auth.signUp({ email, password: senha });
       if (error) setErro(error.message);
-      else setMsg("Conta criada! Confirme o e-mail (se exigido) e fa√ßa login.");
+      else setMsg("Conta criada! Confirme o e-mail (se exigido) e faÁa login.");
     }
     setCarregando(false);
   }
@@ -57,13 +57,13 @@ export default function LoginPage() {
       redirectTo: `${window.location.origin}/login?reset=true`,
     });
     if (error) setErro(error.message);
-    else setMsg("Um e-mail de recupera√ß√£o foi enviado.");
+    else setMsg("Um e-mail de recuperaÁ„o foi enviado.");
     setCarregando(false);
   }
 
   return (
     <main className="bg-void grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
-      {/* Painel esquerdo ‚Äî atmosfera */}
+      {/* Painel esquerdo ó atmosfera */}
       <section className="relative hidden flex-col justify-between overflow-hidden border-r border-[var(--line)] p-12 lg:flex">
         <div className="bg-grid pointer-events-none absolute inset-0" />
         
@@ -85,7 +85,7 @@ export default function LoginPage() {
         ))}
 
         <Link href="/" className="mono relative flex w-fit items-center gap-3 text-xs uppercase tracking-[0.3em] text-[var(--ink-dim)] transition hover:text-[var(--signal)]">
-          ‚Üê voltar ao site
+          ? voltar ao site
         </Link>
         <div className="relative flex flex-1 items-center justify-center py-12">
           <motion.div
@@ -98,17 +98,17 @@ export default function LoginPage() {
         <div className="relative">
           <p className="eyebrow" style={{ color: "#0284c7" }}>Sala de controle</p>
           <h2 className="headline mt-4 max-w-md text-3xl font-bold leading-tight">
-            Todo dia, milhares de neg√≥cios entram no ar <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#0284c7]">sem um site.</span>
+            Todo dia, milhares de negÛcios entram no ar <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#38bdf8] to-[#0284c7]">sem um site.</span>
           </h2>
           <div className="mono mt-6 flex flex-wrap gap-x-8 gap-y-2 text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>‚Ä¢ openstreetmap ao vivo</motion.span>
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>‚Ä¢ score autom√°tico</motion.span>
-            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>‚Ä¢ IA multil√≠ngue</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>ï openstreetmap ao vivo</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>ï score autom·tico</motion.span>
+            <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>ï IA multilÌngue</motion.span>
           </div>
         </div>
       </section>
 
-      {/* Formul√°rio */}
+      {/* Formul·rio */}
       <section className="relative flex items-center justify-center px-5 py-12">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -128,7 +128,7 @@ export default function LoginPage() {
             {modo === "login" ? "Bem-vindo de volta." : "Crie sua conta gratuita."}
           </h1>
           <p className="mono mt-2 text-[11px] uppercase tracking-widest text-[var(--ink-faint)]">
-            {modo === "login" ? "identifique-se para abrir o radar" : "sem cart√£o ‚Ä¢ comece em minutos"}
+            {modo === "login" ? "identifique-se para abrir o radar" : "sem cart„o ï comece em minutos"}
           </p>
 
           <form onSubmit={entrar} className="mt-8 space-y-4">
@@ -141,7 +141,7 @@ export default function LoginPage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <input
-                type="password" required minLength={6} placeholder="Senha (m√≠n. 6 caracteres)" value={senha}
+                type="password" required minLength={6} placeholder="Senha (mÌn. 6 caracteres)" value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="field field-premium w-full rounded-xl px-4 py-3 text-sm"
               />
@@ -157,42 +157,11 @@ export default function LoginPage() {
             </motion.div>
           </form>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="my-6 flex items-center gap-4">
-            <div className="glow-line flex-1" />
-            <span className="mono text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">ou</span>
-            <div className="glow-line flex-1" />
-          </motion.div>
+          
 
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-            <button
-              onClick={google}
-              className="btn-3d btn-3d-ghost w-full py-3.5 text-xs"
-            >
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-4 h-4 mr-2 inline-block -mt-1" />
-              Continuar com Google
-            </button>
-          </motion.div>
+          
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 relative p-1 rounded-xl bg-white/5 border border-white/10 flex">
-            <button
-              className={`flex-1 relative z-10 py-2.5 text-xs font-medium uppercase tracking-widest transition-colors ${modo === "login" ? "text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" : "text-[var(--ink-dim)] hover:text-white"}`}
-              onClick={() => { setModo("login"); setErro(null); setMsg(null); }}
-            >
-              Login
-            </button>
-            <button
-              className={`flex-1 relative z-10 py-2.5 text-xs font-medium uppercase tracking-widest transition-colors ${modo === "cadastro" ? "text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" : "text-[var(--ink-dim)] hover:text-white"}`}
-              onClick={() => { setModo("cadastro"); setErro(null); setMsg(null); }}
-            >
-              Cadastro
-            </button>
-            <motion.div
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-gradient-to-r from-[#38bdf8] to-[#0284c7] rounded-lg z-0"
-              initial={false}
-              animate={{ left: modo === "login" ? "4px" : "calc(50%)" }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          </motion.div>
+          
 
           <AnimatePresence mode="wait">
             {erro && (
@@ -223,4 +192,6 @@ export default function LoginPage() {
     </main>
   );
 }
+
+
 

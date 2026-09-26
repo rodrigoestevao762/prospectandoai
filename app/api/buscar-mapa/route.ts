@@ -4,7 +4,7 @@ import { geocodificar, buscarEmpresas } from "@/lib/overpass";
 import { CATEGORIAS, getCategoria } from "@/lib/categorias";
 import { qualificar } from "@/lib/qualificacao";
 
-const UA = { "User-Agent": "ProspectandoAI/1.0 (prospeccao de empresas)" };
+const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
 
 // Busca de empresas no mapa: por cidade (texto) ou por clique (lat/lng).
 export async function POST(req: Request) {

@@ -15,6 +15,11 @@ export async function POST(req: Request) {
     if (e1 || !lead) return NextResponse.json({ erro: "lead não encontrado" }, { status: 404 });
     if (!lead.email) return NextResponse.json({ erro: "lead sem e-mail" }, { status: 400 });
 
+    const fakeDomains = ["duckduckgo.com", "example.com", "teste.com", "email.com"];
+    if (fakeDomains.some(d => lead.email.toLowerCase().includes(d))) {
+      return NextResponse.json({ erro: "E-mail falso. Disparo abortado." }, { status: 400 });
+    }
+
     // reutiliza a última mensagem gerada, se existir; senão gera agora
     const { data: ultima } = await sb
       .from("messages").select("texto, status")
@@ -25,7 +30,7 @@ export async function POST(req: Request) {
     if (!texto) {
       const { data: settings } = await sb
         .from("settings").select("negocio_nome, servico, diferenciais").eq("user_id", user.id).single();
-      const negocio = settings || { negocio_nome: "Prospectando AI", servico: "Criação de sites profissionais", diferenciais: "Site próprio que aparece no Google, entrega rápida" };
+      const negocio = settings || { negocio_nome: "ProspectAI", servico: "Criação de sites profissionais", diferenciais: "Site próprio que aparece no Google, entrega rápida" };
       const g = await gerarMensagem(
         {
           nome: lead.nome, categoria: lead.categoria, cidade: lead.cidade, pais: lead.pais,
@@ -40,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     const { data: settings } = await sb.from("settings").select("negocio_nome").eq("user_id", user.id).single();
-    const r = await enviarEmailDoLead(sb, user, lead, texto, undefined, settings?.negocio_nome || "Prospectando AI");
+    const r = await enviarEmailDoLead(sb, user, lead, texto, undefined, settings?.negocio_nome || "ProspectAI");
     if (!r.ok) return NextResponse.json({ erro: r.erro }, { status: r.status });
     return NextResponse.json({ ok: true, texto, fonte });
   } catch (e: unknown) {

@@ -28,7 +28,7 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
-  title: "ProspectandoAI — Radar global de leads sem site",
+  title: "ProspectAI — Radar global de leads sem site",
   description:
     "Encontre empresas em todo o mundo que ainda não têm site, qualifique automaticamente e gere mensagens personalizadas com IA no idioma de cada país.",
 };

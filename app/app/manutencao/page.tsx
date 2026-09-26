@@ -75,7 +75,7 @@ export default function ManutencaoPage() {
     // Fake IA delay since we might not have a specific billing prompt on the backend
     await new Promise(r => setTimeout(r, 1500));
     
-    const textoMensagem = `Olá, tudo bem com você?\n\nAqui é da equipe técnica do *ProspectandoAI* responsável pelo site *${cl.nome}*.\n\nEste é um lembrete automático sobre a manutenção e hospedagem mensal do seu site, no valor de *R$ ${cl.valor_manutencao},00*.\n\nSua plataforma continua operando em alta performance! 🚀\nQualquer dúvida sobre atualizações, estamos à disposição.\n\nChave PIX (CNPJ): [SUA CHAVE AQUI]`;
+    const textoMensagem = `Olá, tudo bem com você?\n\nAqui é da equipe técnica do *ProspectAI* responsável pelo site *${cl.nome}*.\n\nEste é um lembrete automático sobre a manutenção e hospedagem mensal do seu site, no valor de *R$ ${cl.valor_manutencao},00*.\n\nSua plataforma continua operando em alta performance! 🚀\nQualquer dúvida sobre atualizações, estamos à disposição.\n\nChave PIX (CNPJ): [SUA CHAVE AQUI]`;
     
     setMsgAberta(m => ({ ...m, [cl.id]: textoMensagem }));
     setOcupado(null);

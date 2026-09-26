@@ -29,7 +29,7 @@ export async function geocodificar(cidade: string, pais?: string): Promise<{ lat
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
   let res;
   try {
-    res = await fetch(url, { headers: { "User-Agent": "ProspectandoAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(5000) });
+    res = await fetch(url, { headers: { "User-Agent": "ProspectAI/1.0 (prospeccao)" }, signal: AbortSignal.timeout(5000) });
   } catch (err) {
     return null;
   }
@@ -69,7 +69,7 @@ export async function buscarEmpresas(
   
   // Aumentar o limite do timeout para 50s e o teto de resultados para 10000
   const query = `[out:json][timeout:50];(${selectors.join("")});out center 10000;`;
-  const UA = { "User-Agent": "ProspectandoAI/1.0 (prospeccao de empresas)" };
+  const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
 
   let json: { elements?: any[] } | null = null;
   let ultimoErro: Error | null = null;

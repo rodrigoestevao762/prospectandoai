@@ -41,7 +41,7 @@ function Terminal() {
   const [done, setDone] = useState(false);
 
   const SCRIPT = [
-    { text: "$ prospectando-ai --radar --global --nicho=\"clinicas\"", type: "cmd" },
+    { text: "$ prospect-ai --radar --global --nicho=\"clinicas\"", type: "cmd" },
     { text: "↳ Conectando a 7 satélites de dados...", type: "info" },
     { text: "↳ Geocodificando São Paulo, SP, Brasil...", type: "info" },
     { text: "↳ Varrendo 142 quarteirões — aguarde.", type: "info" },
@@ -79,7 +79,7 @@ function Terminal() {
           <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
           <span className="w-3 h-3 rounded-full bg-[#28c840]" />
         </div>
-        <span className="flex-1 text-center mono text-[10px] text-white/30 tracking-widest">prospectando-ai — terminal</span>
+        <span className="flex-1 text-center mono text-[10px] text-white/30 tracking-widest">prospect-ai — terminal</span>
         <span className="flex items-center gap-1 mono text-[9px] text-[#10b981]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" /> LIVE
         </span>
@@ -206,7 +206,7 @@ function FloatingLeadCard({ delay, duration = 6, yOffset = -15, top, left, right
 }
 
 /* ─── MAIN ─── */
-export default function ProspectandoAILanding() {
+export default function ProspectAILanding() {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
@@ -260,12 +260,18 @@ export default function ProspectandoAILanding() {
       </motion.nav>
 
       {/* ── HERO ── */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24"
-        style={{ backgroundImage: "url('/capa-mundo.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}
-      >
-        {/* Overlays to ensure text remains legible over the background image */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#000000]/30 via-transparent to-[#000000]/80" />
-        <div className="absolute inset-0 z-0 bg-black/30" />
+      {/* ── HERO ── */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24">
+        
+        {/* IMAGEM BRUTA DE FUNDO - SEM OVERLAYS ESCUROS */}
+        <img 
+          src="/capa-mundo.jpg" 
+          alt="Capa do Mundo" 
+          className="absolute inset-0 w-full h-full object-cover z-0" 
+        />
+        
+        {/* Apenas um gradiente sutil para o texto não sumir, sem escurecer demais */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-transparent to-[#030609]" />
 
         <motion.div
           style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
@@ -743,7 +749,7 @@ export default function ProspectandoAILanding() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00CFFF] to-[#2060FF] flex items-center justify-center shadow-[0_0_15px_rgba(0,207,255,0.4)]">
               <Crosshair className="w-4 h-4 text-white" />
             </div>
-            <span className="mono text-[14px] font-black tracking-[0.12em] uppercase text-white">ProspectandoAI</span>
+            <span className="mono text-[14px] font-black tracking-[0.12em] uppercase text-white">ProspectAI</span>
           </div>
           <span className="mono text-[10px] text-[#E0E0E0]/40 uppercase tracking-[0.2em]">
             © 2026 · Motor de Prospecção Global

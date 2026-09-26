@@ -104,7 +104,7 @@ export default function ConfigPage() {
               <li>Acesse <a href="https://myaccount.google.com/security" target="_blank" className="text-[var(--signal)] hover:underline">Google Security</a>.</li>
               <li>Garanta que a <strong>2FA (Verificação 2 etapas)</strong> está ATIVA.</li>
               <li>Busque <strong>"Senhas de app"</strong> no topo da página.</li>
-              <li>Crie a key com o nome "ProspectandoAI".</li>
+              <li>Crie a key com o nome "ProspectAI".</li>
               <li>Cole a hash de 16 caracteres acima (não use sua senha real).</li>
             </ol>
           </div>
