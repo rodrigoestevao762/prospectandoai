@@ -68,14 +68,36 @@ export async function buscarEmpresas(
   } else if (radiusM > 0) {
     around = `(around:${radiusM},${lat},${lng})`;
   }
-  const selectors = tags.map((t) => {
+  
+  
+  const groupedEquals: Record<string, Set<string>> = {};
+  const groupedRegex: Record<string, Set<string>> = {};
+  
+  for (const t of tags) {
     if (t.includes("~")) {
       const [k, v] = t.split("~");
-      return `nw["${k}"~"${esc(v)}",i]${around};`;
+      if (!groupedRegex[k]) groupedRegex[k] = new Set();
+      groupedRegex[k].add(esc(v));
+    } else {
+      const [k, v] = t.split("=");
+      if (!groupedEquals[k]) groupedEquals[k] = new Set();
+      groupedEquals[k].add(esc(v));
     }
-    const [k, v] = t.split("=");
-    return `nw["${k}"="${esc(v)}"]${around};`;
-  });
+  }
+
+  const selectors: string[] = [];
+  
+  for (const [k, values] of Object.entries(groupedEquals)) {
+    const v = Array.from(values).join("|");
+    selectors.push(`nw["${k}"~"^(${v})$",i]${around};`);
+  }
+  
+  for (const [k, values] of Object.entries(groupedRegex)) {
+    const v = Array.from(values).join("|");
+    selectors.push(`nw["${k}"~"(${v})",i]${around};`);
+  }
+
+
   
   // Aumentar o limite do timeout para 50s e o teto de resultados para 10000
   const query = `[out:json][timeout:50]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
