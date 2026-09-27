@@ -44,7 +44,21 @@ export async function geocodificar(cidade: string, pais?: string): Promise<{ lat
       const dLat = Math.abs(parseFloat(bbox[1]) - parseFloat(bbox[0])) * 111000;
       const dLng = Math.abs(parseFloat(bbox[3]) - parseFloat(bbox[2])) * 111000;
       radiusM = Math.min(50000, Math.max(3000, Math.round(Math.max(dLat, dLng) / 2)));
-      bb = [parseFloat(bbox[0]), parseFloat(bbox[2]), parseFloat(bbox[1]), parseFloat(bbox[3])];
+      // Restringir a bounding box para no máximo ~6km do centro para evitar timeouts do Overpass
+      // 1 grau lat ~ 111km -> 0.05 graus ~ 5.5km
+      const maxDelta = 0.03; // ~3.3km para evitar timeouts no Overpass para Todos os Comercios
+      const latC = parseFloat(d.lat);
+      const lonC = parseFloat(d.lon);
+      
+      let s = parseFloat(bbox[0]);
+      let n = parseFloat(bbox[1]);
+      let w = parseFloat(bbox[2]);
+      let e = parseFloat(bbox[3]);
+      
+      if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
+      if (e - w > maxDelta) { w = lonC - maxDelta/2; e = lonC + maxDelta/2; }
+      
+      bb = [s, w, n, e];
     }
   return { lat: parseFloat(d.lat), lng: parseFloat(d.lon), radiusM, paisNome: d.display_name?.split(",").pop()?.trim() || pais || "", bbox: bb };
 }
@@ -100,7 +114,7 @@ export async function buscarEmpresas(
 
   
   // Aumentar o limite do timeout para 50s e o teto de resultados para 10000
-  const query = `[out:json][timeout:50]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
+  const query = `[out:json][timeout:90]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
   const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
 
   let json: { elements?: any[] } | null = null;
@@ -113,7 +127,7 @@ export async function buscarEmpresas(
         headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
         body: "data=" + encodeURIComponent(query),
         // Timeout maior para garantir puxadas de milhares de leads
-        signal: AbortSignal.timeout(50000),
+        signal: AbortSignal.timeout(90000),
         
       });
       if (res.ok) {
@@ -129,8 +143,9 @@ export async function buscarEmpresas(
   }
 
   if (!json) {
-    return [];
-  }
+      if (ultimoErro) throw ultimoErro;
+      return [];
+    }
 
   const seen = new Set<string>();
   const out: EmpresaOSM[] = [];

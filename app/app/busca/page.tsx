@@ -68,7 +68,7 @@ export default function BuscaPage() {
           return setErro("Cidade não encontrada no mapa");
         }
 
-        setErro("Extraindo até " + limitFinal + " leads do mapa global... (Isso pode levar de 5 a 50 segundos, por favor aguarde)");
+        setErro("Extraindo até " + limitFinal + " leads do mapa global... (Isso pode levar até 90 segundos, por favor aguarde)");
         const tags = cat
           ? cat.tags
           : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
