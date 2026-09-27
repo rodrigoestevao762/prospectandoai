@@ -7,7 +7,7 @@ import { radarFoods } from "@/lib/enrichment";
 export async function POST(req: Request) {
   try {
     await usuarioObrigatorio();
-    const { nicho, cidade, motor = "overpass" } = await req.json();
+    const { nicho, cidade, limit, motor = "overpass" } = await req.json();
 
     if (!nicho && !cidade) {
       return NextResponse.json({ erro: "Informe pelo menos um nicho ou cidade" }, { status: 400 });

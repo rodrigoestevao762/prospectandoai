@@ -84,22 +84,45 @@ export async function buscarEmpresas(
   }
 
   function esc(st: string) { return st.replace(/\\/g, "\\\\").replace(/"/g, '\\"'); }
-  const selectors = tags.map((t) => {
-    if (t.includes("~")) {
-      const [k, v] = t.split("~");
-      
-      // Suporte para case-insensitive (ex: name~barbearia,i)
-      if (v.endsWith(',i')) {
-        return `nwr["${k}"~"${esc(v.slice(0, -2))}",i]${around};`;
-      }
-      return `nwr["${k}"~"${esc(v)}"]${around};`;
   
-    } else if (t.includes("=")) {
-      const [k, v] = t.split("=");
-      return `nwr["${k}"="${esc(v)}"]${around};`;
+    const baseTags = tags.filter(t => !t.startsWith("AND:"));
+    const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
+    
+    let andModifiers = "";
+    for (const t of andTags) {
+      if (t.includes("~")) {
+        const [k, v] = t.split("~");
+        if (v.endsWith(',i')) {
+          andModifiers += `["${k}"~"${esc(v.slice(0, -2))}",i]`;
+        } else {
+          andModifiers += `["${k}"~"${esc(v)}"]`;
+        }
+      } else if (t.includes("=")) {
+        const [k, v] = t.split("=");
+        andModifiers += `["${k}"="${esc(v)}"]`;
+      } else {
+        andModifiers += `["${t}"]`;
+      }
     }
-    return `nwr["${t}"]${around};`;
-  });
+
+    const selectors = baseTags.map((t) => {
+      let sel = "";
+      if (t.includes("~")) {
+        const [k, v] = t.split("~");
+        if (v.endsWith(',i')) {
+          sel = `nwr["${k}"~"${esc(v.slice(0, -2))}",i]`;
+        } else {
+          sel = `nwr["${k}"~"${esc(v)}"]`;
+        }
+      } else if (t.includes("=")) {
+        const [k, v] = t.split("=");
+        sel = `nwr["${k}"="${esc(v)}"]`;
+      } else {
+        sel = `nwr["${t}"]`;
+      }
+      return sel + andModifiers + around + ";";
+    });
+
 
   const query = `[out:json][timeout:120]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
   const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };

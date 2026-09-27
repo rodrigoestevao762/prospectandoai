@@ -10,11 +10,11 @@ export type CategoriaDef = {
 export const CATEGORIAS: CategoriaDef[] = [
   { id: "barbearia", label: "Barbearias", tags: ["shop=hairdresser", "shop=barber"] },
   { id: "construtora", label: "Construtoras e Reformas", tags: ["craft=builder", "craft=plasterer", "craft=roofer", "craft=carpenter", "shop=doityourself", "office=construction_company", "craft=painter"] },
-  { id: "acaiteria", label: "Açaíterias e Smoothies", tags: ["shop=deli", "cuisine=acai", "shop=juice", "amenity=cafe"] },
+  { id: "acaiteria", label: "Açaíterias e Smoothies", tags: ["cuisine=acai", "name~açai|acai|açaiteria,i"] },
   { id: "sorveteria", label: "Sorveterias e Gelaterias", tags: ["amenity=ice_cream", "shop=confectionery", "cuisine=ice_cream"] },
   { id: "academia", label: "Academias e CrossFit", tags: ["leisure=fitness_centre", "leisure=sports_centre", "sport=fitness", "sport=crossfit", "leisure=stadium"] },
   { id: "restaurante", label: "Restaurantes", tags: ["amenity=restaurant"] },
-  { id: "pizzaria", label: "Pizzarias", tags: ["amenity=restaurant", "cuisine=pizza"] },
+  { id: "pizzaria", label: "Pizzarias", tags: ["cuisine=pizza", "cuisine~pizza"] },
   { id: "cafe", label: "Cafeterias", tags: ["amenity=cafe"] },
   { id: "salao", label: "Salões de Beleza", tags: ["shop=beauty", "shop=hairdresser"] },
   { id: "petshop", label: "Pet Shops e Banho", tags: ["shop=pet", "shop=pet_grooming"] },
