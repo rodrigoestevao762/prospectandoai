@@ -147,44 +147,6 @@ export default function BuscaPage() {
   async function enriquecerLoteRadar() {
     if (!resultados) return;
     const semRedes = resultados.filter(e => !e.instagram);
-    if (semRedes.length === 0) return alert('Nenhum lead vis�vel precisa de enriquecimento (ou todos j� t�m redes).');
-    if (!confirm('Deseja acionar a varredura profunda para buscar redes sociais de ' + semRedes.length + ' empresas ao vivo? Isso pode demorar v�rios minutos se a lista for muito grande!')) return;
-    
-    setChecando('all');
-    const batchSize = 30;
-    for (let i = 0; i < semRedes.length; i += batchSize) {
-      const lote = semRedes.slice(i, i + batchSize);
-      await Promise.all(lote.map(async (emp) => {
-        try {
-          const q = encodeURIComponent(emp.nome + ' ' + (emp.endereco || emp.cidade));
-          const r = await fetch('/api/enrich-search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade || emp.endereco, pais: emp.pais })
-            });
-          if (r.ok) {
-            const resJson = await r.json();
-            if (resJson.success && resJson.data) {
-              setResultados(res => res ? res.map(e => e.osmId === emp.osmId ? { 
-                ...e, 
-                instagram: resJson.data.instagram || e.instagram, 
-                facebook: resJson.data.facebook || e.facebook, 
-                website: resJson.data.website || e.website, 
-                telefone: resJson.data.telefone || e.telefone,
-                email: resJson.data.email || e.email
-              } : e) : null);
-            }
-          }
-        } catch (e) {}
-      }));
-    }
-    setChecando(null);
-    alert('Varredura de redes conclu�da com sucesso!');
-  }
-
-  async function enriquecerLoteRadar() {
-    if (!resultados) return;
-    const semRedes = resultados.filter(e => !e.instagram);
     if (semRedes.length === 0) return alert('Nenhum lead precisa de enriquecimento (ou todos j� t�m redes).');
     if (!confirm('Deseja acionar a varredura profunda para buscar redes sociais de ' + semRedes.length + ' empresas ao vivo? Isso pode demorar v�rios minutos se a lista for muito grande!')) return;
     

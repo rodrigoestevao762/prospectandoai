@@ -72,7 +72,7 @@ export default function LeadsPage() {
     setCarregando(true);
       const { data: setts } = await supabaseBrowser().from('settings').select('remetente_email').maybeSingle();
       if (setts?.remetente_email) setSenderEmail(setts.remetente_email);
-          let allLeads = [];
+          let allLeads: any[] = [];
       let page = 0;
       const limit = 1000;
       while (true) {
@@ -134,7 +134,7 @@ export default function LeadsPage() {
   async function enviarAuto(l: Lead) {
     const { data: setts } = await supabaseBrowser().from('settings').select('remetente_email, resend_api_key').single();
     const currentSender = setts?.remetente_email || 'default';
-    const isPro = setts?.resend_api_key && (setts.resend_api_key.startsWith('re_') || setts.resend_api_key.startsWith('SG.') || setts.resend_api_key.startsWith('xkeysib-'));
+    const isPro = setts?.resend_api_key && (setts.resend_api_key?.startsWith('re_') || setts.resend_api_key?.startsWith('SG.') || setts.resend_api_key?.startsWith('xkeysib-'));
     const limit = isPro ? 100000 : 450;
     
     const hoje = new Date().toLocaleDateString('pt-BR');
@@ -336,7 +336,7 @@ Tem certeza absoluta?`)) return;
   async function disparoEmLote() {
     const { data: setts } = await supabaseBrowser().from('settings').select('remetente_email, resend_api_key').single();
     const currentSender = setts?.remetente_email || 'default';
-    const isPro = setts?.resend_api_key && (setts.resend_api_key.startsWith('re_') || setts.resend_api_key.startsWith('SG.') || setts.resend_api_key.startsWith('xkeysib-'));
+    const isPro = setts?.resend_api_key && (setts.resend_api_key?.startsWith('re_') || setts.resend_api_key?.startsWith('SG.') || setts.resend_api_key?.startsWith('xkeysib-'));
     const limit = isPro ? 100000 : 450;
     
     const hoje = new Date().toLocaleDateString('pt-BR');

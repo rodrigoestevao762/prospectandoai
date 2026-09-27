@@ -33,10 +33,10 @@ export async function POST(req: Request) {
       } else {
         cidadeNome = "Região";
       }
-      const dLat = 12000 / 111000;
-      const dLng = 12000 / (111000 * Math.cos(lat * Math.PI / 180));
+      const dLat = 5000 / 111000;
+      const dLng = 5000 / (111000 * Math.cos(lat * Math.PI / 180));
       const bb = [lat - dLat, lng - dLng, lat + dLat, lng + dLng];
-      ponto = { lat, lng, radiusM: 12000, paisNome, bbox: bb };
+      ponto = { lat, lng, radiusM: 5000, paisNome, bbox: bb };
     } else {
       return NextResponse.json({ erro: "informe cidade ou lat/lng" }, { status: 400 });
     }
