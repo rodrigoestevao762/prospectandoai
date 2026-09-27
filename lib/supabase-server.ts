@@ -29,6 +29,6 @@ export async function supabaseServer() {
 export async function usuarioObrigatorio() {
   const sb = await supabaseServer();
   const { data } = await sb.auth.getUser();
-  if (!data?.user || data.user.email !== 'rodrigoestevao762@gmail.com') throw new Error("não autenticado");
+  if (!data?.user) throw new Error("não autenticado"); // Liberado temporariamente para o amigo acessar
   return { sb, user: data.user };
 }
