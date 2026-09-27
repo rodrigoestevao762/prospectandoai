@@ -222,7 +222,7 @@ export default function LeadsPage() {
     if (!confirm(`Deseja acionar a IA para vasculhar a internet atrás dos contatos de ${semInsta.length} leads simultaneamente?`)) return;
     
     let sucessos = 0;
-    const batchSize = 10; // Reduzido para evitar IP Ban e acelerar resposta real
+    const batchSize = 30; // Acelerado extremo em paralelo
     for (let i = 0; i < semInsta.length; i += batchSize) {
       const lote = semInsta.slice(i, i + batchSize);
       setAviso(`Enriquecendo lote... (${Math.min(i + batchSize, semInsta.length)}/${semInsta.length})`);

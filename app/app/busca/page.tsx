@@ -153,7 +153,7 @@ export default function BuscaPage() {
     if (!confirm('Deseja acionar a varredura profunda para buscar redes sociais de ' + semRedes.length + ' empresas ao vivo? Isso pode demorar v�rios minutos se a lista for muito grande!')) return;
     
     setChecando('all');
-    const batchSize = 10;
+    const batchSize = 30;
     for (let i = 0; i < semRedes.length; i += batchSize) {
       const lote = semRedes.slice(i, i + batchSize);
       await Promise.all(lote.map(async (emp) => {

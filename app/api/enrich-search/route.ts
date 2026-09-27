@@ -1,6 +1,8 @@
 ﻿import { NextResponse } from "next/server";
 import { enrichLeadData } from "@/lib/enrichment";
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const { nome, cidade, pais } = await req.json();
@@ -9,43 +11,64 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Nome e cidade são obrigatórios" }, { status: 400 });
     }
 
-    let enriquecido: any = null;
+    const promises: Promise<any>[] = [];
 
-    if (process.env.OUTSCRAPER_API_KEY) {
-      try {
-        const { buscarOutscraper } = await import("@/lib/outscraper");
-        const outRes = await buscarOutscraper(`"${nome}" ${cidade} ${pais || ""}`, process.env.OUTSCRAPER_API_KEY, 1);
-        if (outRes && outRes.length > 0) {
-          enriquecido = {
-            facebook: outRes[0].facebook || null,
-            instagram: outRes[0].instagram || null,
-            email: outRes[0].email || null,
-            telefone: outRes[0].telefone || null,
-            website: outRes[0].website || null,
-            foto: outRes[0].foto || null,
-            fontes: ["outscraper"]
-          };
+    // 1. Outscraper Promise
+    const outscraperPromise = async () => {
+      if (process.env.OUTSCRAPER_API_KEY) {
+        try {
+          const { buscarOutscraper } = await import("@/lib/outscraper");
+          const outRes = await buscarOutscraper(`"${nome}" ${cidade} ${pais || ""}`, process.env.OUTSCRAPER_API_KEY, 1);
+          if (outRes && outRes.length > 0) {
+            return {
+              facebook: outRes[0].facebook || null,
+              instagram: outRes[0].instagram || null,
+              email: outRes[0].email || null,
+              telefone: outRes[0].telefone || null,
+              website: outRes[0].website || null,
+              foto: outRes[0].foto || null,
+              fontes: ["outscraper"]
+            };
+          }
+        } catch (e) {
+          console.error("Outscraper fallback erro:", e);
         }
-      } catch (e) {
-        console.error("Outscraper fallback erro:", e);
       }
-    }
+      return null;
+    };
 
+    // 2. OSINT Promise
+    const osintPromise = async () => {
+      try {
+        const osint = await enrichLeadData(nome, cidade, pais);
+        return osint;
+      } catch (e) {
+        return null;
+      }
+    };
+
+    // Executa AMBOS em paralelo para máxima velocidade
+    const [outData, osintData] = await Promise.all([outscraperPromise(), osintPromise()]);
+
+    let enriquecido = outData;
+
+    // Mescla os dados se Outscraper não trouxe tudo
     if (!enriquecido || (!enriquecido.email && !enriquecido.instagram)) {
-      const osint = await enrichLeadData(nome, cidade, pais);
-      enriquecido = {
-        facebook: enriquecido?.facebook || osint.facebook,
-        instagram: enriquecido?.instagram || osint.instagram,
-        email: enriquecido?.email || osint.email,
-        telefone: enriquecido?.telefone || null,
-        website: enriquecido?.website || null,
-        fontes: [...(enriquecido?.fontes || []), ...osint.fontes]
-      };
+      if (osintData) {
+        enriquecido = {
+          facebook: enriquecido?.facebook || osintData.facebook,
+          instagram: enriquecido?.instagram || osintData.instagram,
+          email: enriquecido?.email || osintData.email,
+          telefone: enriquecido?.telefone || null,
+          website: enriquecido?.website || null,
+          fontes: [...(enriquecido?.fontes || []), ...(osintData.fontes || [])]
+        };
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: enriquecido
+      data: enriquecido || {}
     });
   } catch (error: any) {
     console.error("Erro no enrich search:", error);
