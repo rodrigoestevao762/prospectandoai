@@ -11,7 +11,7 @@ export async function buscarOutscraper(query: string, apiKey: string, limit: num
     res = await fetch(`https://api.outscraper.com/maps/search-v3?${params.toString()}`, {
       method: "GET",
       headers: { "X-API-KEY": apiKey },
-      signal: AbortSignal.timeout(50000)
+      signal: AbortSignal.timeout(25000)
     });
   } catch (err) {
     console.error("Outscraper timeout/erro:", err);

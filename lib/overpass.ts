@@ -113,7 +113,7 @@ export async function buscarEmpresas(
     });
 
 
-  const query = `[out:json][timeout:120]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
+  const query = `[out:json][timeout:25]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
   const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
 
   let json: { elements?: any[] } | null = null;
@@ -131,7 +131,7 @@ export async function buscarEmpresas(
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
         body: "data=" + encodeURIComponent(query),
-        signal: AbortSignal.timeout(125000),
+        signal: AbortSignal.timeout(28000),
       });
       if (res.ok) {
         json = await res.json();
