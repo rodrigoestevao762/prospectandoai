@@ -135,9 +135,9 @@ export async function radarInstagram(nicho: string, cidade: string, limit: numbe
             const cat = CATEGORIAS.find(c => c.id === nicLower || c.label.toLowerCase().includes(nicLower));
             
             if (cat) {
-              leadsOSM = await buscarEmpresas(cat.id, [...cat.tags, "AND:contact:instagram~."], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+              leadsOSM = await buscarEmpresas(cat.id, cat.tags, geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
             } else {
-              leadsOSM = await buscarEmpresas("todos", [`name~${nic},i`, "AND:contact:instagram~."], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+              leadsOSM = await buscarEmpresas("todos", [`name~${nic},i`], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
             }
 
         }
