@@ -132,14 +132,19 @@ export default function LeadsPage() {
   }
 
   async function enviarAuto(l: Lead) {
+    const { data: setts } = await supabaseBrowser().from('settings').select('remetente_email, resend_api_key').single();
+    const currentSender = setts?.remetente_email || 'default';
+    const isPro = setts?.resend_api_key && (setts.resend_api_key.startsWith('re_') || setts.resend_api_key.startsWith('SG.') || setts.resend_api_key.startsWith('xkeysib-'));
+    const limit = isPro ? 100000 : 450;
+    
     const hoje = new Date().toLocaleDateString('pt-BR');
-    const storageKey = 'emails_sent_' + hoje + '_' + senderEmail;
+    const storageKey = 'emails_sent_' + hoje + '_' + currentSender;
     let enviadosHoje = parseInt(localStorage.getItem(storageKey) || '0', 10);
     
-    if (enviadosHoje >= 450) {
-      return setAviso('Limite di�rio de 450 envios atingido por hoje. N�o enviaremos mais e-mails para proteger sua conta contra spam.');
+    if (enviadosHoje >= limit) {
+      return setAviso(`Limite atingido por hoje (${limit}). Troque a conta de e-mail nas configurações para enviar mais.`);
     }
-
+    
     setOcupado(l.id + ':auto'); setAviso(null);
     const res = await fetch('/api/enviar-automatico', {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId: l.id }),
@@ -329,14 +334,18 @@ Tem certeza absoluta?`)) return;
   }
 
   async function disparoEmLote() {
+    const { data: setts } = await supabaseBrowser().from('settings').select('remetente_email, resend_api_key').single();
+    const currentSender = setts?.remetente_email || 'default';
+    const isPro = setts?.resend_api_key && (setts.resend_api_key.startsWith('re_') || setts.resend_api_key.startsWith('SG.') || setts.resend_api_key.startsWith('xkeysib-'));
+    const limit = isPro ? 100000 : 450;
+    
     const hoje = new Date().toLocaleDateString('pt-BR');
-    const storageKey = 'emails_sent_' + hoje + '_' + senderEmail;
+    const storageKey = 'emails_sent_' + hoje + '_' + currentSender;
     let enviadosHoje = parseInt(localStorage.getItem(storageKey) || '0', 10);
     
-    if (enviadosHoje >= 450) {
-      return setAviso('Limite di�rio de 450 envios atingido por hoje. N�o enviaremos mais e-mails para proteger sua conta contra spam.');
+    if (enviadosHoje >= limit) {
+      return setAviso(`Limite atingido por hoje (${limit}). Troque a conta de e-mail nas configurações para enviar mais.`);
     }
-
     const paraEnviar = visiveis.filter(l => 
       l.email && 
       !l.email.includes('duckduckgo.com') && 
@@ -345,10 +354,10 @@ Tem certeza absoluta?`)) return;
     
     if (paraEnviar.length === 0) return setAviso('Nenhum lead com e-mail v�lido dispon�vel para envio.');
     
-    const qtdPermitida = 450 - enviadosHoje;
+    const qtdPermitida = limit - enviadosHoje;
     const loteLimitado = paraEnviar.slice(0, qtdPermitida);
 
-    if (!confirm('Voc� j� enviou ' + enviadosHoje + ' e-mails hoje. Deseja disparar e-mails para mais ' + loteLimitado.length + ' leads simultaneamente (Limite: 450/dia)?')) return;
+    if (!confirm('Voc� j� enviou ' + enviadosHoje + ' e-mails hoje. Deseja disparar e-mails para mais ' + loteLimitado.length + ' leads simultaneamente (limite diário)?')) return;
     
     let sucessos = 0;
     let ultErro = "";
