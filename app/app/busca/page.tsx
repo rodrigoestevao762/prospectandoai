@@ -73,9 +73,7 @@ export default function BuscaPage() {
           ? cat.tags
           : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
         
-        const empresasRaw = await buscarEmpresas(
-          cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, undefined, limitFinal, geo.bbox
-        );
+        const empresasRaw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, geo.bbox, limitFinal);
         
         setErro("Qualificando " + empresasRaw.length + " leads encontrados...");
         const empresas = empresasRaw.map((e) => {
@@ -104,10 +102,10 @@ export default function BuscaPage() {
 
     if (engine === "insta") {
       endpoint = "/api/buscar-insta";
-      bodyData = { nicho: nichoInsta, cidade };
+      bodyData = { nicho: nichoInsta, cidade, limit: limitFinal };
     } else if (engine === "foods") {
       endpoint = "/api/buscar-foods";
-      bodyData = { nicho: categoria === "todos" ? "restaurante" : categoria, cidade };
+      bodyData = { nicho: categoria === "todos" ? "restaurante" : categoria, cidade, limit: limitFinal };
     }
 
     try {
@@ -267,15 +265,15 @@ export default function BuscaPage() {
 
       {/* Tabs / Motores */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        <button onClick={() => setEngine("osint")} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'osint' ? 'bg-[var(--signal)]/10 border-[var(--signal)] text-[var(--signal)]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
+        <button onClick={() => { setEngine("osint"); setResultados(null); }} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'osint' ? 'bg-[var(--signal)]/10 border-[var(--signal)] text-[var(--signal)]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
           <Globe className="w-6 h-6" />
           <span className="font-bold tracking-widest uppercase text-[11px]">Motor OSINT Maps</span>
         </button>
-        <button onClick={() => setEngine("insta")} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'insta' ? 'bg-[#e879f9]/10 border-[#e879f9] text-[#e879f9]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
+        <button onClick={() => { setEngine("insta"); setResultados(null); }} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'insta' ? 'bg-[#e879f9]/10 border-[#e879f9] text-[#e879f9]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
           <Camera className="w-6 h-6" />
           <span className="font-bold tracking-widest uppercase text-[11px]">Radar Instagram</span>
         </button>
-        <button onClick={() => setEngine("foods")} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'foods' ? 'bg-[#facc15]/10 border-[#facc15] text-[#facc15]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
+        <button onClick={() => { setEngine("foods"); setResultados(null); }} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'foods' ? 'bg-[#facc15]/10 border-[#facc15] text-[#facc15]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
           <Utensils className="w-6 h-6" />
           <span className="font-bold tracking-widest uppercase text-[11px]">Radar Foods & Delivery</span>
         </button>

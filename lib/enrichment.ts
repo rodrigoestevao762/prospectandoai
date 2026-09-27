@@ -89,7 +89,7 @@ export async function enrichLeadData(nome: string, cidade: string, pais: string 
   };
 }
 
-export async function radarInstagram(nicho: string, cidade: string) {
+export async function radarInstagram(nicho: string, cidade: string, limit: number = 300) {
   const isGlobal = (cidade.toLowerCase() === "mundial" || cidade.trim() === "");
   const cid = isGlobal ? "" : cidade.trim();
   const nic = nicho.trim() || "loja";
@@ -102,7 +102,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
       const key = process.env.OUTSCRAPER_API_KEY;
       if (key) {
         const query = `${nic} ${cid || "Brasil"}`.trim();
-        const results = await buscarOutscraper(query, key, 500);
+        const results = await buscarOutscraper(query, key, Math.min(limit, 500));
         return results.map((r: any) => ({
           osmId: r.osmId,
           nome: r.nome,
@@ -129,7 +129,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
       if (!isGlobal) {
         const geo = await geocodificar(cid);
         if (geo) {
-          leadsOSM = await buscarEmpresas("todos", ["name~.", "contact:instagram~."], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome);
+          leadsOSM = await buscarEmpresas("todos", ["name~.", "contact:instagram~."], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
         }
       }
     } catch (error) {}
@@ -170,7 +170,7 @@ export async function radarInstagram(nicho: string, cidade: string) {
       }
     }
 
-    return Array.from(usernames).slice(0, 1500).map(user => {
+    return Array.from(usernames).slice(0, limit).map(user => {
       const nomeFormatado = user.replace(/[._]/g, " ").replace(/\b\w/g, l => l.toUpperCase());
       return {
         osmId: "insta_" + user,
@@ -197,10 +197,10 @@ export async function radarInstagram(nicho: string, cidade: string) {
     if (!map.has(key)) map.set(key, item);
   }
   
-  return Array.from(map.values()).slice(0, 3000);
+  return Array.from(map.values()).slice(0, limit);
 }
 
-export async function radarFoods(nicho: string, cidade: string) {
+export async function radarFoods(nicho: string, cidade: string, limit: number = 300) {
   const isGlobal = (cidade.toLowerCase() === "mundial" || cidade.trim() === "");
   const cid = isGlobal ? "" : cidade.trim();
   const nic = nicho.trim() || "restaurante";
@@ -215,7 +215,7 @@ export async function radarFoods(nicho: string, cidade: string) {
       const key = process.env.OUTSCRAPER_API_KEY;
       if (key) {
         const query = `${nic} delivery ${cid || "Brasil"}`.trim();
-        const results = await buscarOutscraper(query, key, 500);
+        const results = await buscarOutscraper(query, key, Math.min(limit, 500));
         return results.map((r: any) => ({
           osmId: r.osmId,
           nome: r.nome,
@@ -242,7 +242,7 @@ export async function radarFoods(nicho: string, cidade: string) {
       if (!isGlobal) {
         const geo = await geocodificar(cid);
         if (geo) {
-          leadsOSM = await buscarEmpresas("todos", ["name~.", "amenity~restaurant|fast_food|cafe|bar|pub", "delivery~yes|only"], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome);
+          leadsOSM = await buscarEmpresas("todos", ["name~.", "amenity~restaurant|fast_food|cafe|bar|pub", "delivery~yes|only"], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
         }
       }
     } catch (error) {}
@@ -290,7 +290,7 @@ export async function radarFoods(nicho: string, cidade: string) {
       } catch (e) {}
     }
 
-    return Array.from(restaurantes.values()).slice(0, 1500).map((r, i) => ({
+    return Array.from(restaurantes.values()).slice(0, limit).map((r, i) => ({
       osmId: `osint_food_${i}`,
       nome: r.nome,
       categoria: nicho || "Delivery/Restaurante",
@@ -314,5 +314,5 @@ export async function radarFoods(nicho: string, cidade: string) {
     if (!map.has(key)) map.set(key, item);
   }
 
-  return Array.from(map.values()).slice(0, 3000);
+  return Array.from(map.values()).slice(0, limit);
 }

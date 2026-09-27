@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       const outRes = await buscarOutscraper(`"${nicho}" em ${cidade}`, process.env.OUTSCRAPER_API_KEY || "");
       perfis = outRes;
     } else {
-      perfis = await radarFoods(nicho || "", cidade || "");
+      perfis = await radarFoods(nicho || "", cidade || "", limit || 300);
     }
 
     return NextResponse.json({

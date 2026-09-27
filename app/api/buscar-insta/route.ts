@@ -7,13 +7,13 @@ import { radarInstagram } from "@/lib/enrichment";
 export async function POST(req: Request) {
   try {
     await usuarioObrigatorio();
-    const { nicho, cidade } = await req.json();
+    const { nicho, cidade, limit } = await req.json();
 
     if (!nicho && !cidade) {
       return NextResponse.json({ erro: "Informe pelo menos um nicho ou cidade" }, { status: 400 });
     }
 
-    const perfis = await radarInstagram(nicho || "", cidade || "");
+    const perfis = await radarInstagram(nicho || "", cidade || "", limit || 300);
     
     // Sort randomly or keep search engine rank. Let's keep search engine rank (as they appear in HTML).
     // radarInstagram uses a Set which somewhat preserves insertion order from the matches.
