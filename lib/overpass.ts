@@ -1,3 +1,4 @@
+import { isEmailValidoParaB2B } from "./validar-email";
 ﻿import { getCategoria } from "./categorias";
 
 export async function geocodificar(cidade: string) {

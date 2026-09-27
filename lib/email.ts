@@ -1,3 +1,4 @@
+import { isEmailValidoParaB2B } from "./validar-email";
 import nodemailer from "nodemailer";
 
 const LIMITE_POR_DIA = 450;

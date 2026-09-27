@@ -1,3 +1,4 @@
+import { isEmailValidoParaB2B } from "@/lib/validar-email";
 import { NextResponse } from "next/server";
 import { usuarioObrigatorio } from "@/lib/supabase-server";
 import { gerarMensagem } from "@/lib/mensagens";
@@ -15,9 +16,8 @@ export async function POST(req: Request) {
     if (e1 || !lead) return NextResponse.json({ erro: "lead não encontrado" }, { status: 404 });
     if (!lead.email) return NextResponse.json({ erro: "lead sem e-mail" }, { status: 400 });
 
-    const fakeDomains = ["duckduckgo.com", "example.com", "teste.com", "email.com"];
-    if (fakeDomains.some(d => lead.email.toLowerCase().includes(d))) {
-      return NextResponse.json({ erro: "E-mail falso. Disparo abortado." }, { status: 400 });
+    if (!isEmailValidoParaB2B(lead.email)) {
+      return NextResponse.json({ erro: "E-mail bloqueado por ser reconhecido como falso (Anti-Bounce)" }, { status: 400 });
     }
 
     // reutiliza a última mensagem gerada, se existir; senão gera agora

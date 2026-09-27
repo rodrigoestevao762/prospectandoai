@@ -1,3 +1,4 @@
+import { isEmailValidoParaB2B } from "./validar-email";
 import { geocodificar, buscarEmpresas } from "./overpass";
 import { buscarOutscraper } from "./outscraper";
 

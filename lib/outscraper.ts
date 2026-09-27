@@ -1,3 +1,4 @@
+import { isEmailValidoParaB2B } from "./validar-email";
 export async function buscarOutscraper(query: string, apiKey: string, limit: number = 300) {
   const params = new URLSearchParams({
     query: query,
@@ -41,7 +42,7 @@ export async function buscarOutscraper(query: string, apiKey: string, limit: num
       telefone: e.phone || null,
       website: e.site || null,
       instagram: e.verified_link || e.instagram || null,
-      email: e.emails?.[0] || e.email || null,
+      email: isEmailValidoParaB2B(e.emails?.[0] || e.email) ? (e.emails?.[0] || e.email) : null,
       facebook: e.facebook || null,
       foto: fotoUrl,
       fonte: "outscraper",

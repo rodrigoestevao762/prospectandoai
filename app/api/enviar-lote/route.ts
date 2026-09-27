@@ -1,3 +1,4 @@
+import { isEmailValidoParaB2B } from "@/lib/validar-email";
 ﻿export const maxDuration = 60;
 import { NextResponse } from "next/server";
 import { usuarioObrigatorio } from "@/lib/supabase-server";
@@ -25,8 +26,6 @@ export async function POST(req: Request) {
     const negocioNome = settings?.negocio_nome && settings.negocio_nome !== "ProspectAI" ? settings.negocio_nome : "HardZ Sites";
     const negocio = settings || { negocio_nome: "HardZ Sites", servico: "Criação de sites profissionais", diferenciais: "Aparecer no Google" };
 
-    const fakeDomains = ["duckduckgo", "example", "teste.com", "email.com"];
-    
     // Configura 1 ÚNICA CONEXÃO para não ser bloqueado pelo Google
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -47,7 +46,7 @@ export async function POST(req: Request) {
         const { data: lead } = await sb.from("leads").select("*").eq("id", leadId).eq("user_id", user.id).single();
         if (!lead || !lead.email) continue;
         
-        if (fakeDomains.some(d => lead.email.toLowerCase().includes(d))) continue;
+        if (!isEmailValidoParaB2B(lead.email)) continue;
 
         const { data: ultima } = await sb.from("messages").select("texto").eq("lead_id", leadId).order("criado_em", { ascending: false }).limit(1).maybeSingle();
         let texto = ultima?.texto || "";
