@@ -10,9 +10,9 @@ const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
 export async function POST(req: Request) {
   try {
     await usuarioObrigatorio();
-    const { lat, lng, cidade, categoriaId } = await req.json();
+    const { lat, lng, cidade, categoriaId, limit } = await req.json();
 
-    let ponto: { lat: number; lng: number; radiusM: number; paisNome: string } | null = null;
+    let ponto: { lat: number; lng: number; radiusM: number; paisNome: string; bbox?: number[] } | null = null;
     let cidadeNome = cidade || "";
     let paisNome = "";
 
@@ -33,7 +33,10 @@ export async function POST(req: Request) {
       } else {
         cidadeNome = "Região";
       }
-      ponto = { lat, lng, radiusM: 12000, paisNome };
+      const dLat = 12000 / 111000;
+      const dLng = 12000 / (111000 * Math.cos(lat * Math.PI / 180));
+      const bb = [lat - dLat, lng - dLng, lat + dLat, lng + dLng];
+      ponto = { lat, lng, radiusM: 12000, paisNome, bbox: bb };
     } else {
       return NextResponse.json({ erro: "informe cidade ou lat/lng" }, { status: 400 });
     }
@@ -90,7 +93,7 @@ export async function POST(req: Request) {
         ...qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco }),
       }))
       .sort((a, b) => b.score - a.score)
-      .slice(0, 150);
+      .slice(0, limit || 300);
 
     return NextResponse.json({
       lat: ponto.lat, lng: ponto.lng, cidade: cidadeNome, pais: paisNome, resultados,
