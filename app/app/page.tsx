@@ -676,7 +676,7 @@ const BATCH_SIZE = 30; // 30 e-mails por ciclo
                 📘 Facebook
               </button>
             )}
-            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.nome + " " + (l.endereco || l.cidade))}`} target="_blank" rel="noopener noreferrer" className="btn-3d btn-3d-ghost" style={{ color: "var(--signal)", borderColor: "rgba(56,189,248,0.3)" }}>📍 Google Maps</a>
+            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.nome + " " + l.cidade)}`} target="_blank" rel="noopener noreferrer" className="btn-3d btn-3d-ghost" style={{ color: "var(--signal)", borderColor: "rgba(56,189,248,0.3)" }}>📍 Google Maps</a>
               <button onClick={() => router.push(`/app/editor/${l.id}`)} className="btn-3d btn-3d-amber">
               ✦ Landing
             </button>
