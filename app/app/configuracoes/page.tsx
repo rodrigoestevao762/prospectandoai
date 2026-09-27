@@ -93,7 +93,7 @@ export default function ConfigPage() {
         </motion.div>
         
         <motion.div variants={itemVariants}>
-          <label className="mono mb-2 block text-[10px] uppercase tracking-widest text-[var(--ink-dim)]">App Password (Senha de Aplicativo)</label>
+          <label className="mono mb-2 block text-[10px] uppercase tracking-widest text-[var(--ink-dim)]">Senha de App (Gmail) ou API Key (Resend/SendGrid)</label>
           <input className={campo} type="password" placeholder="abcd efgh ijkl mnop" value={s.resend_api_key || ""} onChange={(e) => setS({ ...s, resend_api_key: e.target.value })} />
           
           <div className="mt-4 rounded-xl bg-white/5 border border-white/10 p-4 text-xs text-[var(--ink-dim)]">
