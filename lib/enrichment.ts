@@ -129,7 +129,17 @@ export async function radarInstagram(nicho: string, cidade: string, limit: numbe
       if (!isGlobal) {
         const geo = await geocodificar(cid);
         if (geo) {
-          leadsOSM = await buscarEmpresas("todos", ["name~.", "contact:instagram~."], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+          
+            const { CATEGORIAS } = await import("./categorias");
+            const nicLower = nic.toLowerCase();
+            const cat = CATEGORIAS.find(c => c.id === nicLower || c.label.toLowerCase().includes(nicLower));
+            
+            if (cat) {
+              leadsOSM = await buscarEmpresas(cat.id, [...cat.tags, "contact:instagram~."], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+            } else {
+              leadsOSM = await buscarEmpresas("todos", [`name~${nic},i`, "contact:instagram~."], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+            }
+
         }
       }
     } catch (error) {}
@@ -242,7 +252,17 @@ export async function radarFoods(nicho: string, cidade: string, limit: number = 
       if (!isGlobal) {
         const geo = await geocodificar(cid);
         if (geo) {
-          leadsOSM = await buscarEmpresas("todos", ["name~.", "amenity~restaurant|fast_food|cafe|bar|pub", "delivery~yes|only"], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+          
+            const { CATEGORIAS } = await import("./categorias");
+            const nicLower = nic.toLowerCase();
+            const cat = CATEGORIAS.find(c => c.id === nicLower || c.label.toLowerCase().includes(nicLower));
+            
+            if (cat) {
+              leadsOSM = await buscarEmpresas(cat.id, [...cat.tags, "delivery~yes|only"], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+            } else {
+              leadsOSM = await buscarEmpresas("todos", [`name~${nic},i`, "amenity~restaurant|fast_food|cafe|bar|pub"], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit);
+            }
+
         }
       }
     } catch (error) {}

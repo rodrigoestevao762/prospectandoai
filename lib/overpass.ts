@@ -79,7 +79,13 @@ export async function buscarEmpresas(
   const selectors = tags.map((t) => {
     if (t.includes("~")) {
       const [k, v] = t.split("~");
+      
+      // Suporte para case-insensitive (ex: name~barbearia,i)
+      if (v.endsWith(',i')) {
+        return `nwr["${k}"~"${esc(v.slice(0, -2))}",i]${around};`;
+      }
       return `nwr["${k}"~"${esc(v)}"]${around};`;
+  
     } else if (t.includes("=")) {
       const [k, v] = t.split("=");
       return `nwr["${k}"="${esc(v)}"]${around};`;
