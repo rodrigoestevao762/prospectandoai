@@ -42,7 +42,7 @@
   
   // Anti-Padrões de username (ex: ce.0594451T)
   // Se tem mais de 4 números seguidos no user, ou se tem caracteres muito estranhos
-  if (/\d{4,}/.test(user)) return false; 
+  if (/\d{6,}/.test(user)) return false; 
   if (user.startsWith("-") || user.startsWith(".")) return false;
   if (user.includes("+or+")) return false;
   

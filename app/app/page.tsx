@@ -387,7 +387,7 @@ const BATCH_SIZE = 30; // 30 e-mails por ciclo
     if (sucessos > 0) {
       setAviso(`Processamento turbo concluído! ${sucessos} e-mails disparados com sucesso.`);
     } else {
-      setAviso(`Falha no disparo! Verifique a configuração de E-mail/Senha de App. Erro: ${ultErro}`);
+        setAviso(ultErro ? `Falha no disparo! Erro: ${ultErro}` : `Nenhum e-mail foi enviado neste lote. Todos foram retidos pelo filtro Anti-Bounce (lixo).`);
     }
   }
 
