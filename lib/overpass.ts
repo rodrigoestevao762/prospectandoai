@@ -51,33 +51,22 @@ export async function buscarEmpresas(
   let bboxString = "";
   let around = "";
   if (bbox && bbox.length === 4) {
-    let [s, w, n, e] = bbox;
-    
-    // MEGA BRAIN DYNAMIC CLAMPING: 
-    // Ajusta o tamanho da área pesquisada com base no limite solicitado.
-    // Isso impede que pesquisemos 50km (100 segundos) quando o usuário só quer 300 leads.
-    const requestedLimit = limit && limit > 0 ? limit : 10000;
-    
-    // Se a busca tem mais de 5 tags, ela é "pesada".
-    
-      // Se tiver mais de 2 tags OU se a área for gigante (país/estado), aplicamos o Mega Brain Clamping
-      if (tags.length > 2 || (n - s) > 0.5 || (e - w) > 0.5) {
-
-      let maxDelta = 0.04; // ~4km (bom para 300 leads)
+      let [s, w, n, e] = bbox;
       
-      if (requestedLimit > 500) maxDelta = 0.08; // ~4km
-      if (requestedLimit > 1500) maxDelta = 0.15; // ~8km
-      if (requestedLimit > 4000) maxDelta = 0.25; // ~16km
-      if (requestedLimit > 8000) maxDelta = 0.40; // ~26km
+      // MEGA BRAIN DYNAMIC CLAMPING v2: 
+      // Sempre aplica um limite seguro (maxDelta) independentemente do nmero de tags ou tamanho original,
+      // porque mesmo a bbox de uma nica cidade (ex: Porto Alegre) pode causar Timeout 504 no Overpass.
+      let maxDelta = 0.2; // ~22kmx22km (cobre o centro expandido de 90% das capitais globais sem timeout)
+      if (limit && limit <= 100) maxDelta = 0.1;
       
-      const latC = s + (n - s) / 2;
-      const lonC = w + (e - w) / 2;
+      const latC = (s + n) / 2;
+      const lonC = (w + e) / 2;
+      
       if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
       if (e - w > maxDelta) { w = lonC - maxDelta/2; e = lonC + maxDelta/2; }
-    }
 
-    bboxString = `[bbox:${s},${w},${n},${e}]`;
-  } else if (radiusM > 0) {
+      bboxString = `[bbox:${s},${w},${n},${e}]`;
+    } else if (radiusM > 0) {
     around = `(around:${radiusM},${lat},${lng})`;
   } else {
     bboxString = `[bbox:-90,-180,90,180]`;
