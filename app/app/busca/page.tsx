@@ -159,10 +159,23 @@ export default function BuscaPage() {
       await Promise.all(lote.map(async (emp) => {
         try {
           const q = encodeURIComponent(emp.nome + ' ' + (emp.endereco || emp.cidade));
-          const r = await fetch('/api/radar-redes?q=' + q);
+          const r = await fetch('/api/enrich-search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade || emp.endereco, pais: emp.pais })
+            });
           if (r.ok) {
-            const json = await r.json();
-            setResultados(res => res ? res.map(e => e.osmId === emp.osmId ? { ...e, instagram: json.instagram, facebook: json.facebook, website: json.website || e.website, telefone: json.telefone || e.telefone } : e) : null);
+            const resJson = await r.json();
+            if (resJson.success && resJson.data) {
+              setResultados(res => res ? res.map(e => e.osmId === emp.osmId ? { 
+                ...e, 
+                instagram: resJson.data.instagram || e.instagram, 
+                facebook: resJson.data.facebook || e.facebook, 
+                website: resJson.data.website || e.website, 
+                telefone: resJson.data.telefone || e.telefone,
+                email: resJson.data.email || e.email
+              } : e) : null);
+            }
           }
         } catch (e) {}
       }));
@@ -184,10 +197,23 @@ export default function BuscaPage() {
       await Promise.all(lote.map(async (emp) => {
         try {
           const q = encodeURIComponent(emp.nome + ' ' + (emp.endereco || emp.cidade));
-          const r = await fetch('/api/radar-redes?q=' + q);
+          const r = await fetch('/api/enrich-search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade || emp.endereco, pais: emp.pais })
+            });
           if (r.ok) {
-            const json = await r.json();
-            setResultados(res => res ? res.map(e => e.osmId === emp.osmId ? { ...e, instagram: json.instagram, facebook: json.facebook, website: json.website || e.website, telefone: json.telefone || e.telefone } : e) : null);
+            const resJson = await r.json();
+            if (resJson.success && resJson.data) {
+              setResultados(res => res ? res.map(e => e.osmId === emp.osmId ? { 
+                ...e, 
+                instagram: resJson.data.instagram || e.instagram, 
+                facebook: resJson.data.facebook || e.facebook, 
+                website: resJson.data.website || e.website, 
+                telefone: resJson.data.telefone || e.telefone,
+                email: resJson.data.email || e.email
+              } : e) : null);
+            }
           }
         } catch (e) {}
       }));

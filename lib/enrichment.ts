@@ -9,7 +9,7 @@ async function fetchHtml(url: string): Promise<string> {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      signal: AbortSignal.timeout(40000)
+      signal: AbortSignal.timeout(10000)
     });
     return await res.text();
   } catch (err) {
