@@ -279,7 +279,7 @@ export default function LeadsPage() {
     
     let sucessos = 0;
     
-    const batchSize = 5;
+    const batchSize = 15;
     for (let i = 0; i < paraGerar.length; i += batchSize) {
       const lote = paraGerar.slice(i, i + batchSize);
       setAviso(`Gerando mensagens voando... (${Math.min(i + batchSize, paraGerar.length)}/${paraGerar.length})`);
