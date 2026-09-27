@@ -46,19 +46,7 @@ export async function geocodificar(cidade: string, pais?: string): Promise<{ lat
       radiusM = Math.min(50000, Math.max(3000, Math.round(Math.max(dLat, dLng) / 2)));
       // Restringir a bounding box para no máximo ~6km do centro para evitar timeouts do Overpass
       // 1 grau lat ~ 111km -> 0.05 graus ~ 5.5km
-      const maxDelta = 0.03; // ~3.3km para evitar timeouts no Overpass para Todos os Comercios
-      const latC = parseFloat(d.lat);
-      const lonC = parseFloat(d.lon);
-      
-      let s = parseFloat(bbox[0]);
-      let n = parseFloat(bbox[1]);
-      let w = parseFloat(bbox[2]);
-      let e = parseFloat(bbox[3]);
-      
-      if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
-      if (e - w > maxDelta) { w = lonC - maxDelta/2; e = lonC + maxDelta/2; }
-      
-      bb = [s, w, n, e];
+      bb = [parseFloat(bbox[0]), parseFloat(bbox[2]), parseFloat(bbox[1]), parseFloat(bbox[3])];
     }
   return { lat: parseFloat(d.lat), lng: parseFloat(d.lon), radiusM, paisNome: d.display_name?.split(",").pop()?.trim() || pais || "", bbox: bb };
 }
@@ -78,7 +66,17 @@ export async function buscarEmpresas(
   let bboxString = "";
   let around = "";
   if (bbox && bbox.length === 4) {
-    bboxString = `[bbox:${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}]`;
+    let [s, w, n, e] = bbox;
+    // Se for uma busca muito pesada (ex: Todos os Comércios tem > 40 tags),
+    // reduzimos a área de busca drasticamente para não dar 504 Timeout no Overpass
+    if (tags.length > 20) {
+      const maxDelta = 0.015; // ~1.6km
+      const latC = s + (n - s) / 2;
+      const lonC = w + (e - w) / 2;
+      if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
+      if (e - w > maxDelta) { w = lonC - maxDelta/2; e = lonC + maxDelta/2; }
+    }
+    bboxString = `[bbox:${s},${w},${n},${e}]`;
   } else if (radiusM > 0) {
     around = `(around:${radiusM},${lat},${lng})`;
   }
