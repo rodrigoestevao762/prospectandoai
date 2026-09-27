@@ -67,15 +67,7 @@ export async function buscarEmpresas(
   let around = "";
   if (bbox && bbox.length === 4) {
     let [s, w, n, e] = bbox;
-    // Se for uma busca muito pesada (ex: Todos os Comércios tem > 40 tags),
-    // reduzimos a área de busca drasticamente para não dar 504 Timeout no Overpass
-    if (tags.length > 20) {
-      const maxDelta = 0.015; // ~1.6km
-      const latC = s + (n - s) / 2;
-      const lonC = w + (e - w) / 2;
-      if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
-      if (e - w > maxDelta) { w = lonC - maxDelta/2; e = lonC + maxDelta/2; }
-    }
+
     bboxString = `[bbox:${s},${w},${n},${e}]`;
   } else if (radiusM > 0) {
     around = `(around:${radiusM},${lat},${lng})`;
@@ -94,7 +86,7 @@ export async function buscarEmpresas(
 
   
   // Aumentar o limite do timeout para 50s e o teto de resultados para 10000
-  const query = `[out:json][timeout:90]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
+  const query = `[out:json][timeout:120]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
   const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
 
   let json: { elements?: any[] } | null = null;
@@ -107,7 +99,7 @@ export async function buscarEmpresas(
         headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
         body: "data=" + encodeURIComponent(query),
         // Timeout maior para garantir puxadas de milhares de leads
-        signal: AbortSignal.timeout(90000),
+        signal: AbortSignal.timeout(125000),
         
       });
       if (res.ok) {

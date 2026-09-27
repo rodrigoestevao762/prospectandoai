@@ -68,7 +68,7 @@ export default function BuscaPage() {
           return setErro("Cidade não encontrada no mapa");
         }
 
-        setErro("Extraindo até " + limitFinal + " leads do mapa global... (Isso pode levar até 90 segundos, por favor aguarde)");
+        setErro("Extraindo até " + limitFinal + " leads do mapa global... (Isso pode levar até 120 segundos, por favor aguarde)");
         const tags = cat
           ? cat.tags
           : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
@@ -92,7 +92,7 @@ export default function BuscaPage() {
       } catch (err: any) {
         setCarregando(false);
         if (err.message && (err.message.includes("504") || err.message.includes("TIMEOUT") || err.message.includes("timeout"))) {
-           return setErro('A região é muito densa e a API Global (Overpass) demorou mais que 50 segundos para responder. Tente reduzir o número de leads MÁX.');
+           return setErro('A região é muito densa e a API Global (Overpass) demorou mais que 120 segundos para responder. Tente reduzir o número de leads MÁX.');
         }
         setErro("Falha crítica ao conectar com satélites do OSINT: " + err.message);
         return;
