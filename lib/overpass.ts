@@ -9,7 +9,12 @@ export async function geocodificar(cidade: string) {
   if (!res.ok) return null;
   const json = await res.json();
   if (!json || json.length === 0) return null;
-  const item = json[0];
+  
+    // Preferir city/town/village se houver, para evitar pegar o centro geográfico vazio de um país inteiro (ex: Luxemburgo)
+    let item = json[0];
+    const cityItem = json.find((x: any) => x.type === "city" || x.type === "town" || x.type === "administrative" && x.addresstype === "city");
+    if (cityItem) item = cityItem;
+
   
   let paisNome = "";
   const parts = item.display_name.split(",");
@@ -54,13 +59,16 @@ export async function buscarEmpresas(
     const requestedLimit = limit && limit > 0 ? limit : 10000;
     
     // Se a busca tem mais de 5 tags, ela é "pesada".
-    if (tags.length > 5) {
-      let maxDelta = 0.02; // ~2km (bom para 300 leads)
+    
+      // Se tiver mais de 2 tags OU se a área for gigante (país/estado), aplicamos o Mega Brain Clamping
+      if (tags.length > 2 || (n - s) > 0.5 || (e - w) > 0.5) {
+
+      let maxDelta = 0.04; // ~4km (bom para 300 leads)
       
-      if (requestedLimit > 500) maxDelta = 0.04; // ~4km
-      if (requestedLimit > 1500) maxDelta = 0.08; // ~8km
-      if (requestedLimit > 4000) maxDelta = 0.15; // ~16km
-      if (requestedLimit > 8000) maxDelta = 0.25; // ~26km
+      if (requestedLimit > 500) maxDelta = 0.08; // ~4km
+      if (requestedLimit > 1500) maxDelta = 0.15; // ~8km
+      if (requestedLimit > 4000) maxDelta = 0.25; // ~16km
+      if (requestedLimit > 8000) maxDelta = 0.40; // ~26km
       
       const latC = s + (n - s) / 2;
       const lonC = w + (e - w) / 2;
