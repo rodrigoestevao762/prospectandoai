@@ -352,32 +352,29 @@ Tem certeza absoluta?`)) return;
     
     let sucessos = 0;
     let ultErro = "";
-    const batchSize = 15; // Acelerado
-
-    for (let i = 0; i < loteLimitado.length; i += batchSize) {
-      const lote = loteLimitado.slice(i, i + batchSize);
-      setAviso(`Enviando e-mails turbo... (${Math.min(i + batchSize, paraEnviar.length)}/${paraEnviar.length})`);
-      
-      await Promise.all(lote.map(async (l) => {
-          try {
-            const res = await fetch('/api/enviar-automatico', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadId: l.id }),
-            });
-            const json = await res.json();
-            if (res.ok) {
-              await atualizar(l.id, { status: 'enviado', canal: 'email' });
-              sucessos++;
-              localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
-            } else {
-              ultErro = json.erro || 'Erro desconhecido';
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }));
-        await new Promise(resolve => setTimeout(resolve, 1500));
+for (const l of loteLimitado) {
+      setAviso('Enviando e-mail para ' + l.nome + ' (' + (sucessos + 1) + '/' + loteLimitado.length + ')...');
+      setOcupado(l.id + ":email");
+      try {
+        const res = await fetch('/api/enviar-automatico', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadId: l.id }),
+        });
+        const json = await res.json();
+        if (res.ok) {
+          setLeads((ls) => ls.map((lead) => (lead.id === l.id ? { ...lead, status: 'enviado', canal: 'email', atualizado_em: new Date().toISOString() } : lead)));
+          sucessos++;
+          localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
+        } else {
+          ultErro = json.erro;
+        }
+      } catch (err: any) {
+        ultErro = err.message || "Erro desconhecido";
+      }
+      setOcupado(null);
+      if (ultErro && (ultErro.includes('Too many login attempts') || ultErro.includes('Invalid login') || ultErro.includes('535'))) break;
+      // Delay de segurança de 2 segundos para o Gmail não bloquear a conta por "Too many login attempts"
+      await new Promise(r => setTimeout(r, 2000));
     }
-    
     setOcupado(null);
     if (sucessos > 0) {
       setAviso(`Processamento turbo concluído! ${sucessos} e-mails disparados com sucesso.`);
