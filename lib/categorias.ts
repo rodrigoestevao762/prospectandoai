@@ -8,6 +8,20 @@ export type CategoriaDef = {
 };
 
 export const CATEGORIAS: CategoriaDef[] = [
+
+  { id: "arquitetura", label: "Arquitetura e Interiores", tags: ["office=architect", "office=interior_design"] },
+  { id: "veterinario", label: "Clínicas Veterinárias", tags: ["amenity=veterinary"] },
+  { id: "estetica", label: "Clínicas de Estética e Spa", tags: ["shop=beauty", "leisure=spa", "healthcare=alternative"] },
+  { id: "coworking", label: "Coworking e Escritórios", tags: ["amenity=coworking_space", "office=company"] },
+  { id: "materiais_construcao", label: "Materiais de Construção", tags: ["shop=hardware", "shop=doityourself"] },
+  { id: "autoescola", label: "Autoescolas", tags: ["amenity=driving_school"] },
+  { id: "distribuidora_bebidas", label: "Distribuidoras de Bebidas", tags: ["shop=alcohol", "shop=beverages"] },
+  { id: "turismo", label: "Agências de Turismo", tags: ["shop=travel_agency"] },
+  { id: "grafica", label: "Gráficas e Comunicação Visual", tags: ["shop=copyshop", "craft=print_maker", "office=advertising_agency"] },
+  { id: "fotografia", label: "Estúdios de Fotografia", tags: ["shop=photo", "craft=photographer", "shop=photo_studio"] },
+  { id: "eventos", label: "Casas de Festas e Eventos", tags: ["amenity=events_venue", "leisure=dance"] },
+  { id: "seguradora", label: "Corretores e Seguros", tags: ["office=insurance", "office=financial"] },
+
   { id: "barbearia", label: "Barbearias", tags: ["shop=hairdresser", "shop=barber"] },
   { id: "construtora", label: "Construtoras e Reformas", tags: ["craft=builder", "craft=plasterer", "craft=roofer", "craft=carpenter", "shop=doityourself", "office=construction_company", "craft=painter"] },
   { id: "acaiteria", label: "Açaíterias e Smoothies", tags: ["cuisine=acai", "name~açai|acai|açaiteria,i"] },
