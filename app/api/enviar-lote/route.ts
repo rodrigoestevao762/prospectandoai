@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     let transportConfig: any = {
       service: "gmail",
       auth: { user: gmailEmail, pass: gmailPassword },
-      pool: true, maxConnections: 1, maxMessages: 100,
+      pool: true, maxConnections: 5, maxMessages: 100,
     };
 
     if (gmailPassword.startsWith("re_")) {
@@ -62,12 +62,12 @@ export async function POST(req: Request) {
     const resultados = [];
     let sucessos = 0;
 
-    for (const leadId of leadIds) {
+    const promises = leadIds.map(async (leadId: string) => {
       try {
         const { data: lead } = await sb.from("leads").select("*").eq("id", leadId).eq("user_id", user.id).single();
-        if (!lead || !lead.email) continue;
+        if (!lead || !lead.email) return;
         
-        if (!isEmailValidoParaB2B(lead.email)) continue;
+        if (!isEmailValidoParaB2B(lead.email)) return;
 
         const { data: ultima } = await sb.from("messages").select("texto").eq("lead_id", leadId).order("criado_em", { ascending: false }).limit(1).maybeSingle();
         let texto = ultima?.texto || "";
@@ -101,9 +101,10 @@ export async function POST(req: Request) {
         }
         resultados.push({ id: leadId, ok: false, erro: err.message });
       }
-      
-      // Delay minúsculo interno apenas para o Google não engasgar o pipe SMTP
-      await new Promise(r => setTimeout(r, 200));
+    });
+    const settled = await Promise.allSettled(promises);
+    for (const r of settled) {
+       if (r.status === 'rejected') throw r.reason;
     }
     
     transporter.close();
