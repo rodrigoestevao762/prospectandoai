@@ -118,7 +118,7 @@ export async function buscarEmpresas(
         }
         for (const k in grouped) {
            const vals = Array.from(new Set(grouped[k])).join("|");
-           selectors.push(`nwr["${k}"~"${esc(vals)}"]${andModifiers}${around};`);
+           selectors.push(`nw["${k}"~"${esc(vals)}"]${andModifiers}${around};`);
         }
       } else {
         selectors = baseTags.map((t) => {
@@ -126,15 +126,15 @@ export async function buscarEmpresas(
           if (t.includes("~")) {
             const [k, v] = t.split("~");
             if (v.endsWith(',i')) {
-              sel = `nwr["${k}"~"${esc(v.slice(0, -2))}",i]`;
+              sel = `nw["${k}"~"${esc(v.slice(0, -2))}",i]`;
             } else {
-              sel = `nwr["${k}"~"${esc(v)}"]`;
+              sel = `nw["${k}"~"${esc(v)}"]`;
             }
           } else if (t.includes("=")) {
             const [k, v] = t.split("=");
-            sel = `nwr["${k}"="${esc(v)}"]`;
+            sel = `nw["${k}"="${esc(v)}"]`;
           } else {
-            sel = `nwr["${t}"]`;
+            sel = `nw["${t}"]`;
           }
           return sel + andModifiers + around + ";";
         });
