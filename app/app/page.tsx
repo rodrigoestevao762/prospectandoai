@@ -227,7 +227,7 @@ export default function LeadsPage() {
     if (!confirm(`Deseja acionar a IA para vasculhar a internet atrás dos contatos de ${semInsta.length} leads simultaneamente?`)) return;
     
     let sucessos = 0;
-    const batchSize = 30; // Acelerado extremo em paralelo
+    const batchSize = 100; // Hyper-Enriquecimento em paralelo
     for (let i = 0; i < semInsta.length; i += batchSize) {
       const lote = semInsta.slice(i, i + batchSize);
       setAviso(`Enriquecendo lote... (${Math.min(i + batchSize, semInsta.length)}/${semInsta.length})`);
@@ -284,7 +284,7 @@ export default function LeadsPage() {
     
     let sucessos = 0;
     
-    const batchSize = 15;
+    const batchSize = 50; // Acelerado pelo Mega Brain
     for (let i = 0; i < paraGerar.length; i += batchSize) {
       const lote = paraGerar.slice(i, i + batchSize);
       setAviso(`Gerando mensagens voando... (${Math.min(i + batchSize, paraGerar.length)}/${paraGerar.length})`);
@@ -361,7 +361,7 @@ Tem certeza absoluta?`)) return;
     
     let sucessos = 0;
     let ultErro = "";
-const BATCH_SIZE = 30; // 30 e-mails por ciclo
+const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
       for (let i = 0; i < loteLimitado.length; i += BATCH_SIZE) {
         const loteIds = loteLimitado.slice(i, i + BATCH_SIZE).map(l => l.id);
         setAviso('Disparando lote de e-mails turbo (' + Math.min(i + BATCH_SIZE, loteLimitado.length) + '/' + loteLimitado.length + ')...');

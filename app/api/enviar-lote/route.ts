@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     let transportConfig: any = {
       service: "gmail",
       auth: { user: gmailEmail, pass: gmailPassword },
-      pool: true, maxConnections: 5, maxMessages: 100,
+      pool: true, maxConnections: 20, maxMessages: 100,
     };
 
     if (gmailPassword.startsWith("re_")) {
@@ -39,21 +39,21 @@ export async function POST(req: Request) {
       transportConfig = {
         host: "smtp.resend.com", port: 465, secure: true,
         auth: { user: "resend", pass: gmailPassword },
-        pool: true, maxConnections: 5, maxMessages: 500,
+        pool: true, maxConnections: 20, maxMessages: 500,
       };
     } else if (gmailPassword.startsWith("SG.")) {
       // SendGrid API Key
       transportConfig = {
         host: "smtp.sendgrid.net", port: 465, secure: true,
         auth: { user: "apikey", pass: gmailPassword },
-        pool: true, maxConnections: 5, maxMessages: 500,
+        pool: true, maxConnections: 20, maxMessages: 500,
       };
     } else if (gmailPassword.startsWith("xkeysib-")) {
       // Brevo (Sendinblue)
       transportConfig = {
         host: "smtp-relay.brevo.com", port: 587, secure: false,
         auth: { user: gmailEmail, pass: gmailPassword },
-        pool: true, maxConnections: 5, maxMessages: 500,
+        pool: true, maxConnections: 20, maxMessages: 500,
       };
     }
     

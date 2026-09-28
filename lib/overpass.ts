@@ -57,19 +57,19 @@ export async function buscarEmpresas(
       let [s, w, n, e] = bbox;
       
       // MEGA BRAIN DYNAMIC CLAMPING v2: 
-      // Sempre aplica um limite seguro (maxDelta) independentemente do nmero de tags ou tamanho original,
-      // porque mesmo a bbox de uma nica cidade (ex: Porto Alegre) pode causar Timeout 504 no Overpass.
-      let maxDelta = 0.2; // ~22kmx22km (cobre o centro expandido de 90% das capitais globais sem timeout)
-        if (limit && limit <= 100) maxDelta = 0.1;
-        if (baseTags.length > 20) {
-            maxDelta = 0.05; // ~5.5km
-            if (limit && limit >= 1000) maxDelta = 0.08; // ~9km para poder achar milhares
-          }
-        
-        const latC = (s + n) / 2;
-        const lonC = (w + e) / 2;
-        
-        if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
+      
+      // MEGA BRAIN CLUSTER CHUNKING:
+      // Limites incrivelmente maiores porque a busca será fatiada nos múltiplos servidores!
+      let maxDelta = 0.3; // 33km (Buscas normais inteiras)
+      if (baseTags.length > 20) {
+        maxDelta = 0.15; // 16km para "Todos os Comércios" (gigante)
+        if (limit && limit >= 1000) maxDelta = 0.25; // 27km (Maciço!)
+      }
+      
+      const latC = (s + n) / 2;
+      const lonC = (w + e) / 2;
+      
+      if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
       if (e - w > maxDelta) { w = lonC - maxDelta/2; e = lonC + maxDelta/2; }
 
       bboxString = `[bbox:${s},${w},${n},${e}]`;
@@ -140,9 +140,7 @@ export async function buscarEmpresas(
       }
 
 
-  const query = `[out:json][timeout:25]${bboxString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
   const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
-
   let json: { elements?: any[] } | null = null;
   let ultimoErro = "";
 
@@ -152,22 +150,54 @@ export async function buscarEmpresas(
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
   ];
 
-  // MEGA BRAIN MULTI-SATELLITE PARALLELISM ⚡🛰️
+  // MEGA BRAIN HYPER-CLUSTER CHUNKING ⚡🛰️🌍
+  // Divide a bounding box em 4 quadrantes e atira nos 3 servidores globais ao mesmo tempo!
   try {
-    json = await Promise.any(endpoints.map(async (url) => {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
-        body: "data=" + encodeURIComponent(query),
-        signal: AbortSignal.timeout(28000),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data.elements && data.elements.length === 0 && (data as any).remark && String((data as any).remark).includes("timeout")) {
-        throw new Error("Timeout interno do Overpass");
-      }
-      return data;
-    }));
+    let bboxes = [bboxString];
+    if (bbox && bbox.length === 4 && bboxString) {
+        const [s, w, n, e] = bbox;
+        const midLat = (s + n) / 2;
+        const midLon = (w + e) / 2;
+        bboxes = [
+          `[bbox:${s},${w},${midLat},${midLon}]`,
+          `[bbox:${midLat},${w},${n},${midLon}]`,
+          `[bbox:${s},${midLon},${midLat},${e}]`,
+          `[bbox:${midLat},${midLon},${n},${e}]`
+        ];
+    }
+
+    const allElements: any[] = [];
+    // Cada quadrante pede o `limit` integral. Depois cortamos o excesso.
+    const fetchQ = async (bString: string, endpointUrl: string) => {
+        const q = `[out:json][timeout:25]${bString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
+        const res = await fetch(endpointUrl, {
+           method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
+           body: "data=" + encodeURIComponent(q), signal: AbortSignal.timeout(28000),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.elements) return data.elements;
+        return [];
+    };
+
+    // Associa cada quadrante a um endpoint. Como temos 4 quadrantes e 3 endpoints, o 4º reusa o 1º.
+    const settled = await Promise.allSettled(bboxes.map((bStr, i) => fetchQ(bStr, endpoints[i % endpoints.length])));
+    
+    for (const res of settled) {
+        if (res.status === 'fulfilled') {
+            allElements.push(...res.value);
+        }
+    }
+
+    if (allElements.length === 0) {
+        throw new Error("Timeout interno do Overpass em todos os quadrantes");
+    }
+
+    // Filtra IDs duplicados caso quadrantes se sobreponham levemente nas bordas
+    const uniqueElements = Array.from(new Map(allElements.map(e => [e.id, e])).values());
+
+    json = { elements: uniqueElements };
+
   } catch (err: any) {
     ultimoErro = "Todos os satélites falharam ou deram timeout.";
   }
