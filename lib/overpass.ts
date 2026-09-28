@@ -61,7 +61,10 @@ export async function buscarEmpresas(
       // porque mesmo a bbox de uma nica cidade (ex: Porto Alegre) pode causar Timeout 504 no Overpass.
       let maxDelta = 0.2; // ~22kmx22km (cobre o centro expandido de 90% das capitais globais sem timeout)
         if (limit && limit <= 100) maxDelta = 0.1;
-        if (baseTags.length > 20) maxDelta = 0.05; // ~5.5kmx5.5km para buscas "Todos os Comércios", senão causa Timeout 504 (Overpass overloaded)
+        if (baseTags.length > 20) {
+            maxDelta = 0.05; // ~5.5km
+            if (limit && limit >= 1000) maxDelta = 0.08; // ~9km para poder achar milhares
+          }
         
         const latC = (s + n) / 2;
         const lonC = (w + e) / 2;

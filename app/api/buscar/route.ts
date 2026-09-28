@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         ? cat.tags
         : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
       empresas = (await buscarEmpresas(
-        cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, undefined, limit, geo.bbox
+        cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, geo.bbox, limit
       )).map((e) => {
         const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
         return { ...e, score: q.score, nivel: q.nivel };
