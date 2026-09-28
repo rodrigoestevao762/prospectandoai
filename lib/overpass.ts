@@ -63,9 +63,12 @@ export async function buscarEmpresas(
       // A matemática da área: 0.16 x 0.16 = 4 quadrantes de 0.08 x 0.08 (Tamanho perfeito que não dá timeout!)
       // A matemática da área: Se for "Todos os Comércios", NÃO podemos passar de 0.1 (0.05 por quadrante),
       // ou o servidor alemão corta a conexão com 504 Gateway Timeout por excesso de carga no Load Balancer.
-      let maxDelta = 0.2; // 22km para buscas em categorias específicas (Seguro)
-      if (baseTags.length > 20) {
-        maxDelta = 0.1; // 11km para "Todos os Comércios". Cada quadrante fica com 0.05. Acha milhares facilmente.
+      // MEGA BRAIN CHUNKING UNIVERSAL
+      // O limite geográfico máximo deve ser estrito (0.1) para QUALQUER busca massiva (>300).
+      // Em cidades gigantescas (Genoa, Roma), pedir 500 Pizzarias em 22km (0.2) estoura o balanceador de carga.
+      let maxDelta = 0.2; 
+      if (baseTags.length > 20 || (limit && limit > 300)) {
+        maxDelta = 0.1; // Limita a 11km totais (0.05 por quadrante). O servidor resolve em < 8 segundos e não cai no erro 504.
       }
       
       const latC = (s + n) / 2;
