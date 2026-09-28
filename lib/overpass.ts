@@ -208,7 +208,7 @@ export async function buscarEmpresas(
 
   if (!json.elements) return [];
 
-  return json.elements.map((e: any) => ({
+  const finalElements = json.elements.map((e: any) => ({
     osmId: String(e.id),
     nome: e.tags?.name || "Empresa Desconhecida",
     categoria,
@@ -221,4 +221,17 @@ export async function buscarEmpresas(
     email: e.tags?.email || e.tags?.["contact:email"] || null,
     facebook: e.tags?.["contact:facebook"] || e.tags?.facebook || null,
   })).filter((e: any) => e.nome !== "Empresa Desconhecida");
+
+  // MEGA BRAIN DE-DUPLICATION
+  // Remove comércios com o mesmo nome para manter o CRM limpo e evitar que Nodes e Ways do mesmo prédio gerem clones
+  const uniqueByName = [];
+  const seenNames = new Set();
+  for (const el of finalElements) {
+      const key = el.nome.toLowerCase().trim();
+      if (!seenNames.has(key)) {
+          seenNames.add(key);
+          uniqueByName.push(el);
+      }
+  }
+  return uniqueByName;
 }
