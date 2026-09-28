@@ -149,23 +149,24 @@ export async function buscarEmpresas(
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
   ];
 
-  for (const url of endpoints) {
-    try {
+  // MEGA BRAIN MULTI-SATELLITE PARALLELISM ⚡🛰️
+  try {
+    json = await Promise.any(endpoints.map(async (url) => {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
         body: "data=" + encodeURIComponent(query),
         signal: AbortSignal.timeout(28000),
       });
-      if (res.ok) {
-        json = await res.json();
-        break;
-      } else {
-        ultimoErro = `HTTP ${res.status}`;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.elements && data.elements.length === 0 && (data as any).remark && String((data as any).remark).includes("timeout")) {
+        throw new Error("Timeout interno do Overpass");
       }
-    } catch (err: any) {
-      ultimoErro = err.message;
-    }
+      return data;
+    }));
+  } catch (err: any) {
+    ultimoErro = "Todos os satélites falharam ou deram timeout.";
   }
 
   if (!json || (json.elements && json.elements.length === 0 && (json as any).remark && String((json as any).remark).includes("timeout"))) {
