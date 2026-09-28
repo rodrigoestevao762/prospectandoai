@@ -66,10 +66,10 @@ export async function buscarEmpresas(
       // MEGA BRAIN CHUNKING UNIVERSAL
       // O limite geográfico máximo deve ser estrito (0.1) para QUALQUER busca massiva (>300).
       // Em cidades gigantescas (Genoa, Roma), pedir 500 Pizzarias em 22km (0.2) estoura o balanceador de carga.
-      let maxDelta = 0.2; 
-      if (baseTags.length > 20 || (limit && limit > 300)) {
-        maxDelta = 0.1; // Limita a 11km totais (0.05 por quadrante). O servidor resolve em < 8 segundos e não cai no erro 504.
-      }
+      // MEGA BRAIN CHUNKING UNIVERSAL (FIX)
+      // O limite deve ser 0.1 para TODAS as buscas. 
+      // 0.2 gera quadrantes de 0.1 que causam 504 Gateway Timeout nas partes densas de cidades históricas.
+      let maxDelta = 0.1;
       
       const latC = (s + n) / 2;
       const lonC = (w + e) / 2;
@@ -194,7 +194,8 @@ export async function buscarEmpresas(
         }
     }
 
-    if (allElements.length === 0) {
+    let hasSuccess = settled.some(r => r.status === 'fulfilled');
+    if (allElements.length === 0 && !hasSuccess) {
         throw new Error("Timeout interno do Overpass em todos os quadrantes");
     }
 
