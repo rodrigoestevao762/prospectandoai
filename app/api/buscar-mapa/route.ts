@@ -77,15 +77,18 @@ export async function POST(req: Request) {
         };
 
     emp = await buscarEmpresas(
-      cat?.id || "all",
+      cat?.id || "todos",
       tags,
       ponto.lat,
       ponto.lng,
       ponto.radiusM,
       cidadeNome,
       paisNome,
-      classificar
+      ponto.bbox || null,
+      limit || 300
     );
+    
+
 
     const resultados = emp
       .map((e) => ({

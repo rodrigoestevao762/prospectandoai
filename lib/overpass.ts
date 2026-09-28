@@ -48,6 +48,9 @@ export async function buscarEmpresas(
   if (tags.length === 0 && categoria !== "todos") tags = [`amenity~"${categoria}"`, `shop~"${categoria}"`];
   if (extraTags.length > 0) tags = extraTags;
 
+  const baseTags = tags.filter(t => !t.startsWith("AND:"));
+  const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
+
   let bboxString = "";
   let around = "";
   if (bbox && bbox.length === 4) {
@@ -75,8 +78,6 @@ export async function buscarEmpresas(
 
   function esc(st: string) { return st.replace(/\\/g, "\\\\").replace(/"/g, '\\"'); }
   
-    const baseTags = tags.filter(t => !t.startsWith("AND:"));
-    const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
     
     let andModifiers = "";
     for (const t of andTags) {
