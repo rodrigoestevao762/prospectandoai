@@ -182,27 +182,16 @@ export async function radarInstagram(
 
           if (cat) {
             leadsOSM = await buscarEmpresas(
-              cat.id,
-              cat.tags,
-              geo.lat,
-              geo.lng,
-              geo.radiusM,
-              cid,
-              geo.paisNome,
-              geo.bbox,
-              limit,
+              cat.id, cat.tags, geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit
+            );
+          } else if (nicLower === "todos" || nicLower === "todos os comércios" || nicLower === "todos os comercios" || nicLower === "lojas" || nicLower === "empresas") {
+            const todasAsTags = Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
+            leadsOSM = await buscarEmpresas(
+              "todos", todasAsTags, geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit
             );
           } else {
             leadsOSM = await buscarEmpresas(
-              "todos",
-              [`name~${nic},i`],
-              geo.lat,
-              geo.lng,
-              geo.radiusM,
-              cid,
-              geo.paisNome,
-              geo.bbox,
-              limit,
+              "todos", [`name~${nic},i`], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit
             );
           }
         }

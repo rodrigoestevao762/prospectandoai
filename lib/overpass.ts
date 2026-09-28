@@ -60,10 +60,11 @@ export async function buscarEmpresas(
       
       // MEGA BRAIN CLUSTER CHUNKING:
       // Limites incrivelmente maiores porque a busca será fatiada nos múltiplos servidores!
-      let maxDelta = 0.3; // 33km (Buscas normais inteiras)
+      // A matemática da área: 0.16 x 0.16 = 4 quadrantes de 0.08 x 0.08 (Tamanho perfeito que não dá timeout!)
+      let maxDelta = 0.2; // 22km (Buscas normais segmentadas)
       if (baseTags.length > 20) {
-        maxDelta = 0.15; // 16km para "Todos os Comércios" (gigante)
-        if (limit && limit >= 1000) maxDelta = 0.25; // 27km (Maciço!)
+        maxDelta = 0.1; // 11km para "Todos os Comércios". Cada quadrante fica com 0.05 (Seguro)
+        if (limit && limit >= 1000) maxDelta = 0.15; // 16km. Cada quadrante fica com 0.075 (Seguro para centenas de alvos)
       }
       
       const latC = (s + n) / 2;
