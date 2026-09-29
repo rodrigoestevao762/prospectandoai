@@ -69,7 +69,7 @@ export async function buscarEmpresas(
       // MEGA BRAIN CHUNKING UNIVERSAL (FIX)
       // O limite deve ser 0.1 para TODAS as buscas. 
       // 0.2 gera quadrantes de 0.1 que causam 504 Gateway Timeout nas partes densas de cidades históricas.
-      let maxDelta = 0.1;
+      let maxDelta = 0.05;
       
       const latC = (s + n) / 2;
       const lonC = (w + e) / 2;
