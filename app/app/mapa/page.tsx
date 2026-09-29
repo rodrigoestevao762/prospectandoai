@@ -62,7 +62,7 @@ export default function MapaPage() {
   async function buscar(p: { cidade?: string; lat?: number; lng?: number; limit?: number }) {
     if (ocupadoRef.current) return;
     ocupadoRef.current = true;
-    setCarregando(true); setErro(null); setSelecionado(null); setSalvos(new Set());
+    setCarregando(true); setErro(null); setSelecionado(null); setSalvos(new Set()); setResultados(null);
     try {
       const res = await fetch("/api/buscar-mapa", {
         method: "POST", headers: { "Content-Type": "application/json" },

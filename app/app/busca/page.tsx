@@ -45,7 +45,7 @@ export default function BuscaPage() {
 
   async function buscar(e: React.FormEvent) {
     e.preventDefault();
-    setCarregando(true); setErro(null); setResultados(null); setSalvos(new Set());
+    setCarregando(true); setErro(null); setResultados(null); setResultados(null); setSalvos(new Set());
     
     let limitFinal = parseInt(limite) || 300;
 
