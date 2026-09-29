@@ -25,7 +25,7 @@ export default function SitesEntreguesPage() {
   useEffect(() => {
     async function fetchLandings() {
       const { data, error } = await supabaseBrowser()
-        .from("landing_pages")
+        .from("landings")
         .select(`
           id, url_slug, ativo, published_at, tema,
           lead:lead_id ( id, nome, cidade )
@@ -43,7 +43,7 @@ export default function SitesEntreguesPage() {
 
   async function toggleStatus(id: string, currentStatus: boolean) {
     const { error } = await supabaseBrowser()
-      .from("landing_pages")
+      .from("landings")
       .update({ ativo: !currentStatus })
       .eq("id", id);
     if (!error) {
