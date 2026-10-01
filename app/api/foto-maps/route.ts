@@ -2,7 +2,11 @@
 
 import { NextResponse } from "next/server";
 import { buscarOutscraper } from "@/lib/outscraper";
-import { scrapeFotoBing } from "@/lib/foto-scraper";
+
+const TRANSPARENT_PIXEL = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  "base64"
+);
 
 export async function GET(req: Request) {
   try {
@@ -10,7 +14,7 @@ export async function GET(req: Request) {
     const q = searchParams.get("q");
     
     if (!q) {
-      return NextResponse.redirect(`https://ui-avatars.com/api/?name=L&background=random&size=200`);
+      return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
     }
 
     const key = process.env.OUTSCRAPER_API_KEY;
@@ -22,18 +26,10 @@ export async function GET(req: Request) {
       } catch (e) {}
     }
 
-    // Fallback 1: Bing Images (MUITO MELHOR que Google Imagens, não bloqueia)
-    try {
-        const bingFoto = await scrapeFotoBing(q);
-        if (bingFoto) {
-            return NextResponse.redirect(bingFoto);
-        }
-    } catch (e) {}
-
-    // Fallback 2: Retorna as iniciais da empresa coloridas
-    const cleanName = q.split(' ').slice(0, 2).join(' ').replace(/[^a-zA-Z0-9\s]/g, '');
-    return NextResponse.redirect(`https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName || q)}&background=random&color=fff&size=200&bold=true`);
+    // O usuario pediu: "fotos reais do Google Maps. Os que nao tiverem deixa sem"
+    // Entao nao usamos Bing Imagens nem UI-Avatars. Se nao tiver na Outscraper, retorna pixel vazio.
+    return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
   } catch (e) {
-    return NextResponse.redirect(`https://ui-avatars.com/api/?name=ER&background=random&size=200`);
+    return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
   }
 }

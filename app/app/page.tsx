@@ -578,7 +578,7 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
     }
     
     // Fallback: If no real photo from Outscraper, but they have Instagram or Website, use Google Favicon API
-    // Fallback removido a pedido do usuario: mostrar apenas fotos reais do bd
+    if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(l.nome + " " + l.cidade)}`; }
     
     // If user explicitly wants NO photo for those who don't have, and Favicon is mostly for generic logos... 
     // Actually the user said "sem foto apenas os que realmente não tem". Favicon API gives the actual logo.
