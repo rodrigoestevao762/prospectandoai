@@ -675,7 +675,7 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
                     </span>
                   )}
                   <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost flex-1 py-2 px-2 text-[10px] shadow-lg" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
-                    {ocupado === l.id + ":enriquecer" ? "buscando..." : "??"?? Enriquecer"}
+                    {ocupado === l.id + ":enriquecer" ? "buscando..." : "Enriquecer"}
                   </button>
                 </div>
 
