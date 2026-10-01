@@ -648,12 +648,12 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
                         className="field w-full mt-2 rounded-xl p-3 text-sm leading-relaxed bg-black/60 backdrop-blur-xl text-white border-white/20 shadow-lg outline-none focus:border-[var(--signal)]" />
                         <div className="flex gap-2 mt-2 w-full">
                           {l.telefone && (
-                            <a href={`https://wa.me/${l.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(msgAberta[l.id])}`} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] transition hover:bg-[#25D366]/40">
+                            <a href={`https://wa.me/${l.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(msgAberta[l.id])}`} target="_blank" rel="noopener noreferrer" onClick={() => atualizar(l.id, { status: 'enviado' })} className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] transition hover:bg-[#25D366]/40">
                                 ABRIR WPP
                             </a>
                           )}
                           {l.instagram && (
-                            <a href={`https://ig.me/m/${l.instagram.replace(/\/$/, '').split('/').pop()!.replace('@', '').split('?')[0]}`} target="_blank" rel="noopener noreferrer" onClick={() => { navigator.clipboard.writeText(msgAberta[l.id]); setAviso('Mensagem copiada para colar no Direct!'); setTimeout(() => setAviso(null), 3500); }} className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#e879f9]/20 border border-[#e879f9]/50 text-[#e879f9] transition hover:bg-[#e879f9]/40">
+                            <a href={`https://ig.me/m/${l.instagram.replace(/\/$/, '').split('/').pop()!.replace('@', '').split('?')[0]}`} target="_blank" rel="noopener noreferrer" onClick={() => { navigator.clipboard.writeText(msgAberta[l.id]); setAviso('Mensagem copiada para colar no Direct!'); setTimeout(() => setAviso(null), 3500); atualizar(l.id, { status: 'enviado' }); }} className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#e879f9]/20 border border-[#e879f9]/50 text-[#e879f9] transition hover:bg-[#e879f9]/40">
                                 ABRIR INSTA (DM)
                             </a>
                           )}
