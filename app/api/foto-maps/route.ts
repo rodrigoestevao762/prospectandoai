@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { buscarOutscraper } from "@/lib/outscraper";
+import { scrapeFotoBing } from "@/lib/foto-scraper";
 
 export async function GET(req: Request) {
   try {
@@ -21,7 +22,15 @@ export async function GET(req: Request) {
       } catch (e) {}
     }
 
-    // Fallback: Retorna as iniciais da empresa coloridas
+    // Fallback 1: Bing Images (MUITO MELHOR que Google Imagens, não bloqueia)
+    try {
+        const bingFoto = await scrapeFotoBing(q);
+        if (bingFoto) {
+            return NextResponse.redirect(bingFoto);
+        }
+    } catch (e) {}
+
+    // Fallback 2: Retorna as iniciais da empresa coloridas
     const cleanName = q.split(' ').slice(0, 2).join(' ').replace(/[^a-zA-Z0-9\s]/g, '');
     return NextResponse.redirect(`https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName || q)}&background=random&color=fff&size=200&bold=true`);
   } catch (e) {
