@@ -588,7 +588,12 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
 
               {/* Distintivo Superior Direito */}
               <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 items-end">
-                <span className={`badge ${est.badge} shadow-lg backdrop-blur-md bg-black/40`}>{est.icone} {l.nivel}</span>
+                <div className="flex gap-2 items-center">
+                  <button onClick={() => { if (confirm('Excluir permanentemente este lead?')) excluirLead(l.id) }} disabled={!!ocupado} className="p-1.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 text-white/50 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-colors shadow-lg cursor-pointer" title="Excluir Lead">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                  <span className={`badge ${est.badge} shadow-lg backdrop-blur-md bg-black/40`}>{est.icone} {l.nivel}</span>
+                </div>
                 <select value={l.status} onChange={(e) => atualizar(l.id, { status: e.target.value as Lead["status"] })}
                   className="field rounded-lg px-2 py-1.5 text-[9px] uppercase font-bold tracking-wider bg-black/60 backdrop-blur-md border border-white/20 text-white shadow-lg cursor-pointer hover:border-white/40 transition-colors outline-none">
                   {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
