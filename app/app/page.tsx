@@ -641,6 +641,18 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
                         rows={3}
                         placeholder="Edite a mensagem antes de enviar..."
                         className="field w-full mt-2 rounded-xl p-3 text-sm leading-relaxed bg-black/60 backdrop-blur-xl text-white border-white/20 shadow-lg outline-none focus:border-[var(--signal)]" />
+                        <div className="flex gap-2 mt-2 w-full">
+                          {l.telefone && (
+                            <a href={`https://wa.me/${l.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(msgAberta[l.id])}`} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#25D366]/20 border border-[#25D366]/50 text-[#25D366] transition hover:bg-[#25D366]/40">
+                                ABRIR WPP
+                            </a>
+                          )}
+                          {l.instagram && (
+                            <a href={l.instagram.includes('http') ? l.instagram : `https://instagram.com/${l.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer" onClick={() => { navigator.clipboard.writeText(msgAberta[l.id]); setAviso('Mensagem copiada para a Area de Transferencia! Cole no Direct.'); setTimeout(() => setAviso(null), 3500); }} className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#e879f9]/20 border border-[#e879f9]/50 text-[#e879f9] transition hover:bg-[#e879f9]/40">
+                                ABRIR INSTA
+                            </a>
+                          )}
+                        </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
