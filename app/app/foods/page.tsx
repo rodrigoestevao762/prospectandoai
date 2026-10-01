@@ -439,22 +439,11 @@ export default function FoodsRadarPage() {
                       }}
                     />
 
-                    
-                      {/* Avatar com Imagem e ?cone Maps */}
-                      <div className="shrink-0 z-10">
-                        <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 overflow-hidden relative shadow-md group/avatar">
-                          <img 
-                            src={emp.website ? `/api/foto-site?website=${encodeURIComponent(emp.website)}` : `/api/foto-maps?q=${encodeURIComponent(emp.nome + " " + (emp.cidade || ''))}`}
-                            alt={emp.nome}
-                            loading="lazy"
-                            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover/avatar:opacity-100 transition-opacity"
-                          />
-                          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (((emp as any).endereco) || emp.cidade))}`} target="_blank" rel="noopener noreferrer" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/80 backdrop-blur border border-white/10 flex items-center justify-center transition-all hover:scale-110 shadow-lg" title="Ver no Google Maps">
-                            <MapPin className="w-3.5 h-3.5" style={{ color: fonteInfo.color }} />
-                          </a>
-                        </div>
-                      </div>
-        
+                    <div className="shrink-0 z-10">
+  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors shadow-lg" title="Ver no Google Maps">
+    <MapPin className="w-5 h-5" style={{ color: fonteInfo.color }} />
+  </a>
+</div>
 
 
                     <div className="min-w-0 flex-1 z-10">

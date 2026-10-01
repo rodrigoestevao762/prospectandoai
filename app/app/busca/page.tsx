@@ -388,29 +388,19 @@ export default function BuscaPage() {
                     <div className="absolute top-0 inset-x-0 h-32 blur-[50px] opacity-10 group-hover:opacity-20 pointer-events-none transition-opacity" style={{ backgroundColor: accent }} />
                     
                     {/* Maps Redirect Header (Super Fast) */}
-                      <div className="w-full h-32 bg-gradient-to-b from-white/5 to-transparent relative border-b border-white/5 overflow-hidden group/header">
-                        <img 
-                          src={emp.website ? `/api/foto-site?website=${encodeURIComponent(emp.website)}` : `/api/foto-maps?q=${encodeURIComponent(emp.nome + " " + emp.cidade)}`}
-                          alt={emp.nome}
-                          loading="lazy"
-                          className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover/header:opacity-60 transition-all duration-700"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#05080c] via-[#05080c]/50 to-transparent" />
-                        
-                        <a href={mapsUrl} target="_blank" rel="noopener noreferrer" 
-                           className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/header:opacity-100 transition-opacity z-10 bg-black/40 backdrop-blur-sm">
-                          <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] mono uppercase tracking-widest text-white transition-all shadow-[0_0_20px_rgba(0,0,0,0.5)] scale-95 group-hover/header:scale-100">
-                            <MapPin className="w-4 h-4 text-[var(--signal)]" />
-                            Abrir no Maps
-                          </div>
-                        </a>
+                    <div className="w-full h-24 bg-gradient-to-b from-white/5 to-transparent relative border-b border-white/5 flex items-center justify-center overflow-hidden">
+                      <a href={mapsUrl} target="_blank" rel="noopener noreferrer" 
+                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] mono uppercase tracking-widest text-white transition-all shadow-[0_0_10px_rgba(255,255,255,0.05)] hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:scale-105">
+                        <MapPin className="w-4 h-4 text-[var(--signal)]" />
+                        Ver no Google Maps
+                      </a>
 
-                        {/* Distintivo de Nível flutuante */}
-                        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border border-white/10 flex items-center gap-1 z-20 shadow-lg">
-                          <span>{emp.nivel === "quente" ? "🔥" : emp.nivel === "morno" ? "⚡" : "❄️"}</span>
-                          <span style={{ color: accent }}>{emp.nivel}</span>
-                        </div>
+                      {/* Distintivo de Nível flutuante */}
+                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border border-white/10 flex items-center gap-1">
+                        <span>{emp.nivel === "quente" ? "🔥" : emp.nivel === "morno" ? "💡" : "❄"}</span>
+                        <span style={{ color: accent }}>{emp.nivel}</span>
                       </div>
+                    </div>
                     
                     <div className="p-5 flex flex-col flex-1 relative z-10">
                       <div className="mb-4">
