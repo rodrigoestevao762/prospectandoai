@@ -74,7 +74,9 @@ export async function buscarEmpresas(
       // Ajuste inteligente: Para "Todos os Comercios", 11km (0.1) SEMPRE tem milhares de resultados. Passar disso causa timeout.
       // Para nichos especificos (ex: Pizzaria), se o usuario pedir muitos leads (>500), expandimos para 22km (0.2).
       let maxDelta = 0.1;
-      if (categoria !== "todos" && limit && limit > 500) {
+      if (categoria === "todos") {
+          maxDelta = 0.05; // 5km x 5km max per quadrant (ultra-fast for dense regions)
+      } else if (limit && limit > 500) {
           maxDelta = 0.2;
       }
       
@@ -116,12 +118,7 @@ export async function buscarEmpresas(
           selectors = [
               `nwr[name]["amenity"];`,
               `nwr[name]["shop"];`,
-              `nwr[name]["office"];`,
-              `nwr[name]["leisure"];`,
-              `nwr[name]["healthcare"];`,
-              `nwr[name]["craft"];`,
-              `nwr[name]["tourism"];`,
-              `nwr[name]["sport"];`
+              `nwr[name]["office"];`
           ];
       } else {
         selectors = baseTags.map((t) => {
