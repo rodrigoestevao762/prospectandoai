@@ -69,7 +69,9 @@ export async function buscarEmpresas(
       // MEGA BRAIN CHUNKING UNIVERSAL (FIX)
       // O limite deve ser 0.1 para TODAS as buscas. 
       // 0.2 gera quadrantes de 0.1 que causam 504 Gateway Timeout nas partes densas de cidades históricas.
-      let maxDelta = 0.2;
+      // Ajuste inteligente: se o usuario quer poucos leads (<= 500), 11km (0.1) eh mais q suficiente e ultra rapido.
+      // Se ele quiser milhares (1000+), precisamos de 22km (0.2) senao nao acha quantidade suficiente.
+      let maxDelta = (limit && limit > 500) ? 0.2 : 0.1;
       
       const latC = (s + n) / 2;
       const lonC = (w + e) / 2;
@@ -166,10 +168,10 @@ export async function buscarEmpresas(
     const allElements: any[] = [];
     // Cada quadrante pede o `limit` integral. Depois cortamos o excesso.
     const fetchQ = async (bString: string, endpointUrl: string) => {
-        const q = `[out:json][timeout:25]${bString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
+        const q = `[out:json][timeout:45]${bString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
         const res = await fetch(endpointUrl, {
            method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
-           body: "data=" + encodeURIComponent(q), signal: AbortSignal.timeout(28000),
+           body: "data=" + encodeURIComponent(q), signal: AbortSignal.timeout(50000),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
