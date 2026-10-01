@@ -213,7 +213,19 @@ export async function buscarEmpresas(
 
   if (!json.elements) return [];
 
-  const finalElements = json.elements.map((e: any) => ({
+  const blockedTags = ['government', 'diplomatic', 'embassy', 'townhall', 'police', 'fire_station', 'military', 'quango', 'courthouse', 'prison', 'ngo'];
+  const blockedNames = ['embaixada', 'embassy', 'prefeitura', 'minist?rio', 'ministry', 'governo', 'government', 'c?mara municipal', 'c?mara dos', 'consulado', 'consulate', 'tribunal', 'court of', 'police', 'pol?cia', 'departamento de', 'secretaria de', '?rg?o', 'orgao'];
+
+  const finalElements = json.elements.filter((e: any) => {
+    if (e.tags?.office && blockedTags.includes(e.tags.office)) return false;
+    if (e.tags?.amenity && blockedTags.includes(e.tags.amenity)) return false;
+    if (e.tags?.military) return false;
+    
+    const n = (e.tags?.name || "").toLowerCase();
+    if (blockedNames.some(term => n.includes(term))) return false;
+    
+    return true;
+  }).map((e: any) => ({
     osmId: String(e.id),
     nome: e.tags?.name || "Empresa Desconhecida",
     categoria,
