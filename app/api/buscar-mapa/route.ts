@@ -17,7 +17,14 @@ export async function POST(req: Request) {
     let paisNome = "";
 
     if (cidade && (lat == null || lng == null)) {
-      ponto = await geocodificar(cidade);
+      
+      const geo = await geocodificar(cidade);
+      if (geo) {
+          ponto = { ...geo, bbox: geo.bbox || undefined };
+      } else {
+          ponto = null;
+      }
+
       if (!ponto) return NextResponse.json({ erro: "cidade não encontrada" }, { status: 404 });
       paisNome = ponto.paisNome;
     } else if (lat != null && lng != null) {

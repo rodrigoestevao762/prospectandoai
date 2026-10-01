@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     // Mescla os dados se Outscraper não trouxe tudo
     if (!enriquecido || (!enriquecido.email && !enriquecido.instagram)) {
       if (osintData) {
-        enriquecido = {
+        enriquecido = { foto: (enriquecido as any)?.foto || (osintData as any)?.foto || null, 
           facebook: enriquecido?.facebook || osintData.facebook,
           instagram: enriquecido?.instagram || osintData.instagram,
           email: enriquecido?.email || osintData.email,

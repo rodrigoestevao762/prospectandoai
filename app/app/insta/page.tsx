@@ -448,7 +448,7 @@ export default function InstaRadarPage() {
                   ? `https://www.instagram.com/${igHandle}/`
                   : null;
 
-                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`;
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (((emp as any).endereco) || emp.cidade))}`;
 
                 return (
                   <motion.div
@@ -486,7 +486,7 @@ export default function InstaRadarPage() {
                             loading="lazy"
                             className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover/avatar:opacity-100 transition-opacity"
                           />
-                          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`} target="_blank" rel="noopener noreferrer" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/80 backdrop-blur border border-white/10 flex items-center justify-center transition-all hover:scale-110 shadow-lg" title="Ver no Google Maps">
+                          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (((emp as any).endereco) || emp.cidade))}`} target="_blank" rel="noopener noreferrer" className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/80 backdrop-blur border border-white/10 flex items-center justify-center transition-all hover:scale-110 shadow-lg" title="Ver no Google Maps">
                             <MapPin className="w-3.5 h-3.5" style={{ color: fonteInfo.color }} />
                           </a>
                         </div>
