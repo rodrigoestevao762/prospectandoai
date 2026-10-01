@@ -361,42 +361,64 @@ Tem certeza absoluta?`)) return;
     
     let sucessos = 0;
     let ultErro = "";
-const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
-      for (let i = 0; i < loteLimitado.length; i += BATCH_SIZE) {
-        const loteIds = loteLimitado.slice(i, i + BATCH_SIZE).map(l => l.id);
-        setAviso('Disparando lote de e-mails turbo (' + Math.min(i + BATCH_SIZE, loteLimitado.length) + '/' + loteLimitado.length + ')...');
+const BATCH_SIZE = 25; // Blocos menores para evitar 429 da IA
+    let pending = [...loteLimitado];
+    let attempts: Record<string, number> = {};
+    
+    while (pending.length > 0) {
+        const batch = pending.slice(0, BATCH_SIZE);
+        const loteIds = batch.map(l => l.id);
+        
+        setAviso(`Disparando ${sucessos} de ${loteLimitado.length}... (Enviando lote atual de ${loteIds.length})`);
         setOcupado("enviando_lote");
         
+        let batchSuccess = false;
         try {
-          const res = await fetch('/api/enviar-lote', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadIds: loteIds }),
-          });
-          const json = await res.json();
-          if (res.ok) {
-            const sucessosLote = json.sucessos || 0;
-            sucessos += sucessosLote;
-              localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
-              
-              const errosMtp = json.resultados?.filter((r: any) => !r.ok && r.erro).map((r: any) => r.erro);
-              if (errosMtp && errosMtp.length > 0 && sucessosLote === 0) {
-                ultErro = errosMtp[0];
-              }
-
-              setLeads((ls) => ls.map((lead) => {
-              const result = json.resultados?.find((r: any) => r.id === lead.id);
-              if (result && result.ok) return { ...lead, status: 'enviado', canal: 'email', atualizado_em: new Date().toISOString() };
-              return lead;
-            }));
-          } else {
-            ultErro = json.erro || "Erro na resposta do servidor";
-          }
+            const res = await fetch('/api/enviar-lote', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadIds: loteIds }),
+            });
+            const json = await res.json();
+            
+            if (res.ok && json.resultados) {
+                batchSuccess = true;
+                let sucessosLote = 0;
+                
+                json.resultados.forEach((r: any) => {
+                    if (r.ok) {
+                        sucessosLote++;
+                        pending = pending.filter(p => p.id !== r.id);
+                        setLeads((ls) => ls.map(lead => lead.id === r.id ? { ...lead, status: 'enviado', canal: 'email' } : lead));
+                    } else {
+                        attempts[r.id] = (attempts[r.id] || 0) + 1;
+                        if (attempts[r.id] >= 4) {
+                            pending = pending.filter(p => p.id !== r.id); // Drop after 4 attempts
+                            ultErro = r.erro;
+                        }
+                    }
+                });
+                
+                sucessos += sucessosLote;
+                localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
+            } else {
+                ultErro = json.erro || "Erro na resposta do servidor";
+            }
         } catch (err: any) {
-          ultErro = err.message || "Erro desconhecido";
+            ultErro = err.message || "Erro desconhecido";
         }
         
-        setOcupado(null);
-        if (ultErro && (ultErro.includes('Too many login attempts') || ultErro.includes('Invalid login') || ultErro.includes('535'))) break;
-      }
+        if (ultErro && (ultErro.includes('Too many login attempts') || ultErro.includes('Invalid login') || ultErro.includes('535'))) {
+            break; // Fatal SMTP error
+        }
+        
+        if (pending.length > 0) {
+            // Se sobraram leads no pending (Rate Limit da IA ou lista grande)
+            for (let s = 12; s > 0; s--) {
+                setAviso(`Esfriando motor da IA para o prximo lote... Aguarde ${s}s (Enviados: ${sucessos}/${loteLimitado.length})`);
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
+    }
+    
     setOcupado(null);
     if (sucessos > 0) {
       setAviso(`Processamento turbo concluído! ${sucessos} e-mails disparados com sucesso.`);
