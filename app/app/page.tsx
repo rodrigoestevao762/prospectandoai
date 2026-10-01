@@ -556,9 +556,10 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
         </motion.div>
       )}
 
-      {/* Lead Cards */}
-      <div className="flex flex-col gap-3">
-        {visiveis.map((l, i) => {
+      {/* Lead Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {visiveis.map((l, i) => {
+
     const est = NIVEL_ESTILO[l.nivel];
     const accent = NIVEL_ACCENT[l.nivel];
     
@@ -584,140 +585,110 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
     // If Favicon API returns the default globe, it's technically a placeholder, but it works perfectly.
 
     return (
-      <div key={l.id}
-          className="lead-card p-4 flex gap-4"
-          style={{ '--lead-accent': accent } as React.CSSProperties}
-        >
-          {/* Foto do Lead */}
-            <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-white/5 border border-white/10 relative mt-1">
-              <img 
-                src={fotoUrl} 
-                alt={l.nome}
-                loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
-              />
+            <div key={l.id} className="relative rounded-2xl overflow-hidden group flex flex-col justify-end shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.6)] hover:border-white/20 min-h-[380px]" style={{ '--lead-accent': accent } as React.CSSProperties}>
+              
+              {/* Imagem de Fundo Dominante */}
+              <div className="absolute inset-0 z-0 bg-[#05080c]">
+                <img 
+                  src={fotoUrl || '/fallback.png'} 
+                  alt={l.nome}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-50 group-hover:opacity-70"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#05080c] via-[#05080c]/80 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#05080c]/60 to-transparent pointer-events-none" />
+              </div>
+
+              {/* Distintivo Superior Direito */}
+              <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 items-end">
+                <span className={`badge ${est.badge} shadow-lg backdrop-blur-md bg-black/40`}>{est.icone} {l.nivel}</span>
+                <select value={l.status} onChange={(e) => atualizar(l.id, { status: e.target.value as Lead["status"] })}
+                  className="field rounded-lg px-2 py-1.5 text-[9px] uppercase font-bold tracking-wider bg-black/60 backdrop-blur-md border border-white/20 text-white shadow-lg cursor-pointer hover:border-white/40 transition-colors outline-none">
+                  {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+
+              {/* Badge de Categoria Flutuante (Superior Esquerdo) */}
+              <div className="absolute top-4 left-4 z-20 max-w-[50%]">
+                 <span className="badge border-[var(--line-strong)] text-[var(--ink-dim)] bg-black/40 backdrop-blur-md shadow-lg truncate block">
+                  {CATEGORIAS.find((c) => c.id === l.categoria)?.label || l.categoria}
+                </span>
+              </div>
+
+              {/* Conte?do do Card */}
+              <div className="relative z-10 p-5 flex flex-col gap-3 mt-auto w-full">
+                {/* T?tulo e Localiza??o */}
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight text-white drop-shadow-md mb-1 line-clamp-2">{l.nome}</h2>
+                  <p className="mono text-[10px] uppercase tracking-widest text-[var(--ink-faint)] flex items-center gap-1.5 drop-shadow truncate">
+                    <span className="text-[var(--signal)]">?</span> {l.cidade}{l.pais ? `, ${l.pais}` : ""}
+                  </p>
+                </div>
+
+                {/* Contatos Minimalistas */}
+                <div className="mono flex flex-col gap-2 text-xs bg-black/40 backdrop-blur-md p-3.5 rounded-xl border border-white/10 shadow-inner">
+                  { (l.email && !l.email.includes('duckduckgo.com')) ? (
+                    <div className="flex items-center gap-2 w-full">
+                      <span style={{ color: 'var(--signal)' }}>?</span>
+                      <input defaultValue={l.email} className="w-full bg-transparent outline-none transition focus:border-b focus:border-[var(--signal)] placeholder-white/30 text-white truncate" onBlur={(e) => e.target.value !== l.email && atualizar(l.id, { email: e.target.value })} />
+                    </div>
+                  ) : <span className="text-[var(--ink-faint)] w-full text-[10px] flex items-center gap-2">? <span className="opacity-50">sem e-mail</span></span>}
+                  
+                  <div className="flex items-center justify-between w-full text-[10px] mt-1 pt-2 border-t border-white/5">
+                    {l.instagram ? <span style={{ color: '#e879f9' }} className="truncate max-w-[50%]">? @{l.instagram.replace("@", "")}</span> : <span className="text-[var(--ink-faint)] opacity-50">? s/ Insta</span>}
+                    {l.website ? <span className="text-[var(--ink-faint)]">? c/ site</span> : <span className="text-[var(--ink-faint)] opacity-50">? s/ site</span>}
+                  </div>
+                </div>
+
+                {/* ?rea de Textarea Din?mica */}
+                <AnimatePresence>
+                  {msgAberta[l.id] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <textarea value={msgAberta[l.id]} onChange={(e) => setMsgAberta((m) => ({ ...m, [l.id]: e.target.value }))}
+                        rows={3}
+                        placeholder="Edite a mensagem antes de enviar..."
+                        className="field w-full mt-2 rounded-xl p-3 text-sm leading-relaxed bg-black/60 backdrop-blur-xl text-white border-white/20 shadow-lg outline-none focus:border-[var(--signal)]" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Bot?es de A??o na Base */}
+                <div className="flex flex-wrap gap-2 items-center mt-1">
+                  {l.email && l.status !== "enviado" && l.status !== "respondido" && l.status !== "cliente" && (
+                    <button onClick={() => enviarAuto(l)} disabled={!!ocupado} className="btn-3d btn-3d-primary flex-1 py-2 px-2 text-[10px] shadow-lg">
+                      {ocupado === l.id + ":auto" ? "enviando..." : "? E-mail"}
+                    </button>
+                  )}
+                  {l.status === "enviado" && (
+                    <span className="flex-1 text-center rounded-lg bg-[var(--signal)]/10 px-2 py-2 text-[10px] uppercase tracking-widest text-[var(--signal)] border border-[var(--signal)]/20 shadow-inner">
+                      ? Enviado
+                    </span>
+                  )}
+                  <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost flex-1 py-2 px-2 text-[10px] shadow-lg" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
+                    {ocupado === l.id + ":enriquecer" ? "buscando..." : "?? Buscar"}
+                  </button>
+                </div>
+
+                {/* Action Row Secund?ria (Redes) */}
+                <div className="flex gap-2 w-full">
+                  <button onClick={() => gerar(l, "whatsapp")} disabled={!!ocupado} className="flex-1 py-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[10px] uppercase tracking-widest text-[#25D366] font-bold rounded-lg transition flex justify-center items-center gap-1.5 shadow-lg">
+                    WPP
+                  </button>
+                  <button onClick={() => gerar(l, "instagram")} disabled={!!ocupado} className="flex-1 py-2 bg-[#e879f9]/10 hover:bg-[#e879f9]/20 border border-[#e879f9]/30 text-[10px] uppercase tracking-widest text-[#e879f9] font-bold rounded-lg transition flex justify-center items-center gap-1.5 shadow-lg">
+                    INSTA
+                  </button>
+                </div>
+              </div>
             </div>
-            
-            <div className="flex-1 min-w-0">
-              {/* Header do card */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h2 className="font-semibold tracking-tight">{l.nome}</h2>
-            <span className={`badge ${est.badge}`}>{est.icone} {l.nivel} · {l.score}</span>
-            <span className="badge border-[var(--line-strong)] text-[var(--ink-dim)]">
-              {CATEGORIAS.find((c) => c.id === l.categoria)?.label || l.categoria}
-            </span>
-            <span className="mono ml-auto text-[11px] uppercase tracking-widest text-[var(--ink-faint)]">
-              ◎ {l.cidade}{l.pais ? `, ${l.pais}` : ""}
-            </span>
-          </div>
-
-          {/* Dados de contato */}
-          <div className="mono mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
-            { (l.email && !l.email.includes('duckduckgo.com')) ? (
-              <span className="flex items-center gap-1.5 text-[var(--ink)]">
-                <span style={{ color: 'var(--signal)' }}>✉</span>
-                <input defaultValue={l.email} className="w-52 rounded border border-transparent bg-transparent outline-none transition hover:border-[var(--line-strong)] focus:border-[var(--signal)]" onBlur={(e) => e.target.value !== l.email && atualizar(l.id, { email: e.target.value })} />
-              </span>
-            ) : <span className="text-[var(--ink-faint)]">✉ sem e-mail</span>}
-            {l.instagram ? <span style={{ color: '#e879f9' }}>◆ @{l.instagram.replace("@", "")}</span> : <span className="text-[var(--ink-faint)]">◆ sem Instagram</span>}
-            {l.website ? <span className="text-[var(--ink-faint)]">▣ tem site</span> : <span className="font-semibold text-[var(--signal)]">▣ sem site ✓</span>}
-            <select value={l.status} onChange={(e) => atualizar(l.id, { status: e.target.value as Lead["status"] })}
-              className="field ml-auto rounded-lg px-2 py-1 text-[11px]">
-              {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </div>
-
-          {/* Textarea de mensagem */}
-          <AnimatePresence>
-            {msgAberta[l.id] && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25 }}
-                style={{ overflow: 'hidden' }}
-              >
-                <textarea value={msgAberta[l.id]} onChange={(e) => setMsgAberta((m) => ({ ...m, [l.id]: e.target.value }))}
-                  rows={4}
-                  className="field mt-3 w-full rounded-xl p-3.5 text-sm leading-relaxed" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Botões de ação */}
-          <div className="mt-3.5 flex flex-wrap gap-2 items-center">
-            {l.email && l.status !== "enviado" && l.status !== "respondido" && l.status !== "cliente" && (
-              <button onClick={() => enviarAuto(l)} disabled={!!ocupado} className="btn-3d btn-3d-primary">
-                {ocupado === l.id + ":auto" ? "enviando..." : "⚡ Enviar E-mail"}
-              </button>
-            )}
-            {l.status === "enviado" && (
-              <span className="mono rounded-lg bg-[var(--signal)]/8 px-3.5 py-2 text-[10px] uppercase tracking-widest text-[var(--ink-faint)]">
-                ✓ {l.canal === "dm" ? "DM enviada" : "e-mail enviado"}
-              </span>
-            )}
-            <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
-              {ocupado === l.id + ":enriquecer" ? "buscando..." : "🔍 Enriquecer"}
-            </button>
-            
-            <div className="flex bg-white/5 rounded-lg overflow-hidden border border-white/10 shadow-sm" style={{ padding: 2 }}>
-              <button onClick={() => gerar(l, "whatsapp")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
-                <span style={{color: '#25D366'}}>💬</span> Wpp
-              </button>
-              <button onClick={() => gerar(l, "instagram")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
-                <span style={{color: '#e879f9'}}>📸</span> Insta
-              </button>
-              <button onClick={() => gerar(l, "email")} disabled={!!ocupado} className="px-3 py-1.5 hover:bg-white/10 text-[10px] uppercase tracking-widest text-[var(--ink)] font-medium rounded transition flex gap-1.5 items-center">
-                <span style={{color: 'var(--signal)'}}>✉</span> E-mail
-              </button>
-            </div>
-            
-            {msgAberta[l.id] && (
-              <button onClick={() => handleCopiar(l.id, msgAberta[l.id])} className="btn-3d btn-3d-dark">
-                {copiado[l.id] ? "✅ copiado" : "⧉ Copiar"}
-              </button>
-            )}
-            {l.instagram && (
-              <button onClick={() => abrirDM(l)} className="btn-3d btn-3d-insta">
-                📸 Instagram
-              </button>
-            )}
-            {l.telefone && (
-              <button onClick={() => abrirWhatsApp(l)} className="btn-3d" style={{
-                background: 'linear-gradient(160deg, #25D366, #128C7E)',
-                color: '#fff',
-                boxShadow: '0 4px 0 #075E54, 0 8px 24px rgba(37,211,102,0.3)',
-              }}>
-                💬 WhatsApp
-              </button>
-            )}
-            {l.facebook && (
-              <button onClick={() => abrirFacebook(l)} className="btn-3d" style={{
-                background: 'linear-gradient(160deg, #4267B2, #1877F2)',
-                color: '#fff',
-                boxShadow: '0 4px 0 #1a3a7a, 0 8px 24px rgba(24,119,242,0.3)',
-              }}>
-                📘 Facebook
-              </button>
-            )}
-            
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.nome + " " + l.cidade)}`} target="_blank" rel="noopener noreferrer" 
-                 className="btn-3d" style={{ background: 'var(--signal)', color: '#000', boxShadow: '0 4px 0 #0284c7, 0 8px 24px rgba(56,189,248,0.4)' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                VER NO MAPS
-              </a>
-              <button onClick={() => router.push(`/app/editor/${l.id}`)} className="btn-3d btn-3d-amber">
-              ✦ Landing
-            </button>
-            <button onClick={() => excluirLead(l.id)} disabled={!!ocupado} className="btn-3d btn-3d-danger ml-auto">
-              {ocupado === l.id + ":excluir" ? "..." : "🗑 Excluir"}
-            </button>
-          </div>
-        </div>
+          );
+        })}
       </div>
-    );
-  })}
-</div>
 </div>
 );
 }
