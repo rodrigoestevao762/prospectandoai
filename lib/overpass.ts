@@ -69,7 +69,7 @@ export async function buscarEmpresas(
       // MEGA BRAIN CHUNKING UNIVERSAL (FIX)
       // O limite deve ser 0.1 para TODAS as buscas. 
       // 0.2 gera quadrantes de 0.1 que causam 504 Gateway Timeout nas partes densas de cidades históricas.
-      let maxDelta = 0.05;
+      let maxDelta = 0.2;
       
       const latC = (s + n) / 2;
       const lonC = (w + e) / 2;
@@ -105,25 +105,17 @@ export async function buscarEmpresas(
     }
 
     let selectors: string[] = [];
-      if (baseTags.length > 20) {
-        // MEGA BRAIN GROUPING: Evita erro 406 Not Acceptable por excesso de queries
-        const grouped: Record<string, string[]> = {};
-        for (const t of baseTags) {
-           if (t.includes("=")) {
-             const [k, v] = t.split("=");
-             if (!grouped[k]) grouped[k] = [];
-             grouped[k].push(v);
-           } else if (t.includes("~")) {
-             const [k, v] = t.split("~");
-             if (!grouped[k]) grouped[k] = [];
-             const cleanV = v.endsWith(",i") ? v.slice(0, -2) : v;
-             grouped[k].push(cleanV);
-           }
-        }
-        for (const k in grouped) {
-           const vals = Array.from(new Set(grouped[k])).join("|");
-           selectors.push(`nw["${k}"~"${esc(vals)}"]${andModifiers}${around};`);
-        }
+      if (categoria === "todos") {
+          selectors = [
+              `nwr[name]["amenity"];`,
+              `nwr[name]["shop"];`,
+              `nwr[name]["office"];`,
+              `nwr[name]["leisure"];`,
+              `nwr[name]["healthcare"];`,
+              `nwr[name]["craft"];`,
+              `nwr[name]["tourism"];`,
+              `nwr[name]["sport"];`
+          ];
       } else {
         selectors = baseTags.map((t) => {
           let sel = "";
