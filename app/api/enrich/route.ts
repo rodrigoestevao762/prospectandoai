@@ -40,7 +40,7 @@ export async function POST(req: Request) {
               facebook: outRes[0].facebook || null,
               instagram: outRes[0].instagram || null,
               email: outRes[0].email || null,
-              foto: outRes[0].foto || null,
+              
               fontes: ["outscraper"]
             };
           }
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 
     if (!outData || (!outData.email && !outData.instagram)) {
       if (osintData) {
-        enriquecido = { foto: (enriquecido as any)?.foto || (osintData as any)?.foto || null, 
+        enriquecido = {  
           facebook: enriquecido?.facebook || osintData.facebook,
           instagram: enriquecido?.instagram || osintData.instagram,
           email: enriquecido?.email || osintData.email,
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       fontes: enriquecido.fontes,
       enriquecido_em: new Date().toISOString(),
     };
-    if (enriquecido.foto) updatePayload.fontes.push(`foto|${enriquecido.foto}`);
+    
     if (!lead?.facebook && enriquecido.facebook) updatePayload.facebook = enriquecido.facebook;
     if (!lead?.instagram && enriquecido.instagram) updatePayload.instagram = enriquecido.instagram;
     if (!lead?.email && enriquecido.email) updatePayload.email = enriquecido.email;

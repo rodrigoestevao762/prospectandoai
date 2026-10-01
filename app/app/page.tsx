@@ -563,22 +563,18 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
     const est = NIVEL_ESTILO[l.nivel];
     const accent = NIVEL_ACCENT[l.nivel];
     
-    let fotoUrl: string | null = null;
     if (l.fontes && Array.isArray(l.fontes)) {
       const f = l.fontes.find((fo) => fo?.startsWith?.("foto|"));
-      if (f) fotoUrl = f.split("foto|")[1];
     } else if (typeof l.fontes === 'string') {
       try {
         const arr = JSON.parse(l.fontes);
         if (Array.isArray(arr)) {
           const f = arr.find((fo: any) => typeof fo === 'string' && fo.startsWith("foto|"));
-          if (f) fotoUrl = f.split("foto|")[1];
         }
       } catch (e) {}
     }
     
     // Fallback: If no real photo from Outscraper, but they have Instagram or Website, use Google Favicon API
-    if (!fotoUrl && l.website) { fotoUrl = `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(l.website)}&size=256`; }
     
     // If user explicitly wants NO photo for those who don't have, and Favicon is mostly for generic logos... 
     // Actually the user said "sem foto apenas os que realmente não tem". Favicon API gives the actual logo.
@@ -587,21 +583,8 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
     return (
             <div key={l.id} className="relative rounded-2xl overflow-hidden group flex flex-col justify-end shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.6)] hover:border-white/20 min-h-[380px]" style={{ '--lead-accent': accent } as React.CSSProperties}>
               
-              {/* Imagem de Fundo Dominante */}
-              {fotoUrl ? (
-                <div className="absolute inset-0 z-0 bg-[#05080c]">
-                  <img 
-                    src={fotoUrl} 
-                    alt={l.nome}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-50 group-hover:opacity-70"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#05080c] via-[#05080c]/80 to-transparent pointer-events-none" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#05080c]/60 to-transparent pointer-events-none" />
-                </div>
-              ) : (
-                <div className="absolute inset-0 z-0 bg-gradient-to-br from-[var(--lead-accent)]/10 via-[#05080c] to-[#0a0f18] opacity-50" />
-              )}
+              {/* Fundo Escuro */}
+              <div className="absolute inset-0 z-0 bg-gradient-to-br from-[var(--lead-accent)]/20 via-[#05080c] to-[#0a0f18]" />
 
               {/* Distintivo Superior Direito */}
               <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 items-end">
@@ -677,6 +660,11 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
                   <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost flex-1 py-2 px-2 text-[10px] shadow-lg" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
                     {ocupado === l.id + ":enriquecer" ? "buscando..." : "Enriquecer"}
                   </button>
+                  {msgAberta[l.id] && (
+                     <button onClick={() => { navigator.clipboard.writeText(msgAberta[l.id]); setAviso('Mensagem copiada!'); setTimeout(() => setAviso(null), 2000); }} className="btn-3d flex-1 py-2 px-2 text-[10px] shadow-lg" style={{ background: '#333', color: '#fff' }}>
+                       COPIAR MSG
+                     </button>
+                  )}
                 </div>
 
                 {/* Action Row Secund?ria (Redes) */}
