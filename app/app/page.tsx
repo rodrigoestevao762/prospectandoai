@@ -675,12 +675,18 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
                     </span>
                   )}
                   <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost flex-1 py-2 px-2 text-[10px] shadow-lg" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
-                    {ocupado === l.id + ":enriquecer" ? "buscando..." : "?? Buscar"}
+                    {ocupado === l.id + ":enriquecer" ? "buscando..." : "??"?? Enriquecer"}
                   </button>
                 </div>
 
                 {/* Action Row Secund?ria (Redes) */}
-                <div className="flex gap-2 w-full">
+                <div className="flex gap-2 w-full flex-wrap">
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.nome + " " + l.cidade)}`} target="_blank" rel="noopener noreferrer" 
+                    className="flex-1 min-w-[30%] py-2 text-[10px] uppercase tracking-widest font-bold rounded-lg transition flex justify-center items-center gap-1.5 shadow-lg"
+                    style={{ background: 'var(--signal)', color: '#000', boxShadow: '0 4px 0 rgba(0,0,0,0.5), 0 8px 24px rgba(56,189,248,0.4)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    MAPS
+                  </a>
                   <button onClick={() => gerar(l, "whatsapp")} disabled={!!ocupado} className="flex-1 py-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[10px] uppercase tracking-widest text-[#25D366] font-bold rounded-lg transition flex justify-center items-center gap-1.5 shadow-lg">
                     WPP
                   </button>

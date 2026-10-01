@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     // Executa AMBOS em paralelo para velocidade extrema
     const [outData, osintData] = await Promise.all([outscraperPromise(), osintPromise()]);
 
-    let enriquecido = outData || { fontes: [] };
+    let enriquecido: any = outData || { fontes: [] };
 
     if (!outData || (!outData.email && !outData.instagram)) {
       if (osintData) {
