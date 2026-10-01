@@ -588,8 +588,18 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
           className="lead-card p-4 flex gap-4"
           style={{ '--lead-accent': accent } as React.CSSProperties}
         >
-          <div className="flex-1 min-w-0">
-            {/* Header do card */}
+          {/* Foto do Lead */}
+            <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-white/5 border border-white/10 relative mt-1">
+              <img 
+                src={fotoUrl} 
+                alt={l.nome}
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
+              />
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              {/* Header do card */}
           <div className="flex flex-wrap items-center gap-2.5">
             <h2 className="font-semibold tracking-tight">{l.nome}</h2>
             <span className={`badge ${est.badge}`}>{est.icone} {l.nivel} · {l.score}</span>
