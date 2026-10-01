@@ -578,7 +578,7 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
     }
     
     // Fallback: If no real photo from Outscraper, but they have Instagram or Website, use Google Favicon API
-    if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(l.nome + " " + l.cidade)}`; }
+    // Fallback removido a pedido do usuario: mostrar apenas fotos reais do bd
     
     // If user explicitly wants NO photo for those who don't have, and Favicon is mostly for generic logos... 
     // Actually the user said "sem foto apenas os que realmente não tem". Favicon API gives the actual logo.
@@ -588,16 +588,20 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
             <div key={l.id} className="relative rounded-2xl overflow-hidden group flex flex-col justify-end shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/10 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.6)] hover:border-white/20 min-h-[380px]" style={{ '--lead-accent': accent } as React.CSSProperties}>
               
               {/* Imagem de Fundo Dominante */}
-              <div className="absolute inset-0 z-0 bg-[#05080c]">
-                <img 
-                  src={fotoUrl || '/fallback.png'} 
-                  alt={l.nome}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-50 group-hover:opacity-70"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#05080c] via-[#05080c]/80 to-transparent pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#05080c]/60 to-transparent pointer-events-none" />
-              </div>
+              {fotoUrl ? (
+                <div className="absolute inset-0 z-0 bg-[#05080c]">
+                  <img 
+                    src={fotoUrl} 
+                    alt={l.nome}
+                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-50 group-hover:opacity-70"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#05080c] via-[#05080c]/80 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#05080c]/60 to-transparent pointer-events-none" />
+                </div>
+              ) : (
+                <div className="absolute inset-0 z-0 bg-gradient-to-br from-[var(--lead-accent)]/10 via-[#05080c] to-[#0a0f18] opacity-50" />
+              )}
 
               {/* Distintivo Superior Direito */}
               <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 items-end">
