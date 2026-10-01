@@ -71,7 +71,12 @@ export async function buscarEmpresas(
       // 0.2 gera quadrantes de 0.1 que causam 504 Gateway Timeout nas partes densas de cidades históricas.
       // Ajuste inteligente: se o usuario quer poucos leads (<= 500), 11km (0.1) eh mais q suficiente e ultra rapido.
       // Se ele quiser milhares (1000+), precisamos de 22km (0.2) senao nao acha quantidade suficiente.
-      let maxDelta = (limit && limit > 500) ? 0.2 : 0.1;
+      // Ajuste inteligente: Para "Todos os Comercios", 11km (0.1) SEMPRE tem milhares de resultados. Passar disso causa timeout.
+      // Para nichos especificos (ex: Pizzaria), se o usuario pedir muitos leads (>500), expandimos para 22km (0.2).
+      let maxDelta = 0.1;
+      if (categoria !== "todos" && limit && limit > 500) {
+          maxDelta = 0.2;
+      }
       
       const latC = (s + n) / 2;
       const lonC = (w + e) / 2;
