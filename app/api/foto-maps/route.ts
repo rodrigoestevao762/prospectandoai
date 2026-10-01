@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 
     // Fallback: Retorna as iniciais da empresa coloridas
     const cleanName = q.split(' ').slice(0, 2).join(' ').replace(/[^a-zA-Z0-9\s]/g, '');
-    return NextResponse.redirect(`https://ui-avatars.com/api/?name=\${encodeURIComponent(cleanName || q)}&background=random&color=fff&size=200&bold=true`);
+    return NextResponse.redirect(`https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName || q)}&background=random&color=fff&size=200&bold=true`);
   } catch (e) {
     return NextResponse.redirect(`https://ui-avatars.com/api/?name=ER&background=random&size=200`);
   }
