@@ -578,7 +578,7 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
     }
     
     // Fallback: If no real photo from Outscraper, but they have Instagram or Website, use Google Favicon API
-    if (!fotoUrl) { fotoUrl = `/api/foto-maps?q=${encodeURIComponent(l.nome + " " + l.cidade)}`; }
+    if (!fotoUrl && l.website) { fotoUrl = `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(l.website)}&size=256`; }
     
     // If user explicitly wants NO photo for those who don't have, and Favicon is mostly for generic logos... 
     // Actually the user said "sem foto apenas os que realmente não tem". Favicon API gives the actual logo.
