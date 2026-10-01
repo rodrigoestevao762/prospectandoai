@@ -1,13 +1,7 @@
-export const runtime = 'edge';
+﻿export const runtime = 'edge';
 
 import { NextResponse } from "next/server";
 import { buscarOutscraper } from "@/lib/outscraper";
-import { scrapeFotoGoogle } from "@/lib/foto-scraper";
-
-const TRANSPARENT_PIXEL = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-  "base64"
-);
 
 export async function GET(req: Request) {
   try {
@@ -15,7 +9,7 @@ export async function GET(req: Request) {
     const q = searchParams.get("q");
     
     if (!q) {
-      return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
+      return NextResponse.redirect(`https://ui-avatars.com/api/?name=L&background=random&size=200`);
     }
 
     const key = process.env.OUTSCRAPER_API_KEY;
@@ -27,14 +21,10 @@ export async function GET(req: Request) {
       } catch (e) {}
     }
 
-    // Fallback: Scrape Google Images se nǜo tiver Outscraper
-    const fallbackFoto = await scrapeFotoGoogle(q);
-    if (fallbackFoto) {
-      return NextResponse.redirect(fallbackFoto);
-    }
-
-    return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
+    // Fallback: Retorna as iniciais da empresa coloridas
+    const cleanName = q.split(' ').slice(0, 2).join(' ').replace(/[^a-zA-Z0-9\s]/g, '');
+    return NextResponse.redirect(`https://ui-avatars.com/api/?name=\${encodeURIComponent(cleanName || q)}&background=random&color=fff&size=200&bold=true`);
   } catch (e) {
-    return new NextResponse(TRANSPARENT_PIXEL, { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000" } });
+    return NextResponse.redirect(`https://ui-avatars.com/api/?name=ER&background=random&size=200`);
   }
 }
