@@ -653,8 +653,8 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
                             </a>
                           )}
                           {l.instagram && (
-                            <a href={l.instagram.includes('http') ? l.instagram : `https://instagram.com/${l.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer" onClick={() => { navigator.clipboard.writeText(msgAberta[l.id]); setAviso('Mensagem copiada para a Area de Transferencia! Cole no Direct.'); setTimeout(() => setAviso(null), 3500); }} className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#e879f9]/20 border border-[#e879f9]/50 text-[#e879f9] transition hover:bg-[#e879f9]/40">
-                                ABRIR INSTA
+                            <a href={`https://ig.me/m/${l.instagram.replace(/\/$/, '').split('/').pop()!.replace('@', '').split('?')[0]}`} target="_blank" rel="noopener noreferrer" onClick={() => { navigator.clipboard.writeText(msgAberta[l.id]); setAviso('Mensagem copiada para colar no Direct!'); setTimeout(() => setAviso(null), 3500); }} className="flex-1 py-2 px-2 text-[10px] uppercase font-bold tracking-wider rounded-lg flex items-center justify-center gap-1 bg-[#e879f9]/20 border border-[#e879f9]/50 text-[#e879f9] transition hover:bg-[#e879f9]/40">
+                                ABRIR INSTA (DM)
                             </a>
                           )}
                         </div>
@@ -677,11 +677,7 @@ const BATCH_SIZE = 100; // 100 e-mails por ciclo (Hyper SMTP)
                   <button onClick={() => enriquecerLead(l)} disabled={!!ocupado} className="btn-3d btn-3d-ghost flex-1 py-2 px-2 text-[10px] shadow-lg" style={{ color: '#e879f9', borderColor: 'rgba(232,121,249,0.3)' }}>
                     {ocupado === l.id + ":enriquecer" ? "buscando..." : "Enriquecer"}
                   </button>
-                  {msgAberta[l.id] && (
-                     <button onClick={() => { navigator.clipboard.writeText(msgAberta[l.id]); setAviso('Mensagem copiada!'); setTimeout(() => setAviso(null), 2000); }} className="btn-3d flex-1 py-2 px-2 text-[10px] shadow-lg" style={{ background: '#333', color: '#fff' }}>
-                       COPIAR MSG
-                     </button>
-                  )}
+                  
                 </div>
 
                 {/* Action Row Secund?ria (Redes) */}
