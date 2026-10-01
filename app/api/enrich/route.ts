@@ -87,7 +87,7 @@ export async function POST(req: Request) {
     const { data: updatedLead, error } = await supabase
       .from('leads').update(updatePayload).eq('id', leadId).eq('user_id', session.user.id).select().single();
 
-    if (error) return NextResponse.json({ error: 'Erro ao salvar no banco de dados' }, { status: 500 });
+    if (error) { console.error('Supabase update error:', error); return NextResponse.json({ error: 'Erro no banco: ' + error.message }, { status: 500 }); }
 
     return NextResponse.json({ success: true, lead: updatedLead });
   } catch (error: any) {
