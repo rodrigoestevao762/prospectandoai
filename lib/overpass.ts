@@ -156,7 +156,7 @@ export async function buscarEmpresas(
   try {
     let bboxes = [bboxString];
     if (bbox && bbox.length === 4 && bboxString) {
-        const [s, w, n, e] = bbox;
+        const parts = bboxString.replace("[bbox:", "").replace("]", "").split(","); const s=parseFloat(parts[0]); const w=parseFloat(parts[1]); const n=parseFloat(parts[2]); const e=parseFloat(parts[3]);
         const midLat = (s + n) / 2;
         const midLon = (w + e) / 2;
         bboxes = [
