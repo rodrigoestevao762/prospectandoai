@@ -73,11 +73,16 @@ export async function POST(req: Request) {
         let texto = ultima?.texto || "";
 
         if (!texto) {
-          const resAI = await gerarMensagem({
-            nome: lead.nome, categoria: lead.categoria, cidade: lead.cidade, pais: lead.pais,
-            temSite: Boolean(lead.website), temInstagram: Boolean(lead.instagram), temEmail: true, negocio, canal: "email",
-          }, process.env.GEMINI_API_KEY || null);
-          texto = resAI.texto;
+          try {
+            const resAI = await gerarMensagem({
+              nome: lead.nome, categoria: lead.categoria, cidade: lead.cidade, pais: lead.pais,
+              temSite: Boolean(lead.website), temInstagram: Boolean(lead.instagram), temEmail: true, negocio, canal: "email",
+            }, process.env.GEMINI_API_KEY || null);
+            texto = resAI.texto;
+          } catch (aiErr: any) {
+            // FALLBACK TURBO: Se a IA der Rate Limit (429), usamos um template dinmico de alta converso instantaneamente!
+            texto = `Assunto: Parceria com ${lead.nome || 'sua empresa'}\n\nOl equipe da ${lead.nome || 'empresa' },\n\nMeu nome  da ${negocioNome}. Notei o trabalho de vocs em ${lead.cidade || lead.pais || 'sua regio'} e percebi que podemos agregar muito valor ao negcio.\n\nNs somos especialistas em ${negocio.servico || 'solues corporativas'}, com foco em ${negocio.diferenciais || 'aumentar seus resultados e eficincia'}.\n\nAcredito fortemente que podemos criar uma tima parceria. Faz sentido batermos um papo rpido de 5 minutos na prxima semana?\n\nFico no aguardo!\nAbraos,`;
+          }
         }
 
         const assunto = texto.split("\n")[0].replace(/assunto:/i, "").trim() || `${negocioNome} — contato profissional para ${lead.nome}`;
