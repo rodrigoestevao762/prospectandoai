@@ -75,7 +75,7 @@ export async function buscarEmpresas(
       // Para nichos especificos (ex: Pizzaria), se o usuario pedir muitos leads (>500), expandimos para 22km (0.2).
       let maxDelta = 0.1;
       if (categoria === "todos") {
-          maxDelta = 0.05; // 5km x 5km max per quadrant (ultra-fast for dense regions)
+          maxDelta = 0.025; // 5km x 5km max per quadrant (ultra-fast for dense regions)
       } else if (limit && limit > 500) {
           maxDelta = 0.2;
       }
@@ -192,7 +192,15 @@ export async function buscarEmpresas(
 
     let hasSuccess = settled.some(r => r.status === 'fulfilled');
     if (allElements.length === 0 && !hasSuccess) {
-        throw new Error("Timeout interno do Overpass em todos os quadrantes");
+        const errs = settled.filter(r => r.status === 'rejected').map((r: any) => r.reason?.message || 'Erro Desconhecido');
+        const errStr = errs.join(" | ");
+        if (errStr.includes("429")) {
+             throw new Error("Sat?lites ocupados (Rate Limit 429). Voc? fez muitas buscas em um curto per?odo. Aguarde 2 minutos para esfriar os motores.");
+        } else if (errStr.includes("504")) {
+             throw new Error("Falha cr?tica ao conectar com sat?lites do OSINT: A regi?o ? muito densa e a API Global (Overpass) sofreu Timeout (504). Tente um bairro espec?fico.");
+        } else {
+             throw new Error("Falha ao conectar com os sat?lites. Status: " + errStr);
+        }
     }
 
     // Filtra IDs duplicados caso quadrantes se sobreponham levemente nas bordas
