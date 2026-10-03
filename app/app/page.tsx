@@ -361,7 +361,7 @@ Tem certeza absoluta?`)) return;
     
     let sucessos = 0;
     let ultErro = "";
-const BATCH_SIZE = 25; // Blocos menores para evitar 429 da IA
+const BATCH_SIZE = 50; // Lotes maiores para mais velocidade
     let pending = [...loteLimitado];
     let attempts: Record<string, number> = {};
     
@@ -373,6 +373,7 @@ const BATCH_SIZE = 25; // Blocos menores para evitar 429 da IA
         setOcupado("enviando_lote");
         
         let batchSuccess = false;
+        let teveErroDeRateLimit = false;
         try {
             const res = await fetch('/api/enviar-lote', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadIds: loteIds }),
@@ -389,6 +390,7 @@ const BATCH_SIZE = 25; // Blocos menores para evitar 429 da IA
                         pending = pending.filter(p => p.id !== r.id);
                         setLeads((ls) => ls.map(lead => lead.id === r.id ? { ...lead, status: 'enviado', canal: 'email' } : lead));
                     } else {
+                        teveErroDeRateLimit = true;
                         attempts[r.id] = (attempts[r.id] || 0) + 1;
                         if (attempts[r.id] >= 4) {
                             pending = pending.filter(p => p.id !== r.id); // Drop after 4 attempts
@@ -401,9 +403,11 @@ const BATCH_SIZE = 25; // Blocos menores para evitar 429 da IA
                 localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
             } else {
                 ultErro = json.erro || "Erro na resposta do servidor";
+                teveErroDeRateLimit = true;
             }
         } catch (err: any) {
             ultErro = err.message || "Erro desconhecido";
+            teveErroDeRateLimit = true;
         }
         
         if (ultErro && (ultErro.includes('Too many login attempts') || ultErro.includes('Invalid login') || ultErro.includes('535'))) {
@@ -411,9 +415,14 @@ const BATCH_SIZE = 25; // Blocos menores para evitar 429 da IA
         }
         
         if (pending.length > 0) {
-            // Se sobraram leads no pending (Rate Limit da IA ou lista grande)
-            for (let s = 12; s > 0; s--) {
-                setAviso(`Esfriando motor da IA para o prximo lote... Aguarde ${s}s (Enviados: ${sucessos}/${loteLimitado.length})`);
+            // Se houve erro (Rate Limit), espera 12s para esfriar. Se tudo deu certo, espera s 1s e continua super rpido!
+            const cooldown = teveErroDeRateLimit ? 12 : 1;
+            for (let s = cooldown; s > 0; s--) {
+                if (teveErroDeRateLimit) {
+                    setAviso(`Pausa de ${s}s devido a limite de envios da IA... (${sucessos}/${loteLimitado.length})`);
+                } else {
+                    setAviso(`Preparando prximo lote super rpido... (${sucessos}/${loteLimitado.length})`);
+                }
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
