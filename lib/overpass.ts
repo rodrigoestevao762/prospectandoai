@@ -73,11 +73,9 @@ export async function buscarEmpresas(
       // Se ele quiser milhares (1000+), precisamos de 22km (0.2) senao nao acha quantidade suficiente.
       // Ajuste inteligente: Para "Todos os Comercios", 11km (0.1) SEMPRE tem milhares de resultados. Passar disso causa timeout.
       // Para nichos especificos (ex: Pizzaria), se o usuario pedir muitos leads (>500), expandimos para 22km (0.2).
-      let maxDelta = 0.1;
+      let maxDelta = 0.08;
       if (categoria === "todos") {
-          maxDelta = 0.025; // 5km x 5km max per quadrant (ultra-fast for dense regions)
-      } else if (limit && limit > 500) {
-          maxDelta = 0.2;
+          maxDelta = 0.025; 
       }
       
       const latC = (s + n) / 2;
@@ -213,7 +211,7 @@ export async function buscarEmpresas(
   }
 
   if (!json || (json.elements && json.elements.length === 0 && (json as any).remark && String((json as any).remark).includes("timeout"))) {
-    throw new Error("A região é muito densa e a API Global (Overpass) demorou mais que 120 segundos para responder. Tente reduzir o número de leads MÁX.");
+    throw new Error("A varredura exigiu muito processamento dos satlites para esta regio especfica e sofreu Timeout interno. Tente buscar um volume menor de leads ou pesquise por um bairro especfico.");
   }
 
   if (!json.elements) return [];
