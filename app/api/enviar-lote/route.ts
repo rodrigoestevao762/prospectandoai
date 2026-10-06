@@ -62,52 +62,63 @@ export async function POST(req: Request) {
     const resultados = [];
     let sucessos = 0;
 
-    const promises = leadIds.map(async (leadId: string) => {
-      try {
-        const { data: lead } = await sb.from("leads").select("*").eq("id", leadId).eq("user_id", user.id).single();
-        if (!lead || !lead.email) return;
-        
-        if (!isEmailValidoParaB2B(lead.email)) return;
+    
+    // Processamento em BATCHES de 5 para no esmagar o SMTP do Gmail (Evita o erro 421 Data command failed)
+    for (let i = 0; i < leadIds.length; i += 5) {
+      const chunk = leadIds.slice(i, i + 5);
+      const promises = chunk.map(async (leadId: string) => {
+        try {
+          const { data: lead } = await sb.from("leads").select("*").eq("id", leadId).eq("user_id", user.id).single();
+          if (!lead || !lead.email) return;
+          
+          if (!isEmailValidoParaB2B(lead.email)) return;
 
-        const { data: ultima } = await sb.from("messages").select("texto").eq("lead_id", leadId).order("criado_em", { ascending: false }).limit(1).maybeSingle();
-        let texto = ultima?.texto || "";
+          const { data: ultima } = await sb.from("messages").select("texto").eq("lead_id", leadId).order("criado_em", { ascending: false }).limit(1).maybeSingle();
+          let texto = ultima?.texto || "";
 
-        if (!texto) {
-          try {
-            const resAI = await gerarMensagem({
-              nome: lead.nome, categoria: lead.categoria, cidade: lead.cidade, pais: lead.pais,
-              temSite: Boolean(lead.website), temInstagram: Boolean(lead.instagram), temEmail: true, negocio, canal: "email",
-            }, process.env.GEMINI_API_KEY || null);
-            texto = resAI.texto;
-          } catch (aiErr: any) {
-            // FALLBACK TURBO: Se a IA der Rate Limit (429), usamos um template dinmico de alta converso instantaneamente!
-            texto = `Assunto: Parceria com ${lead.nome || 'sua empresa'}\n\nOl equipe da ${lead.nome || 'empresa' },\n\nMeu nome  da ${negocioNome}. Notei o trabalho de vocs em ${lead.cidade || lead.pais || 'sua regio'} e percebi que podemos agregar muito valor ao negcio.\n\nNs somos especialistas em ${negocio.servico || 'solues corporativas'}, com foco em ${negocio.diferenciais || 'aumentar seus resultados e eficincia'}.\n\nAcredito fortemente que podemos criar uma tima parceria. Faz sentido batermos um papo rpido de 5 minutos na prxima semana?\n\nFico no aguardo!\nAbraos,`;
+          if (!texto) {
+            try {
+              const resAI = await gerarMensagem({
+                nome: lead.nome, categoria: lead.categoria, cidade: lead.cidade, pais: lead.pais,
+                temSite: Boolean(lead.website), temInstagram: Boolean(lead.instagram), temEmail: true, negocio, canal: "email",
+              }, process.env.GEMINI_API_KEY || null);
+              texto = resAI.texto;
+            } catch (aiErr: any) {
+              texto = `Assunto: Parceria com ${lead.nome || 'sua empresa'}\n\nOl equipe da ${lead.nome || 'empresa' },\n\nMeu nome  da ${negocioNome}. Notei o trabalho de vocs em ${lead.cidade || lead.pais || 'sua regio'} e percebi que podemos agregar muito valor ao negcio.\n\nNs somos especialistas em ${negocio.servico || 'solues corporativas'}, com foco em ${negocio.diferenciais || 'aumentar seus resultados e eficincia'}.\n\nAcredito fortemente que podemos criar uma tima parceria. Faz sentido batermos um papo rpido de 5 minutos na prxima semana?\n\nFico no aguardo!\nAbraos,`;
+            }
           }
-        }
 
-        const assunto = texto.split("\n")[0].replace(/assunto:/i, "").trim() || `${negocioNome} — contato profissional para ${lead.nome}`;
-        let corpo = texto.replace(/^Assunto:.*$/im, "").trim();
+          const assunto = texto.split("\n")[0].replace(/assunto:/i, "").trim() || `${negocioNome} - contato profissional para ${lead.nome}`;
+          let corpo = texto.replace(/^Assunto:.*$/im, "").trim();
 
-        await transporter.sendMail({
-          from: `"${negocioNome}" <${gmailEmail}>`,
-          to: lead.email,
-          subject: assunto,
-          text: corpo,
-        });
-        
-        await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto: corpo, status: "enviada" });
-        await sb.from("leads").update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() }).eq("id", lead.id);
-        
-        sucessos++;
-        resultados.push({ id: lead.id, ok: true });
-      } catch (err: any) {
-        if (err.message && (err.message.includes("Too many login attempts") || err.message.includes("Invalid login") || err.message.includes("535"))) {
-          throw err; // Força parada e retorna o erro fatal para a UI
+          await transporter.sendMail({
+            from: `"${negocioNome}" <${gmailEmail}>`,
+            to: lead.email,
+            subject: assunto,
+            text: corpo,
+          });
+          
+          await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto: corpo, status: "enviada" });
+          await sb.from("leads").update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() }).eq("id", lead.id);
+          
+          sucessos++;
+          resultados.push({ id: lead.id, ok: true });
+        } catch (err: any) {
+          if (err.message && (err.message.includes("Too many login attempts") || err.message.includes("Invalid login") || err.message.includes("535") || err.message.includes("421"))) {
+            throw err; 
+          }
+          resultados.push({ id: leadId, ok: false, erro: err.message });
         }
-        resultados.push({ id: leadId, ok: false, erro: err.message });
+      });
+      const settled = await Promise.allSettled(promises);
+      for (const r of settled) {
+         if (r.status === 'rejected') throw r.reason;
       }
-    });
-    const settled = await Promise.allSettled(promises);
+    }
+    
+    // placeholder to match regex end
+    const settled = [];
+
     for (const r of settled) {
        if (r.status === 'rejected') throw r.reason;
     }
