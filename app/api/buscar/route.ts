@@ -10,12 +10,12 @@ import { buscarOutscraper } from "@/lib/outscraper";
 export async function POST(req: Request) {
   try {
     await usuarioObrigatorio();
-    const { categoria, cidade, pais, limit, motor = "overpass" } = await req.json();
+    const { categoria, cidade, pais, limit, motor = "overpass", radiusMultiplier = 1 } = await req.json();
     const cat = getCategoria(categoria);
     if (!cidade || (categoria !== "todos" && !cat)) {
       return NextResponse.json({ erro: "categoria e cidade obrigatórias" }, { status: 400 });
     }
-    const geo = await geocodificar(cidade, pais || undefined);
+    const geo = await geocodificar(cidade + (pais ? ", " + pais : ""));
     if (!geo) {
       return NextResponse.json({ erro: "cidade não encontrada" }, { status: 404 });
     }
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         ? cat.tags
         : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
       empresas = (await buscarEmpresas(
-        cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, geo.bbox, limit
+        cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, geo.bbox, limit, radiusMultiplier
       )).map((e) => {
         const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
         return { ...e, score: q.score, nivel: q.nivel };

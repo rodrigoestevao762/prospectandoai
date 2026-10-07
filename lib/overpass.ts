@@ -41,8 +41,7 @@ export async function buscarEmpresas(
   radiusM: number,
   cidade: string,
   pais: string,
-  bbox?: number[] | null,
-  limit?: number
+  bbox?: number[] | null, limit?: number, radiusMultiplier: number = 1
 ) {
   let tags = categoria === "todos" ? getCategoria("todos")?.tags || [] : getCategoria(categoria)?.tags || [];
   if (tags.length === 0 && categoria !== "todos") tags = [`amenity~"${categoria}"`, `shop~"${categoria}"`];
@@ -73,9 +72,9 @@ export async function buscarEmpresas(
       // Se ele quiser milhares (1000+), precisamos de 22km (0.2) senao nao acha quantidade suficiente.
       // Ajuste inteligente: Para "Todos os Comercios", 11km (0.1) SEMPRE tem milhares de resultados. Passar disso causa timeout.
       // Para nichos especificos (ex: Pizzaria), se o usuario pedir muitos leads (>500), expandimos para 22km (0.2).
-      let maxDelta = 0.08;
+      let maxDelta = 0.08 * radiusMultiplier;
       if (categoria === "todos") {
-          maxDelta = 0.025; 
+          maxDelta = 0.025 * radiusMultiplier; 
       }
       
       const latC = (s + n) / 2;

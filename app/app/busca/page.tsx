@@ -62,7 +62,7 @@ export default function BuscaPage() {
         }
         
         setErro("Geocodificando cidade... (Buscando coordenadas)");
-        const geo = await geocodificar(cidade, pais || undefined);
+        const geo = await geocodificar(cidade + (pais ? ", " + pais : ""));
         if (!geo) {
           setCarregando(false);
           return setErro("Cidade não encontrada no mapa");
@@ -73,7 +73,41 @@ export default function BuscaPage() {
           ? cat.tags
           : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
         
-        const empresasRaw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, geo.bbox, limitFinal);
+        let empresasRaw: any[] = [];
+        let mult = 1;
+        const maxMult = limitFinal > 500 ? 5 : 3; // Mega Brain: expanda at 5x se pedirem muitos leads
+        
+        while (mult <= maxMult) {
+            if (mult > 1) {
+                setErro(`Ampliando raio do satlite (Nvel ${mult})... Buscando mais leads para atingir a meta de ${limitFinal}...`);
+            }
+            
+            const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, geo.bbox, limitFinal, mult);
+            
+            const map = new Map();
+            empresasRaw.forEach(r => map.set(r.endereco + r.nome, r));
+            let novos = 0;
+            raw.forEach((r: any) => {
+                if (!map.has(r.endereco + r.nome)) {
+                    empresasRaw.push(r);
+                    map.set(r.endereco + r.nome, r);
+                    novos++;
+                }
+            });
+            
+            if (empresasRaw.length >= limitFinal) {
+                break; // Atingiu a meta
+            }
+            
+            if (novos === 0 && mult > 1) {
+                break; // Esgotou a regio
+            }
+            
+            mult++;
+            if (mult <= maxMult) {
+               await new Promise(r => setTimeout(r, 2000));
+            }
+        }
         
         setErro("Qualificando " + empresasRaw.length + " leads encontrados...");
         const empresas = empresasRaw.map((e) => {
@@ -90,7 +124,7 @@ export default function BuscaPage() {
       } catch (err: any) {
         setCarregando(false);
         if (err.message && (err.message.includes("504") || err.message.includes("TIMEOUT") || err.message.includes("timeout"))) {
-           return setErro('A região é muito densa e a API Global (Overpass) demorou mais que 120 segundos para responder. Tente reduzir o número de leads MÁX.');
+           return setErro('O sat?lite sofreu Timeout Interno porque a varredura exigiu muito processamento. Tente buscar por um bairro espec?fico.');
         }
         setErro("Falha crítica ao conectar com satélites do OSINT: " + err.message);
         return;

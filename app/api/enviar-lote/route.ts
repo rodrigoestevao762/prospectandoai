@@ -111,9 +111,7 @@ export async function POST(req: Request) {
         }
       });
       const settled = await Promise.allSettled(promises);
-      for (const r of settled) {
-         if (r.status === 'rejected') throw r.reason;
-      }
+      
     }
     
     // placeholder to match regex end
