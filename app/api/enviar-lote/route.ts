@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     
     const transporter = nodemailer.createTransport(transportConfig);
 
-    const resultados = [];
+    const resultados: any[] = [];
     let sucessos = 0;
 
     
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     }
     
     // placeholder to match regex end
-    const settled = [];
+    
 
     for (const r of settled) {
        if (r.status === 'rejected') throw r.reason;
