@@ -117,9 +117,7 @@ export async function POST(req: Request) {
     // placeholder to match regex end
     
 
-    for (const r of settled) {
-       if (r.status === 'rejected') throw r.reason;
-    }
+    
     
     transporter.close();
 
