@@ -23,6 +23,7 @@ export default function BuscaPage() {
   const [engine, setEngine] = useState<"osint" | "insta" | "foods">("osint");
   const [categoria, setCategoria] = useState("todos");
   const [limite, setLimite] = useState("300");
+  const [raioManual, setRaioManual] = useState("auto");
   const [nichoInsta, setNichoInsta] = useState("");
   const [cidade, setCidade] = useState("");
   const [pais, setPais] = useState("");
@@ -77,12 +78,19 @@ export default function BuscaPage() {
         let mult = 1;
         const maxMult = limitFinal > 500 ? 5 : 3; // Mega Brain: expanda at 5x se pedirem muitos leads
         
-        while (mult <= maxMult) {
+        const limiteMult = raioManual !== 'auto' ? 1 : maxMult;
+        while (mult <= limiteMult) {
             if (mult > 1) {
                 setErro(`Ampliando raio do satlite (Nvel ${mult})... Buscando mais leads para atingir a meta de ${limitFinal}...`);
             }
             
-            const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidade, geo.paisNome, geo.bbox, limitFinal, mult);
+            let realRadius = geo.radiusM;
+            let realMult = mult;
+            if (raioManual !== 'auto') {
+               realRadius = parseInt(raioManual) * 1000;
+               realMult = 1;
+            }
+            const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, realRadius, cidade, geo.paisNome, null, limitFinal, realMult);
             
             const map = new Map();
             empresasRaw.forEach(r => map.set(r.endereco + r.nome, r));
@@ -317,7 +325,22 @@ export default function BuscaPage() {
           </div>
         )}
 
-                  <div className="flex-none w-[100px] relative z-10">
+                  <div className="flex-none w-[120px] relative z-10">
+            <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">RAIO</label>
+            <div className="relative">
+              <select value={raioManual} onChange={(e) => setRaioManual(e.target.value)}
+                className={`w-full bg-[#030609] border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none font-mono appearance-none ${engine === 'foods' ? 'focus:border-[#facc15]' : engine === 'insta' ? 'focus:border-[#e879f9]' : 'focus:border-[var(--signal)]'}`}>
+                <option value="auto">Auto</option>
+                <option value="5">5 km</option>
+                <option value="10">10 km</option>
+                <option value="25">25 km</option>
+                <option value="50">50 km</option>
+                <option value="100">100 km</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex-none w-[100px] relative z-10">
             <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">MÁX LEADS</label>
             <div className="relative">
               <input type="number" value={limite} onChange={(e) => setLimite(e.target.value)} required placeholder="300"

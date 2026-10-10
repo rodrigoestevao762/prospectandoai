@@ -51,44 +51,8 @@ export async function buscarEmpresas(
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
   let bboxString = "";
-  let around = "";
-  if (bbox && bbox.length === 4) {
-      let [s, w, n, e] = bbox;
-      
-      // MEGA BRAIN DYNAMIC CLAMPING v2: 
-      
-      // MEGA BRAIN CLUSTER CHUNKING:
-      // Limites incrivelmente maiores porque a busca será fatiada nos múltiplos servidores!
-      // A matemática da área: 0.16 x 0.16 = 4 quadrantes de 0.08 x 0.08 (Tamanho perfeito que não dá timeout!)
-      // A matemática da área: Se for "Todos os Comércios", NÃO podemos passar de 0.1 (0.05 por quadrante),
-      // ou o servidor alemão corta a conexão com 504 Gateway Timeout por excesso de carga no Load Balancer.
-      // MEGA BRAIN CHUNKING UNIVERSAL
-      // O limite geográfico máximo deve ser estrito (0.1) para QUALQUER busca massiva (>300).
-      // Em cidades gigantescas (Genoa, Roma), pedir 500 Pizzarias em 22km (0.2) estoura o balanceador de carga.
-      // MEGA BRAIN CHUNKING UNIVERSAL (FIX)
-      // O limite deve ser 0.1 para TODAS as buscas. 
-      // 0.2 gera quadrantes de 0.1 que causam 504 Gateway Timeout nas partes densas de cidades históricas.
-      // Ajuste inteligente: se o usuario quer poucos leads (<= 500), 11km (0.1) eh mais q suficiente e ultra rapido.
-      // Se ele quiser milhares (1000+), precisamos de 22km (0.2) senao nao acha quantidade suficiente.
-      // Ajuste inteligente: Para "Todos os Comercios", 11km (0.1) SEMPRE tem milhares de resultados. Passar disso causa timeout.
-      // Para nichos especificos (ex: Pizzaria), se o usuario pedir muitos leads (>500), expandimos para 22km (0.2).
-      let maxDelta = 0.08 * radiusMultiplier;
-      if (categoria === "todos") {
-          maxDelta = 0.025 * radiusMultiplier; 
-      }
-      
-      const latC = (s + n) / 2;
-      const lonC = (w + e) / 2;
-      
-      if (n - s > maxDelta) { s = latC - maxDelta/2; n = latC + maxDelta/2; }
-      if (e - w > maxDelta) { w = lonC - maxDelta/2; e = lonC + maxDelta/2; }
-
-      bboxString = `[bbox:${s},${w},${n},${e}]`;
-    } else if (radiusM > 0) {
-    around = `(around:${radiusM},${lat},${lng})`;
-  } else {
-    bboxString = `[bbox:-90,-180,90,180]`;
-  }
+  const finalRadius = radiusM * radiusMultiplier;
+  const around = `(around:${finalRadius},${lat},${lng})`;
 
   function esc(st: string) { return st.replace(/\\/g, "\\\\").replace(/"/g, '\\"'); }
   
@@ -113,9 +77,9 @@ export async function buscarEmpresas(
     let selectors: string[] = [];
       if (categoria === "todos") {
           selectors = [
-              `nwr[name]["amenity"];`,
-              `nwr[name]["shop"];`,
-              `nwr[name]["office"];`
+              `nw[name]["amenity"]${around};`,
+              `nw[name]["shop"]${around};`,
+              `nw[name]["office"]${around};`
           ];
       } else {
         selectors = baseTags.map((t) => {
@@ -151,23 +115,8 @@ export async function buscarEmpresas(
   // MEGA BRAIN HYPER-CLUSTER CHUNKING ⚡🛰️🌍
   // Divide a bounding box em 4 quadrantes e atira nos 3 servidores globais ao mesmo tempo!
   try {
-    let bboxes = [bboxString];
-    if (bbox && bbox.length === 4 && bboxString) {
-        const parts = bboxString.replace("[bbox:", "").replace("]", "").split(","); const s=parseFloat(parts[0]); const w=parseFloat(parts[1]); const n=parseFloat(parts[2]); const e=parseFloat(parts[3]);
-        const midLat = (s + n) / 2;
-        const midLon = (w + e) / 2;
-        bboxes = [
-          `[bbox:${s},${w},${midLat},${midLon}]`,
-          `[bbox:${midLat},${w},${n},${midLon}]`,
-          `[bbox:${s},${midLon},${midLat},${e}]`,
-          `[bbox:${midLat},${midLon},${n},${e}]`
-        ];
-    }
-
-    const allElements: any[] = [];
-    // Cada quadrante pede o `limit` integral. Depois cortamos o excesso.
-    const fetchQ = async (bString: string, endpointUrl: string) => {
-        const q = `[out:json][timeout:45]${bString};(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
+    const fetchQ = async (endpointUrl: string) => {
+        const q = `[out:json][timeout:45];(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
         const res = await fetch(endpointUrl, {
            method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
            body: "data=" + encodeURIComponent(q), signal: AbortSignal.timeout(50000),
@@ -178,32 +127,8 @@ export async function buscarEmpresas(
         return [];
     };
 
-    // Associa cada quadrante a um endpoint. Como temos 4 quadrantes e 3 endpoints, o 4º reusa o 1º.
-    const settled = await Promise.allSettled(bboxes.map((bStr, i) => fetchQ(bStr, endpoints[i % endpoints.length])));
-    
-    for (const res of settled) {
-        if (res.status === 'fulfilled') {
-            allElements.push(...res.value);
-        }
-    }
-
-    let hasSuccess = settled.some(r => r.status === 'fulfilled');
-    if (allElements.length === 0 && !hasSuccess) {
-        const errs = settled.filter(r => r.status === 'rejected').map((r: any) => r.reason?.message || 'Erro Desconhecido');
-        const errStr = errs.join(" | ");
-        if (errStr.includes("429")) {
-             throw new Error("Sat?lites ocupados (Rate Limit 429). Voc? fez muitas buscas em um curto per?odo. Aguarde 2 minutos para esfriar os motores.");
-        } else if (errStr.includes("504")) {
-             throw new Error("Falha cr?tica ao conectar com sat?lites do OSINT: A regi?o ? muito densa e a API Global (Overpass) sofreu Timeout (504). Tente um bairro espec?fico.");
-        } else {
-             throw new Error("Falha ao conectar com os sat?lites. Status: " + errStr);
-        }
-    }
-
-    // Filtra IDs duplicados caso quadrantes se sobreponham levemente nas bordas
-    const uniqueElements = Array.from(new Map(allElements.map(e => [e.id, e])).values());
-
-    json = { elements: uniqueElements };
+    const elements = await fetchQ(endpoints[Math.floor(Math.random() * endpoints.length)]);
+    json = { elements };
 
   } catch (err: any) {
     ultimoErro = "Todos os satélites falharam ou deram timeout.";
