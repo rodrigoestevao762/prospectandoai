@@ -32,11 +32,11 @@ export function SpotlightCard({
         className="pointer-events-none absolute -inset-px transition-opacity duration-500"
         style={{
           opacity,
-          background: `radial-gradient(350px circle at ${position.x}px ${position.y}px, rgba(99, 102, 241, 0.1), transparent 70%)`,
+          background: `radial-gradient(350px circle at ${position.x}px ${position.y}px, rgba(217, 70, 239, 0.22), transparent 70%)`,
         }}
       />
       {/* Top edge sheen */}
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#d946ef]/40 to-transparent" />
       <div className="relative z-10">{children}</div>
     </div>
   );

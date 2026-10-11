@@ -19,11 +19,11 @@ const Globe = dynamic(() => import("@/components/Globe"), {
   ssr: false,
   loading: () => (
     <div className="w-full max-w-[600px] aspect-square flex flex-col items-center justify-center">
-      <div className="w-64 h-64 rounded-full border-2 border-[#a855f7]/30 animate-pulse bg-[#a855f7]/5 flex items-center justify-center">
-        <div className="w-44 h-44 rounded-full border border-dashed border-[#c084fc]/40 animate-spin" />
+      <div className="w-64 h-64 rounded-full border-2 border-[#d946ef]/40 animate-pulse bg-[#d946ef]/10 flex items-center justify-center shadow-[0_0_50px_rgba(217,70,239,0.3)]">
+        <div className="w-44 h-44 rounded-full border border-dashed border-[#f0abfc]/60 animate-spin" />
       </div>
-      <span className="mono text-xs uppercase tracking-widest text-[#c084fc] font-bold mt-4 animate-pulse">
-        Carregando Satélite 3D...
+      <span className="mono text-xs uppercase tracking-widest text-[#f0abfc] font-bold mt-4 animate-pulse">
+        Sincronizando Malha 3D Orbital...
       </span>
     </div>
   ),
@@ -33,21 +33,22 @@ const Globe = dynamic(() => import("@/components/Globe"), {
 const TICKER_ITEMS = [
   "RADAR OSINT v4.2 ATIVO",
   "VARREDURA MULTI-SATÉLITE",
-  "ENRIQUECIMENTO AUTOMÁTICO",
-  "COLD EMAILS COM IA",
-  "COBERTURA EM 195 PAÍSES",
-  "PIPELINE CRM KANBAN",
+  "CONTINENTES 3D EM ALTA RESOLUÇÃO",
+  "ENRIQUECIMENTO AUTOMÁTICO DE DECISORES",
+  "PROPOSTAS PERSUASIVAS COM IA",
+  "COBERTURA GLOBAL EM 195 PAÍSES",
+  "PIPELINE CRM KANBAN & MRR",
   "ZERO TIMEOUT ENGINE",
-  "EXPANSÃO DE RAIO METROPOLITANO 100KM",
+  "EXPANSÃO DE RAIO ATÉ 100KM",
 ];
 
 function Ticker() {
   return (
-    <div className="relative overflow-hidden border-y border-white/[0.08] bg-black/50 py-3.5 select-none backdrop-blur-md">
+    <div className="relative overflow-hidden border-y border-white/[0.08] bg-black/60 py-3.5 select-none backdrop-blur-md">
       <div className="flex gap-0 animate-[marquee_28s_linear_infinite] w-max">
         {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
           <span key={i} className="flex items-center gap-6 px-8 mono text-[11px] font-bold tracking-[0.22em] uppercase text-white/50">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#a855f7] shadow-[0_0_10px_#a855f7]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#d946ef] shadow-[0_0_12px_#d946ef]" />
             <span className="hover:text-white transition-colors duration-200">{item}</span>
           </span>
         ))}
@@ -85,7 +86,7 @@ function OsintTerminal() {
   }, []);
 
   const colorMap: Record<string, string> = {
-    cmd: "text-[#c084fc] font-bold",
+    cmd: "text-[#f0abfc] font-bold",
     info: "text-white/50",
     success: "text-[#10b981]",
     highlight: "text-[#38bdf8]",
@@ -93,7 +94,7 @@ function OsintTerminal() {
   };
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-[#080b12]/90 backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.85)]">
+    <div className="rounded-2xl overflow-hidden border border-[#d946ef]/20 bg-[#080b12]/90 backdrop-blur-2xl shadow-[0_30px_90px_rgba(217,70,239,0.15)]">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
         <div className="flex gap-1.5">
           <span className="w-3 h-3 rounded-full bg-[#ef4444]/80" />
@@ -101,7 +102,7 @@ function OsintTerminal() {
           <span className="w-3 h-3 rounded-full bg-[#10b981]/80" />
         </div>
         <span className="flex-1 text-center mono text-[10px] text-white/40 tracking-widest uppercase">
-          telemetria de varredura • osint-engine-v4.2
+          telemetria de varredura orbital • osint-engine-v4.2
         </span>
         <span className="flex items-center gap-1.5 mono text-[9px] text-[#10b981] font-bold bg-[#10b981]/10 px-2.5 py-0.5 rounded-full border border-[#10b981]/25">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" /> SATÉLITE ATIVO
@@ -125,7 +126,7 @@ function OsintTerminal() {
           <motion.span
             animate={{ opacity: [1, 0, 1] }}
             transition={{ duration: 0.8, repeat: Infinity }}
-            className="inline-block w-2.5 h-4 bg-[#a855f7] ml-1 align-middle shadow-[0_0_12px_#a855f7]"
+            className="inline-block w-2.5 h-4 bg-[#d946ef] ml-1 align-middle shadow-[0_0_14px_#d946ef]"
           />
         )}
       </div>
@@ -138,7 +139,7 @@ function BentoCard({
   children,
   className = "",
   delay = 0,
-  accent = "#a855f7",
+  accent = "#d946ef",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -158,11 +159,11 @@ function BentoCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ delay, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className={`relative rounded-3xl border border-white/[0.08] bg-[#0c101a]/75 backdrop-blur-xl overflow-hidden group ${className}`}
+      className={`relative rounded-3xl border border-white/[0.08] bg-[#0c101a]/85 backdrop-blur-xl overflow-hidden group ${className}`}
     >
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl"
-        style={{ boxShadow: `inset 0 0 60px ${accent}20, 0 0 0 1px ${accent}35` }}
+        style={{ boxShadow: `inset 0 0 70px ${accent}25, 0 0 0 1px ${accent}45` }}
       />
       <div
         className="absolute inset-0 z-20 pointer-events-none rounded-3xl"
@@ -171,7 +172,7 @@ function BentoCard({
           background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,0.08) 0%, transparent 60%)`,
         }}
       />
-      <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
+      <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#d946ef]/50 to-transparent" />
       <div style={{ transform: "translateZ(15px)" }} className="h-full relative z-10">
         {children}
       </div>
@@ -186,18 +187,18 @@ export default function ProspectAILanding() {
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
 
   return (
-    <main className="relative min-h-screen text-white bg-[#050608] overflow-x-hidden selection:bg-[#a855f7] selection:text-white">
-      {/* ── AMBIENT ELECTRIC PURPLE AURORA BACKGROUND ── */}
+    <main className="relative min-h-screen text-white bg-[#050608] overflow-x-hidden selection:bg-[#d946ef] selection:text-white">
+      {/* ── AMBIENT HYPER-VIBRANT ELECTRIC PURPLE AURORA BACKGROUND ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Core Vibrant Purple Nebula */}
+        {/* Core Electric Purple Nebula */}
         <div
-          className="absolute -top-32 left-1/4 w-[650px] h-[650px] bg-gradient-to-tr from-[#a855f7]/25 via-[#9333ea]/15 to-transparent rounded-full blur-[140px] animate-pulse"
-          style={{ animationDuration: "8s" }}
+          className="absolute -top-32 left-1/4 w-[750px] h-[750px] bg-gradient-to-tr from-[#d946ef]/30 via-[#c026d3]/20 to-transparent rounded-full blur-[140px] animate-pulse"
+          style={{ animationDuration: "6s" }}
         />
-        {/* Secondary Magenta / Violet Glow */}
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-gradient-to-br from-[#c026d3]/18 via-[#a855f7]/12 to-transparent rounded-full blur-[140px]" />
-        {/* Deep Horizon Purple Atmosphere */}
-        <div className="absolute bottom-20 left-10 w-[550px] h-[550px] bg-gradient-to-tr from-[#7e22ce]/20 via-transparent to-transparent rounded-full blur-[160px]" />
+        {/* Secondary Hyper-Luminous Fuchsia Glow */}
+        <div className="absolute top-1/3 -right-40 w-[680px] h-[680px] bg-gradient-to-br from-[#f0abfc]/22 via-[#d946ef]/16 to-transparent rounded-full blur-[140px]" />
+        {/* Deep Horizon Space Atmosphere */}
+        <div className="absolute bottom-20 left-10 w-[600px] h-[600px] bg-gradient-to-tr from-[#9333ea]/25 via-transparent to-transparent rounded-full blur-[160px]" />
         <div className="absolute inset-0 bg-grid opacity-35" />
       </div>
 
@@ -208,19 +209,19 @@ export default function ProspectAILanding() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 inset-x-0 z-50 px-4 pt-4"
       >
-        <div className="mx-auto max-w-7xl rounded-2xl border border-white/[0.08] bg-[#080b12]/80 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+        <div className="mx-auto max-w-7xl rounded-2xl border border-[#d946ef]/20 bg-[#080b12]/85 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.7)]">
           <div className="px-6 h-[64px] flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#a855f7] to-[#7e22ce] flex items-center justify-center shadow-[0_0_24px_rgba(168,85,247,0.6)] group-hover:scale-105 transition-transform">
+              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#d946ef] to-[#9333ea] flex items-center justify-center shadow-[0_0_26px_rgba(217,70,239,0.7)] group-hover:scale-105 transition-transform">
                 <Crosshair className="w-5 h-5 text-white" />
-                <div className="absolute inset-0 rounded-xl bg-[#c084fc] animate-ping opacity-25" />
+                <div className="absolute inset-0 rounded-xl bg-[#f0abfc] animate-ping opacity-30" />
               </div>
               <div className="flex flex-col">
                 <span className="font-display font-black tracking-tight text-lg leading-tight text-white">
-                  Prospect<span className="text-[#c084fc]">AI</span>
+                  Prospect<span className="text-[#f0abfc]">AI</span>
                 </span>
-                <span className="mono text-[8px] uppercase tracking-widest text-[#94a3b8]">OSINT Intelligence</span>
+                <span className="mono text-[8px] uppercase tracking-widest text-[#f0abfc]/70 font-semibold">OSINT Intelligence</span>
               </div>
             </Link>
 
@@ -246,11 +247,11 @@ export default function ProspectAILanding() {
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/25">
                 <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
-                <span className="mono text-[10px] text-[#10b981] uppercase tracking-wider font-bold">Satélites Prontos</span>
+                <span className="mono text-[10px] text-[#10b981] uppercase tracking-wider font-bold">142 Satélites Prontos</span>
               </div>
               <Link
                 href="/login"
-                className="btn-signal flex items-center gap-2 text-[12px] px-5 py-2.5 rounded-xl uppercase tracking-wider font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                className="btn-signal flex items-center gap-2 text-[12px] px-5 py-2.5 rounded-xl uppercase tracking-wider font-bold shadow-[0_0_24px_rgba(217,70,239,0.5)]"
               >
                 Acessar <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -271,10 +272,10 @@ export default function ProspectAILanding() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#a855f7]/15 border border-[#a855f7]/35 mb-6 shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#d946ef]/15 border border-[#d946ef]/40 mb-6 shadow-[0_0_24px_rgba(217,70,239,0.3)]"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#c084fc]" />
-              <span className="mono text-[11px] font-bold tracking-widest uppercase text-[#e9d5ff]">
+              <Sparkles className="w-3.5 h-3.5 text-[#f0abfc]" />
+              <span className="mono text-[11px] font-bold tracking-widest uppercase text-[#fae8ff]">
                 Radar B2B Global • Nova Geração 2026
               </span>
             </motion.div>
@@ -307,7 +308,7 @@ export default function ProspectAILanding() {
             >
               <Link
                 href="/login"
-                className="btn-signal flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-sm font-bold tracking-wide w-full sm:w-auto shadow-[0_0_35px_rgba(168,85,247,0.5)]"
+                className="btn-signal flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-sm font-bold tracking-wide w-full sm:w-auto shadow-[0_0_35px_rgba(217,70,239,0.55)]"
               >
                 Ativar Radar Grátis <ArrowRight className="w-4 h-4" />
               </Link>
@@ -331,7 +332,7 @@ export default function ProspectAILanding() {
                 <p className="mono text-[10px] uppercase tracking-wider text-[#94a3b8]">Países Cobertos</p>
               </div>
               <div>
-                <p className="font-display text-2xl font-black text-[#c084fc]">3 Motores</p>
+                <p className="font-display text-2xl font-black text-[#f0abfc]">3 Motores</p>
                 <p className="mono text-[10px] uppercase tracking-wider text-[#94a3b8]">Simultâneos</p>
               </div>
               <div>
@@ -362,7 +363,7 @@ export default function ProspectAILanding() {
       <section className="relative z-10 py-24 px-6">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-12">
-            <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#c084fc] mb-3 block">
+            <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#f0abfc] mb-3 block">
               Execução ao Vivo
             </span>
             <h2 className="font-display text-3xl sm:text-4xl font-black text-white">
@@ -381,11 +382,11 @@ export default function ProspectAILanding() {
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#a855f7]/15 border border-[#a855f7]/30 mb-4"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#d946ef]/15 border border-[#d946ef]/35 mb-4 shadow-[0_0_20px_rgba(217,70,239,0.25)]"
             >
-              <Layers className="w-3.5 h-3.5 text-[#c084fc]" />
-              <span className="mono text-[11px] font-bold tracking-widest uppercase text-[#c084fc]">
-                Tecnologia Integrada
+              <Layers className="w-3.5 h-3.5 text-[#f0abfc]" />
+              <span className="mono text-[11px] font-bold tracking-widest uppercase text-[#fae8ff]">
+                Tecnologia Integrada & Inteligência
               </span>
             </motion.div>
 
@@ -403,31 +404,31 @@ export default function ProspectAILanding() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Card 1: Radar OSINT (Large 2-col) */}
-            <BentoCard className="lg:col-span-2 p-8" delay={0} accent="#a855f7">
+            <BentoCard className="lg:col-span-2 p-8" delay={0} accent="#d946ef">
               <div className="flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <span className="mono text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border border-[#a855f7]/40 bg-[#a855f7]/15 text-[#e9d5ff] font-bold">
+                    <span className="mono text-[10px] tracking-widest uppercase px-3 py-1 rounded-full border border-[#d946ef]/40 bg-[#d946ef]/15 text-[#fae8ff] font-bold shadow-[0_0_12px_rgba(217,70,239,0.3)]">
                       MOTOR 01 • OSINT MAPS
                     </span>
-                    <GlobeIcon className="w-6 h-6 text-[#c084fc]" />
+                    <GlobeIcon className="w-6 h-6 text-[#f0abfc]" />
                   </div>
                   <h3 className="font-display text-2xl font-black text-white mb-3">
                     Mapeamento Global com Raio Expansível até 100km
                   </h3>
                   <p className="text-[#94a3b8] text-sm leading-relaxed mb-6">
-                    Varra bairros inteiros ou regiões metropolitanas completas. O nosso algoritmo inteligente segmenta as buscas usando nós geográficos Overpass sem travar ou sofrer Timeouts 504.
+                    Varra bairros inteiros ou regiões metropolitanas completas em 195 países. O motor distribui a varredura geoespacial entre clusters paralelos, eliminando Timeouts e trazendo centenas de empresas sem presença digital prontas para contratação.
                   </p>
                 </div>
                 <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/[0.06]">
                   {[
-                    ["100km", "Raio Máximo"],
-                    ["100%", "Sem Timeout"],
-                    ["Global", "OpenStreetMap"],
+                    ["100km", "Raio Expansível"],
+                    ["Zero", "Timeouts / Falhas"],
+                    ["Global", "Continentes 3D"],
                   ].map(([v, l]) => (
-                    <div key={l} className="p-3 rounded-xl bg-black/40 border border-white/[0.05]">
-                      <p className="font-display font-black text-[#c084fc] text-base">{v}</p>
-                      <p className="mono text-[9px] uppercase tracking-wider text-white/40">{l}</p>
+                    <div key={l} className="p-3 rounded-xl bg-black/50 border border-[#d946ef]/20 shadow-[0_0_15px_rgba(217,70,239,0.08)]">
+                      <p className="font-display font-black text-[#f0abfc] text-base">{v}</p>
+                      <p className="mono text-[9px] uppercase tracking-wider text-white/50">{l}</p>
                     </div>
                   ))}
                 </div>
@@ -444,7 +445,7 @@ export default function ProspectAILanding() {
               </div>
               <h3 className="font-display text-xl font-black text-white mb-3">Deep Scan Instagram</h3>
               <p className="text-[#94a3b8] text-sm leading-relaxed mb-4">
-                Localize perfis comerciais de nicho diretamente no Instagram. Filtre por bio, seguidores e descubra negócios com audiência ativa mas sem site profissional.
+                Localize perfis comerciais de nicho diretamente no Instagram. Filtre por bio, engajamento e descubra marcas que vendem ativamente nas redes mas não possuem domínio ou website moderno.
               </p>
             </BentoCard>
 
@@ -458,7 +459,7 @@ export default function ProspectAILanding() {
               </div>
               <h3 className="font-display text-xl font-black text-white mb-3">Radar de Delivery</h3>
               <p className="text-[#94a3b8] text-sm leading-relaxed mb-4">
-                Varredura focada no ecossistema gastronômico: restaurantes e delivery que pagam taxas altas em marketplaces e precisam urgentemente de cardápio próprio.
+                Varredura focada no ecossistema gastronômico: restaurantes, hamburguerias e confeitarias que pagam taxas abusivas em aplicativos e necessitam urgentemente de cardápio digital próprio.
               </p>
             </BentoCard>
 
@@ -472,7 +473,7 @@ export default function ProspectAILanding() {
               </div>
               <h3 className="font-display text-xl font-black text-white mb-3">Pitches Multilíngues</h3>
               <p className="text-[#94a3b8] text-sm leading-relaxed mb-4">
-                A IA analisa o setor e a cidade do lead e gera propostas persuasivas e hiper-personalizadas em português, espanhol ou inglês prontas para envio.
+                A IA analisa o setor, localização e deficiências técnicas da empresa e gera abordagens comerciais persuasivas em português, espanhol ou inglês com alta taxa de resposta.
               </p>
             </BentoCard>
 
@@ -484,9 +485,9 @@ export default function ProspectAILanding() {
                 </span>
                 <BarChart3 className="w-6 h-6 text-[#10b981]" />
               </div>
-              <h3 className="font-display text-xl font-black text-white mb-3">Gestão de MRR e Clientes</h3>
+              <h3 className="font-display text-xl font-black text-white mb-3">Gestão de MRR e Contratos</h3>
               <p className="text-[#94a3b8] text-sm leading-relaxed mb-4">
-                Acompanhe o ciclo de vida de cada lead do primeiro contato até o fechamento. Monitore contratos de manutenção mensal diretamente no painel.
+                Acompanhe o funil de cada oportunidade desde o primeiro contato frio até a assinatura de contrato mensal. Métricas de conversão e receita recorrente em um único painel.
               </p>
             </BentoCard>
           </div>
@@ -497,8 +498,8 @@ export default function ProspectAILanding() {
       <section id="como-funciona" className="relative z-10 py-28 px-6 border-y border-white/[0.06] bg-black/20">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#c084fc] mb-3 block">
-              Passo a Passo
+            <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#f0abfc] mb-3 block">
+              Fluxo Operacional
             </span>
             <h2 className="font-display text-4xl sm:text-5xl font-black text-white">
               Do radar à proposta assinada em 4 etapas.
@@ -510,33 +511,33 @@ export default function ProspectAILanding() {
               {
                 num: "01",
                 title: "Defina o Alvo",
-                desc: "Escolha a cidade do mundo, o segmento desejado e a amplitude do raio de busca.",
+                desc: "Escolha qualquer cidade do globo, o nicho de mercado e expanda o raio de busca até 100km.",
                 icon: Compass,
               },
               {
                 num: "02",
                 title: "Ative os Satélites",
-                desc: "3 motores disparam simultaneamente e mapeiam centenas de leads sem site em segundos.",
+                desc: "Três motores disparam em simultâneo captando contatos, coordenadas e carências digitais.",
                 icon: Zap,
               },
               {
                 num: "03",
                 title: "Enriqueça com IA",
-                desc: "Obtenha telefones, e-mails comerciais e gere argumentos de venda personalizados.",
+                desc: "Localize WhatsApp comercial, redes sociais e crie abordagens personalizadas com inteligência.",
                 icon: Sparkles,
               },
               {
                 num: "04",
                 title: "Dispare e Feche",
-                desc: "Contate em massa pelo WhatsApp ou cold email e converta clientes recorrentes.",
+                desc: "Inicie conversas com decisores qualificados e converta clientes de alto valor recorrente.",
                 icon: Send,
               },
             ].map((step) => (
               <SpotlightCard key={step.num} className="p-6">
-                <div className="w-10 h-10 rounded-xl bg-[#a855f7]/15 border border-[#a855f7]/30 flex items-center justify-center mb-4 text-[#c084fc]">
+                <div className="w-10 h-10 rounded-xl bg-[#d946ef]/15 border border-[#d946ef]/40 flex items-center justify-center mb-4 text-[#f0abfc] shadow-[0_0_15px_rgba(217,70,239,0.25)]">
                   <step.icon className="w-5 h-5" />
                 </div>
-                <span className="mono text-2xl font-black text-[#c084fc] mb-2 block">{step.num}</span>
+                <span className="mono text-2xl font-black text-[#f0abfc] mb-2 block">{step.num}</span>
                 <h4 className="font-display font-bold text-lg text-white mb-2">{step.title}</h4>
                 <p className="text-[#94a3b8] text-xs leading-relaxed">{step.desc}</p>
               </SpotlightCard>
@@ -549,11 +550,11 @@ export default function ProspectAILanding() {
       <section id="planos" className="relative z-10 py-28 px-6">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-16">
-            <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#c084fc] mb-3 block">
+            <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#f0abfc] mb-3 block">
               Planos & Acesso
             </span>
             <h2 className="font-display text-4xl sm:text-5xl font-black text-white">
-              Pronto para escalar sua prospecção?
+              Pronto para acelerar a sua prospecção?
             </h2>
           </div>
 
@@ -575,7 +576,7 @@ export default function ProspectAILanding() {
                     "Suporte por e-mail",
                   ].map((f) => (
                     <div key={f} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-4 h-4 text-[#c084fc] shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-[#f0abfc] shrink-0" />
                       <span className="text-sm text-white/80">{f}</span>
                     </div>
                   ))}
@@ -591,14 +592,14 @@ export default function ProspectAILanding() {
             </SpotlightCard>
 
             {/* Pro Tier (Highlighted in Electric Purple) */}
-            <div className="relative rounded-2xl p-[1px] bg-gradient-to-b from-[#a855f7] via-[#c084fc] to-[#7e22ce] shadow-[0_0_50px_rgba(168,85,247,0.35)]">
+            <div className="relative rounded-2xl p-[1px] bg-gradient-to-b from-[#d946ef] via-[#f0abfc] to-[#9333ea] shadow-[0_0_60px_rgba(217,70,239,0.45)]">
               <div className="h-full rounded-2xl bg-[#0c101a] p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-52 h-52 bg-[#a855f7]/20 blur-3xl pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#d946ef]/25 blur-3xl pointer-events-none" />
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="mono text-xs uppercase tracking-widest text-[#c084fc] font-bold">Ilimitado</span>
-                    <span className="mono text-[10px] font-black uppercase px-3 py-1 rounded-full bg-[#a855f7] text-white tracking-widest shadow-[0_0_15px_rgba(168,85,247,0.6)]">
+                    <span className="mono text-xs uppercase tracking-widest text-[#f0abfc] font-bold">Ilimitado</span>
+                    <span className="mono text-[10px] font-black uppercase px-3 py-1 rounded-full bg-[#d946ef] text-white tracking-widest shadow-[0_0_20px_rgba(217,70,239,0.7)]">
                       RECOMENDADO
                     </span>
                   </div>
@@ -625,7 +626,7 @@ export default function ProspectAILanding() {
 
                 <Link
                   href="/login"
-                  className="btn-signal w-full py-4 rounded-xl font-bold uppercase tracking-wider text-xs text-center block shadow-[0_0_30px_rgba(168,85,247,0.45)]"
+                  className="btn-signal w-full py-4 rounded-xl font-bold uppercase tracking-wider text-xs text-center block shadow-[0_0_35px_rgba(217,70,239,0.55)]"
                 >
                   Garantir Acesso Completo
                 </Link>
@@ -638,7 +639,7 @@ export default function ProspectAILanding() {
       {/* ── FINAL CALL TO ACTION ── */}
       <section className="relative z-10 py-32 px-6 text-center border-t border-white/[0.06] bg-black/40">
         <div className="mx-auto max-w-4xl">
-          <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#c084fc] mb-4 block">
+          <span className="mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#f0abfc] mb-4 block">
             A Era da Prospecção Científica
           </span>
           <h2 className="font-display text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight mb-6">
@@ -651,7 +652,7 @@ export default function ProspectAILanding() {
 
           <Link
             href="/login"
-            className="btn-signal inline-flex items-center gap-3 px-10 py-4.5 rounded-xl text-sm font-bold uppercase tracking-wider shadow-[0_0_40px_rgba(168,85,247,0.55)]"
+            className="btn-signal inline-flex items-center gap-3 px-10 py-4.5 rounded-xl text-sm font-bold uppercase tracking-wider shadow-[0_0_40px_rgba(217,70,239,0.6)]"
           >
             Acessar Sistema Agora <ArrowRight className="w-4 h-4" />
           </Link>
@@ -662,11 +663,11 @@ export default function ProspectAILanding() {
       <footer className="relative z-10 border-t border-white/[0.06] py-10 px-6 bg-[#040508]">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#a855f7] to-[#7e22ce] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#d946ef] to-[#9333ea] flex items-center justify-center shadow-[0_0_15px_rgba(217,70,239,0.5)]">
               <Crosshair className="w-4 h-4 text-white" />
             </div>
             <span className="font-display text-sm font-black tracking-tight uppercase text-white">
-              Prospect<span className="text-[#c084fc]">AI</span>
+              Prospect<span className="text-[#f0abfc]">AI</span>
             </span>
           </div>
 
@@ -677,7 +678,7 @@ export default function ProspectAILanding() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/20">
             <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
             <span className="mono text-[10px] text-[#10b981] uppercase tracking-wider font-bold">
-              Todos os Satélites Operacionais
+              142 Satélites Operacionais
             </span>
           </div>
         </div>

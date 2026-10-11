@@ -26,10 +26,11 @@
   --surface-2: #161b30;
   --surface-3: #1f2642;
   --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(168, 85, 247, 0.35);
-  --signal: #a855f7;
-  --signal-dim: #9333ea;
-  --signal-glow: rgba(168, 85, 247, 0.5);
+  --line-strong: rgba(217, 70, 239, 0.45);
+  --signal: #d946ef;
+  --signal-neon: #f0abfc;
+  --signal-dim: #c026d3;
+  --signal-glow: rgba(217, 70, 239, 0.75);
   --cyan: #38bdf8;
   --amber: #f59e0b;
   --alert: #ef4444;
@@ -76,12 +77,12 @@ body {
 }
 
 /* ---------- Selection ---------- */
-::selection { background: #a855f7; color: #ffffff; }
+::selection { background: #d946ef; color: #ffffff; }
 
 /* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--deep); }
-::-webkit-scrollbar-thumb { background: #1e2638; border-radius: 9999px; }
+::-webkit-scrollbar-thumb { background: #2e1065; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--signal); }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -95,16 +96,16 @@ body {
   background: var(--void);
 }
 
-/* Aurora animada com tons Roxo Elétrico / Magenta / Neon */
+/* Aurora animada com tons Roxo Elétrico Hiper-Vibrante */
 .aurora {
   position: absolute;
   inset: -50%;
   background: conic-gradient(
     from var(--aurora-angle) at 50% 50%,
-    rgba(168, 85, 247, 0.18),
-    rgba(192, 132, 252, 0.12),
-    rgba(236, 72, 153, 0.08),
-    rgba(168, 85, 247, 0.18),
+    rgba(217, 70, 239, 0.22),
+    rgba(240, 171, 252, 0.16),
+    rgba(192, 38, 211, 0.14),
+    rgba(217, 70, 239, 0.22),
     transparent 50%
   );
   animation: aurora-spin 22s linear infinite;
@@ -310,14 +311,14 @@ body {
 .mono { font-family: var(--font-mono); }
 
 .grad-text, .text-gradient-indigo {
-  background: linear-gradient(135deg, #ffffff 0%, #e9d5ff 40%, #c084fc 80%, #a855f7 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #fdf4ff 25%, #f0abfc 60%, #d946ef 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .grad-text-cyan {
-  background: linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #e879f9 100%);
+  background: linear-gradient(135deg, #f0abfc 0%, #d946ef 50%, #38bdf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -330,29 +331,29 @@ body {
 .btn-signal {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+  background: linear-gradient(135deg, #d946ef 0%, #a21caf 100%);
   color: #ffffff;
   font-weight: 700;
   font-family: var(--font-mono);
   letter-spacing: 0.08em;
   box-shadow:
-    0 0 0 1px rgba(168, 85, 247, 0.45),
-    0 12px 32px -8px rgba(168, 85, 247, 0.65);
+    0 0 0 1px rgba(217, 70, 239, 0.55),
+    0 12px 36px -6px rgba(217, 70, 239, 0.7);
   transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease, filter 0.25s ease;
 }
 .btn-signal::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 60%);
   pointer-events: none;
 }
 .btn-signal:hover {
   filter: brightness(1.15);
   transform: translateY(-2px) scale(1.01);
   box-shadow:
-    0 0 0 1px rgba(168, 85, 247, 0.8),
-    0 20px 48px -10px rgba(168, 85, 247, 0.85);
+    0 0 0 1px rgba(240, 171, 252, 0.9),
+    0 22px 52px -8px rgba(217, 70, 239, 0.9);
 }
 .btn-signal:active { transform: translateY(0) scale(0.99); }
 
@@ -366,10 +367,10 @@ body {
   transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease;
 }
 .btn-ghost:hover {
-  border-color: rgba(168, 85, 247, 0.45);
-  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(217, 70, 239, 0.55);
+  background: rgba(217, 70, 239, 0.12);
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(217, 70, 239, 0.35);
 }
 
 .btn-danger {

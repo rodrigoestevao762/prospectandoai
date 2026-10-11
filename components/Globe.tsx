@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Compass, RotateCw, Pause, Play, Sparkles, MapPin, Zap, Radio, Globe as GlobeIcon } from "lucide-react";
+import * as THREE from "three";
+import { Compass, RotateCw, Pause, Play, MapPin, Zap, Radio, Globe as GlobeIcon } from "lucide-react";
 
 export interface CityTarget {
   name: string;
@@ -21,6 +22,137 @@ export const GLOBAL_TARGETS: CityTarget[] = [
   { name: "Dubai", country: "EAU", lat: 25.2048, lng: 55.2708, leads: "1.920 alvos", niche: "Imobiliário & Luxo" },
 ];
 
+function latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector3 {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lng + 180) * (Math.PI / 180);
+  const x = -(radius * Math.sin(phi) * Math.cos(theta));
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+  const y = radius * Math.cos(phi);
+  return new THREE.Vector3(x, y, z);
+}
+
+// Procedural high-resolution texture generator using Natural Earth GeoJSON
+function createWorldTexture(geoData: any | null): THREE.CanvasTexture {
+  const width = 2048;
+  const height = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  // 1. Deep Cosmic Ocean Gradient
+  const oceanGrad = ctx.createLinearGradient(0, 0, 0, height);
+  oceanGrad.addColorStop(0, "#080414");
+  oceanGrad.addColorStop(0.5, "#0d0620");
+  oceanGrad.addColorStop(1, "#080414");
+  ctx.fillStyle = oceanGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  // 2. Latitude & Longitude Tactical Coordinate Grid (Graticules)
+  ctx.strokeStyle = "rgba(217, 70, 239, 0.12)";
+  ctx.lineWidth = 1;
+  // Parallels (Latitude)
+  for (let lat = -75; lat <= 75; lat += 15) {
+    const y = ((90 - lat) / 180) * height;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  // Meridians (Longitude)
+  for (let lng = -180; lng <= 180; lng += 15) {
+    const x = ((lng + 180) / 360) * width;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
+
+  // 3. Render Continents from GeoJSON
+  if (geoData && geoData.features) {
+    // Fill Pass: Luminous Deep Purple Continent Body
+    ctx.fillStyle = "#3b0764";
+    ctx.shadowColor = "#d946ef";
+    ctx.shadowBlur = 12;
+
+    const drawPolygon = (coords: number[][]) => {
+      ctx.beginPath();
+      for (let i = 0; i < coords.length; i++) {
+        const [lng, lat] = coords[i];
+        const x = ((lng + 180) / 360) * width;
+        const y = ((90 - lat) / 180) * height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    };
+
+    geoData.features.forEach((feature: any) => {
+      const geom = feature.geometry;
+      if (geom.type === "Polygon") {
+        geom.coordinates.forEach((ring: number[][]) => drawPolygon(ring));
+      } else if (geom.type === "MultiPolygon") {
+        geom.coordinates.forEach((poly: number[][][]) => {
+          poly.forEach((ring: number[][]) => drawPolygon(ring));
+        });
+      }
+    });
+
+    // Stroke Pass: High-Contrast Neon Electric Fuchsia Coastline Borders
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "#f0abfc";
+    ctx.strokeStyle = "#e879f9";
+    ctx.lineWidth = 2.2;
+
+    const strokePolygon = (coords: number[][]) => {
+      ctx.beginPath();
+      for (let i = 0; i < coords.length; i++) {
+        const [lng, lat] = coords[i];
+        const x = ((lng + 180) / 360) * width;
+        const y = ((90 - lat) / 180) * height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    };
+
+    geoData.features.forEach((feature: any) => {
+      const geom = feature.geometry;
+      if (geom.type === "Polygon") {
+        geom.coordinates.forEach((ring: number[][]) => strokePolygon(ring));
+      } else if (geom.type === "MultiPolygon") {
+        geom.coordinates.forEach((poly: number[][][]) => {
+          poly.forEach((ring: number[][]) => strokePolygon(ring));
+        });
+      }
+    });
+
+    // Tactical Cyber Dot Matrix Overlay across Continents
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "rgba(240, 171, 252, 0.25)";
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
+    for (let y = 10; y < height - 10; y += 12) {
+      for (let x = 10; x < width - 10; x += 12) {
+        const idx = (y * width + x) * 4;
+        // If pixel is on continent landmass (purple red channel > 30)
+        if (data[idx] > 30) {
+          ctx.beginPath();
+          ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  return texture;
+}
+
 interface GlobeProps {
   size?: "hero" | "compact";
   showControls?: boolean;
@@ -36,23 +168,18 @@ export default function Globe({
   className = "",
   onTargetSelect,
 }: GlobeProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement>(null);
+  const globeGroupRef = useRef<THREE.Group | null>(null);
 
-  // Interaction & Physics state refs
-  const pointerInteracting = useRef<{ x: number; y: number } | null>(null);
-  const pointerDelta = useRef({ x: 0, y: 0 });
-  const velocityRef = useRef({ x: 0, y: 0 });
-  const lastPointer = useRef({ x: 0, y: 0, time: 0 });
+  // Interaction tracking refs
+  const isDragging = useRef(false);
+  const prevPointer = useRef({ x: 0, y: 0 });
+  const velocity = useRef({ x: 0, y: 0 });
+  const targetRotation = useRef<{ y: number; x: number } | null>(null);
+  const autoRotate = useRef(true);
+  const speedRef = useRef(1);
 
-  const phiRef = useRef(0);
-  const thetaRef = useRef(0.25);
-  const targetPhiRef = useRef<number | null>(null);
-  const targetThetaRef = useRef<number | null>(null);
-  const autoRotateRef = useRef(true);
-  const speedMultiplierRef = useRef(1);
-
-  // React state
+  // State
   const [hasWebGL, setHasWebGL] = useState(true);
   const [activeCity, setActiveCity] = useState<CityTarget>(GLOBAL_TARGETS[0]);
   const [isRotating, setIsRotating] = useState(true);
@@ -60,40 +187,31 @@ export default function Globe({
   const [telemetryLat, setTelemetryLat] = useState("41.38° N");
   const [telemetryLng, setTelemetryLng] = useState("2.17° E");
 
-  // Function to fly to target coordinates
+  // Fly to target city with smooth rotation interpolation
   const flyToCity = useCallback((city: CityTarget) => {
     setActiveCity(city);
     if (onTargetSelect) onTargetSelect(city);
 
-    // Convert longitude to phi (radians). In cobe, phi=0 aligns around 0° lon with slight offset
-    const targetPhi = -((city.lng * Math.PI) / 180) + Math.PI / 2;
-    // Latitude to theta (radians), clamped safely to prevent pole inversion
-    const targetTheta = Math.max(-0.4, Math.min(0.6, (city.lat * Math.PI) / 180 * 0.7));
+    // Compute target rotation in radians to face camera
+    const targetY = -((city.lng + 90) * (Math.PI / 180));
+    const targetX = (city.lat * (Math.PI / 180)) * 0.7;
 
-    // Normalize targetPhi relative to current phiRef to take the shortest rotation path
-    let currentPhi = phiRef.current;
-    let diff = (targetPhi - currentPhi) % (Math.PI * 2);
-    if (diff > Math.PI) diff -= Math.PI * 2;
-    if (diff < -Math.PI) diff += Math.PI * 2;
-
-    targetPhiRef.current = currentPhi + diff;
-    targetThetaRef.current = targetTheta;
-
+    targetRotation.current = { y: targetY, x: targetX };
     setTelemetryLat(`${Math.abs(city.lat).toFixed(2)}° ${city.lat >= 0 ? "N" : "S"}`);
     setTelemetryLng(`${Math.abs(city.lng).toFixed(2)}° ${city.lng >= 0 ? "E" : "W"}`);
   }, [onTargetSelect]);
 
   const toggleAutoRotate = () => {
-    autoRotateRef.current = !autoRotateRef.current;
-    setIsRotating(autoRotateRef.current);
+    autoRotate.current = !autoRotate.current;
+    setIsRotating(autoRotate.current);
   };
 
   const toggleSpeed = () => {
-    if (speedMultiplierRef.current === 1) {
-      speedMultiplierRef.current = 2.2;
+    if (speedRef.current === 1) {
+      speedRef.current = 2.4;
       setSpeedMode("2x");
     } else {
-      speedMultiplierRef.current = 1;
+      speedRef.current = 1;
       setSpeedMode("1x");
     }
   };
@@ -103,310 +221,349 @@ export default function Globe({
   };
 
   useEffect(() => {
-    let globeInstance: any = null;
-    let isMounted = true;
+    if (!mountRef.current || typeof window === "undefined") return;
 
-    async function initGlobe() {
-      if (!canvasRef.current || typeof window === "undefined") return;
+    let animId: number;
+    let renderer: THREE.WebGLRenderer;
+    let scene: THREE.Scene;
+    let camera: THREE.PerspectiveCamera;
+    let globeMesh: THREE.Mesh;
+    let pulseRings: THREE.Mesh[] = [];
 
-      // Safe WebGL preflight check
-      try {
-        const gl =
-          canvasRef.current.getContext("webgl") ||
-          canvasRef.current.getContext("experimental-webgl");
-        if (!gl) {
-          setHasWebGL(false);
-          return;
-        }
-      } catch (e) {
-        setHasWebGL(false);
-        return;
-      }
+    try {
+      const container = mountRef.current;
+      const width = container.clientWidth || 600;
+      const height = container.clientHeight || 600;
 
-      try {
-        const createGlobeModule = await import("cobe");
-        const createGlobe = createGlobeModule.default;
+      // 1. Three.js Scene & Camera Setup
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.z = 2.8;
 
-        if (!isMounted || !canvasRef.current) return;
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.25;
 
-        const getDimensions = () => {
-          if (!containerRef.current) return 600;
-          const rect = containerRef.current.getBoundingClientRect();
-          const w = rect.width || 600;
-          return Math.max(w, 320);
-        };
+      container.replaceChildren(renderer.domElement);
+      renderer.domElement.style.width = "100%";
+      renderer.domElement.style.height = "100%";
+      renderer.domElement.style.cursor = "grab";
 
-        let width = getDimensions();
+      const globeGroup = new THREE.Group();
+      globeGroupRef.current = globeGroup;
+      scene.add(globeGroup);
 
-        // High-density markers across global enterprise hubs
-        const markers = [
-          { location: [41.3851, 2.1734], size: 0.12 },   // Barcelona (Highlight)
-          { location: [-23.5505, -46.6333], size: 0.10 }, // São Paulo
-          { location: [40.7128, -74.006], size: 0.10 },  // New York
-          { location: [51.5074, -0.1278], size: 0.09 },  // London
-          { location: [35.6762, 139.6503], size: 0.09 }, // Tokyo
-          { location: [25.2048, 55.2708], size: 0.09 },  // Dubai
-          { location: [37.7749, -122.4194], size: 0.07 },// San Francisco
-          { location: [48.8566, 2.3522], size: 0.07 },   // Paris
-          { location: [52.5200, 13.4050], size: 0.07 },  // Berlin
-          { location: [1.3521, 103.8198], size: 0.08 },  // Singapore
-          { location: [-33.8688, 151.2093], size: 0.07 },// Sydney
-          { location: [19.4326, -99.1332], size: 0.07 }, // Mexico City
-          { location: [19.0760, 72.8777], size: 0.07 },  // Mumbai
-          { location: [31.2304, 121.4737], size: 0.07 }, // Shanghai
-          { location: [37.5665, 126.9780], size: 0.07 }, // Seoul
-          { location: [-34.6037, -58.3816], size: 0.07 },// Buenos Aires
-          { location: [6.5244, 3.3792], size: 0.06 },    // Lagos
-          { location: [-22.9068, -43.1729], size: 0.08 },// Rio de Janeiro
-        ];
+      // 2. Base Sphere Mesh with Procedural Continents Texture
+      const globeRadius = 1.0;
+      const globeGeometry = new THREE.SphereGeometry(globeRadius, 64, 64);
 
-        globeInstance = createGlobe(canvasRef.current, {
-          devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
-          width: width * 2,
-          height: width * 2,
-          phi: 0,
-          theta: 0.25,
-          dark: 1,
-          diffuse: 1.4,
-          mapSamples: size === "hero" ? 28000 : 18000,
-          mapBrightness: 4.2,
-          baseColor: [0.10, 0.05, 0.20],     // Deep galactic cosmic purple
-          markerColor: [0.85, 0.35, 1.0],     // Vivid electric purple neon
-          glowColor: [0.45, 0.16, 0.72],      // Rich violet-purple atmospheric luminescence
-          markers,
-          onRender: (state) => {
-            // Smooth Target Flight Interpolation (Spring-like)
-            if (targetPhiRef.current !== null && targetThetaRef.current !== null) {
-              const dPhi = targetPhiRef.current - phiRef.current;
-              const dTheta = targetThetaRef.current - thetaRef.current;
+      // Initial temporary procedural texture while GeoJSON loads
+      let currentTexture = createWorldTexture(null);
+      const globeMaterial = new THREE.MeshPhongMaterial({
+        map: currentTexture,
+        specular: new THREE.Color("#d946ef"),
+        shininess: 24,
+        emissive: new THREE.Color("#2e0854"),
+        emissiveIntensity: 0.35,
+      });
 
-              phiRef.current += dPhi * 0.08;
-              thetaRef.current += dTheta * 0.08;
+      globeMesh = new THREE.Mesh(globeGeometry, globeMaterial);
+      globeGroup.add(globeMesh);
 
-              if (Math.abs(dPhi) < 0.001 && Math.abs(dTheta) < 0.001) {
-                targetPhiRef.current = null;
-                targetThetaRef.current = null;
-              }
-            } else if (!pointerInteracting.current) {
-              // Apply momentum decay if present
-              if (Math.abs(velocityRef.current.x) > 0.0001) {
-                phiRef.current += velocityRef.current.x;
-                velocityRef.current.x *= 0.94; // friction
-              } else if (autoRotateRef.current) {
-                // Natural steady orbit
-                phiRef.current += 0.0028 * speedMultiplierRef.current;
-              }
+      // Fetch official Natural Earth continents GeoJSON for pixel-perfect coastlines
+      fetch("/world-land.json")
+        .then((r) => r.json())
+        .then((geoData) => {
+          const highResTexture = createWorldTexture(geoData);
+          globeMaterial.map = highResTexture;
+          globeMaterial.needsUpdate = true;
+          currentTexture.dispose();
+        })
+        .catch((e) => console.warn("Fallback to procedural world map:", e));
 
-              if (Math.abs(velocityRef.current.y) > 0.0001) {
-                thetaRef.current += velocityRef.current.y;
-                velocityRef.current.y *= 0.94;
-                thetaRef.current = Math.max(-0.45, Math.min(0.65, thetaRef.current));
-              }
-            }
+      // 3. Glowing Atmospheric Shell (Fresnel Limb Bloom)
+      const atmosGeometry = new THREE.SphereGeometry(globeRadius * 1.18, 64, 64);
+      const atmosMaterial = new THREE.ShaderMaterial({
+        vertexShader: `
+          varying vec3 vNormal;
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vNormal;
+          void main() {
+            float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
+            gl_FragColor = vec4(0.85, 0.27, 0.94, 1.0) * intensity * 1.6;
+          }
+        `,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide,
+        transparent: true,
+      });
+      const atmosMesh = new THREE.Mesh(atmosGeometry, atmosMaterial);
+      scene.add(atmosMesh);
 
-            state.phi = phiRef.current + pointerDelta.current.x;
-            state.theta = Math.max(-0.45, Math.min(0.65, thetaRef.current + pointerDelta.current.y));
+      // 4. Lighting: Ambient Space + Vibrant Electric Purple Directional Rim Light
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+      scene.add(ambientLight);
 
-            const w = getDimensions();
-            state.width = w * 2;
-            state.height = w * 2;
-          },
+      const purpleRimLight = new THREE.DirectionalLight(0xd946ef, 3.2);
+      purpleRimLight.position.set(4, 3, 5);
+      scene.add(purpleRimLight);
+
+      const blueBackLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+      blueBackLight.position.set(-4, -2, -3);
+      scene.add(blueBackLight);
+
+      // 5. City Hub Beacons & Pulsing Radar Wave Rings
+      GLOBAL_TARGETS.forEach((city) => {
+        const pos = latLngToVector3(city.lat, city.lng, globeRadius * 1.01);
+
+        // Core Beacon Dot
+        const dotGeo = new THREE.SphereGeometry(city.name === "Barcelona" ? 0.024 : 0.016, 16, 16);
+        const dotMat = new THREE.MeshBasicMaterial({
+          color: city.name === "Barcelona" ? 0x10b981 : 0xf0abfc,
         });
-      } catch (err) {
-        console.warn("Globe creation fallback:", err);
-        setHasWebGL(false);
-      }
+        const dotMesh = new THREE.Mesh(dotGeo, dotMat);
+        dotMesh.position.copy(pos);
+        globeGroup.add(dotMesh);
+
+        // Expanding Radar Pulse Wave Ring
+        const ringGeo = new THREE.RingGeometry(0.02, 0.038, 32);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: city.name === "Barcelona" ? 0x10b981 : 0xd946ef,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.8,
+        });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.position.copy(pos);
+        ringMesh.lookAt(new THREE.Vector3(0, 0, 0));
+        globeGroup.add(ringMesh);
+        pulseRings.push(ringMesh);
+      });
+
+      // 6. Glowing Orbital Flight Curve Arcs connecting Global Hubs
+      const connections: [CityTarget, CityTarget][] = [
+        [GLOBAL_TARGETS[1], GLOBAL_TARGETS[0]], // São Paulo -> Barcelona
+        [GLOBAL_TARGETS[0], GLOBAL_TARGETS[3]], // Barcelona -> Londres
+        [GLOBAL_TARGETS[2], GLOBAL_TARGETS[0]], // Nova York -> Barcelona
+        [GLOBAL_TARGETS[3], GLOBAL_TARGETS[5]], // Londres -> Dubai
+        [GLOBAL_TARGETS[5], GLOBAL_TARGETS[4]], // Dubai -> Tóquio
+      ];
+
+      connections.forEach(([from, to]) => {
+        const v1 = latLngToVector3(from.lat, from.lng, globeRadius * 1.01);
+        const v2 = latLngToVector3(to.lat, to.lng, globeRadius * 1.01);
+
+        const mid = v1.clone().add(v2).multiplyScalar(0.5);
+        const distance = v1.distanceTo(v2);
+        mid.setLength(globeRadius + distance * 0.28);
+
+        const curve = new THREE.QuadraticBezierCurve3(v1, mid, v2);
+        const points = curve.getPoints(40);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const lineMat = new THREE.LineBasicMaterial({
+          color: 0xd946ef,
+          transparent: true,
+          opacity: 0.65,
+        });
+        const arcLine = new THREE.Line(lineGeo, lineMat);
+        globeGroup.add(arcLine);
+      });
+
+      // 7. Initial orientation facing Europe / Barcelona
+      globeGroup.rotation.y = -Math.PI * 0.55;
+      globeGroup.rotation.x = 0.22;
+
+      // 8. Animation & Render Loop
+      let clock = new THREE.Clock();
+      const animate = () => {
+        animId = requestAnimationFrame(animate);
+        const elapsedTime = clock.getElapsedTime();
+
+        // Target City Flight Slerp (Spring Interpolation)
+        if (targetRotation.current) {
+          const dY = targetRotation.current.y - globeGroup.rotation.y;
+          const dX = targetRotation.current.x - globeGroup.rotation.x;
+
+          globeGroup.rotation.y += dY * 0.08;
+          globeGroup.rotation.x += dX * 0.08;
+
+          if (Math.abs(dY) < 0.001 && Math.abs(dX) < 0.001) {
+            targetRotation.current = null;
+          }
+        } else if (!isDragging.current) {
+          // Physics Momentum Damping
+          if (Math.abs(velocity.current.x) > 0.0001) {
+            globeGroup.rotation.y += velocity.current.x;
+            velocity.current.x *= 0.94; // friction
+          } else if (autoRotate.current) {
+            // Steady Natural Orbit
+            globeGroup.rotation.y += 0.0024 * speedRef.current;
+          }
+
+          if (Math.abs(velocity.current.y) > 0.0001) {
+            globeGroup.rotation.x += velocity.current.y;
+            velocity.current.y *= 0.94;
+            globeGroup.rotation.x = Math.max(-0.6, Math.min(0.6, globeGroup.rotation.x));
+          }
+        }
+
+        // Animate Pulsing Radar Wave Rings
+        pulseRings.forEach((ring, idx) => {
+          const scale = 1 + (Math.sin(elapsedTime * 3 + idx) * 0.5 + 0.5) * 1.5;
+          ring.scale.set(scale, scale, 1);
+          (ring.material as THREE.MeshBasicMaterial).opacity = Math.max(0.1, 1 - (scale - 1) / 1.5);
+        });
+
+        renderer.render(scene, camera);
+      };
+
+      animate();
+
+      // Handle Resize smoothly
+      const handleResize = () => {
+        if (!container) return;
+        const w = container.clientWidth || 600;
+        const h = container.clientHeight || 600;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        cancelAnimationFrame(animId);
+        window.removeEventListener("resize", handleResize);
+        renderer.dispose();
+        scene.clear();
+      };
+    } catch (err) {
+      console.warn("WebGL initialization fallback:", err);
+      setHasWebGL(false);
     }
+  }, []);
 
-    initGlobe();
-
-    return () => {
-      isMounted = false;
-      if (globeInstance && typeof globeInstance.destroy === "function") {
-        try {
-          globeInstance.destroy();
-        } catch (e) {}
-      }
-    };
-  }, [size]);
-
-  // Pointer event handlers for 2-axis interactive rotation with momentum
-  const handlePointerDown = (clientX: number, clientY: number) => {
-    pointerInteracting.current = { x: clientX, y: clientY };
-    pointerDelta.current = { x: 0, y: 0 };
-    velocityRef.current = { x: 0, y: 0 };
-    targetPhiRef.current = null;
-    targetThetaRef.current = null;
-    lastPointer.current = { x: clientX, y: clientY, time: performance.now() };
-
-    if (canvasRef.current) {
-      canvasRef.current.style.cursor = "grabbing";
-    }
+  // 100% Interactive Pointer Event Listeners
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isDragging.current = true;
+    prevPointer.current = { x: e.clientX, y: e.clientY };
+    velocity.current = { x: 0, y: 0 };
+    targetRotation.current = null;
+    if (mountRef.current) mountRef.current.style.cursor = "grabbing";
   };
 
-  const handlePointerMove = (clientX: number, clientY: number) => {
-    if (!pointerInteracting.current) return;
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current || !globeGroupRef.current) return;
 
-    const dx = clientX - pointerInteracting.current.x;
-    const dy = clientY - pointerInteracting.current.y;
+    const dx = e.clientX - prevPointer.current.x;
+    const dy = e.clientY - prevPointer.current.y;
 
-    pointerDelta.current = {
-      x: dx / 140,
-      y: -dy / 220,
+    velocity.current = {
+      x: dx * 0.004,
+      y: dy * 0.004,
     };
 
-    const now = performance.now();
-    const dt = now - lastPointer.current.time;
-    if (dt > 16) {
-      velocityRef.current = {
-        x: (clientX - lastPointer.current.x) / 140 / (dt / 16),
-        y: -(clientY - lastPointer.current.y) / 220 / (dt / 16),
-      };
-      lastPointer.current = { x: clientX, y: clientY, time: now };
-    }
+    globeGroupRef.current.rotation.y += velocity.current.x;
+    globeGroupRef.current.rotation.x = Math.max(
+      -0.6,
+      Math.min(0.6, globeGroupRef.current.rotation.x + velocity.current.y)
+    );
+
+    prevPointer.current = { x: e.clientX, y: e.clientY };
   };
 
   const handlePointerUp = () => {
-    if (pointerInteracting.current) {
-      phiRef.current += pointerDelta.current.x;
-      thetaRef.current = Math.max(-0.45, Math.min(0.65, thetaRef.current + pointerDelta.current.y));
-      pointerDelta.current = { x: 0, y: 0 };
-      pointerInteracting.current = null;
-    }
-
-    if (canvasRef.current) {
-      canvasRef.current.style.cursor = "grab";
-    }
+    isDragging.current = false;
+    if (mountRef.current) mountRef.current.style.cursor = "grab";
   };
 
   const isHero = size === "hero";
 
   return (
     <div
-      ref={containerRef}
       className={`relative w-full mx-auto flex flex-col items-center justify-center select-none ${
         isHero ? "max-w-[760px] lg:max-w-[820px]" : "max-w-[440px]"
       } ${className}`}
     >
-      {/* ── COSMIC BACKGROUND NEBULA & ATMOSPHERIC PURPLE GLOW ── */}
+      {/* ── HYPER-VIBRANT PURPLE COSMIC NEBULA & ATMOSPHERE ── */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
-        {/* Core Electric Purple Corona */}
         <div
-          className={`rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.32)_0%,rgba(147,51,234,0.18)_35%,rgba(126,34,206,0.06)_60%,transparent_75%)] blur-3xl animate-pulse ${
-            isHero ? "w-[680px] h-[680px]" : "w-[380px] h-[380px]"
+          className={`rounded-full bg-[radial-gradient(circle,rgba(217,70,239,0.38)_0%,rgba(192,38,211,0.22)_35%,rgba(134,25,143,0.08)_60%,transparent_75%)] blur-3xl animate-pulse ${
+            isHero ? "w-[720px] h-[720px]" : "w-[400px] h-[400px]"
           }`}
-          style={{ animationDuration: "6s" }}
+          style={{ animationDuration: "5s" }}
         />
-        {/* Outer Deep Magenta / Violet Aura */}
         <div
-          className={`absolute rounded-full bg-[radial-gradient(circle,rgba(217,70,239,0.14)_0%,rgba(168,85,247,0.08)_45%,transparent_70%)] blur-[90px] ${
-            isHero ? "w-[840px] h-[840px]" : "w-[460px] h-[460px]"
+          className={`absolute rounded-full bg-[radial-gradient(circle,rgba(240,171,252,0.18)_0%,rgba(217,70,239,0.1)_45%,transparent_70%)] blur-[95px] ${
+            isHero ? "w-[880px] h-[880px]" : "w-[480px] h-[480px]"
           }`}
         />
       </div>
 
-      {/* ── 3D HOLOGRAPHIC ORBITAL RINGS (Hero Mode Only) ── */}
-      {isHero && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          {/* Orbital Ring Alpha */}
-          <div
-            className="w-[94%] aspect-square rounded-full border border-[#a855f7]/25 opacity-70"
-            style={{
-              transform: "rotateX(72deg) rotateY(-18deg)",
-              boxShadow: "0 0 30px rgba(168,85,247,0.2), inset 0 0 30px rgba(168,85,247,0.15)",
-            }}
-          />
-          {/* Orbital Ring Beta with Dashed Telemetry */}
-          <div
-            className="w-[108%] aspect-square rounded-full border border-dashed border-[#c084fc]/20 opacity-40 animate-[spin_40s_linear_infinite]"
-            style={{
-              transform: "rotateX(76deg) rotateY(24deg)",
-            }}
-          />
-        </div>
-      )}
-
-      {/* ── TOP MISSION CONTROL TELEMETRY HUD (Hero Mode) ── */}
+      {/* ── TOP MISSION CONTROL TELEMETRY HUD ── */}
       {isHero && (
         <div className="w-full flex items-center justify-between px-4 sm:px-6 mb-2 z-20 pointer-events-none">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#080b12]/80 border border-white/10 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-[#a855f7] animate-ping" />
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#080b12]/85 border border-[#d946ef]/30 backdrop-blur-md shadow-[0_0_20px_rgba(217,70,239,0.2)]">
+            <span className="w-2 h-2 rounded-full bg-[#d946ef] animate-ping" />
             <span className="mono text-[10px] font-bold text-white/90 tracking-wider uppercase">
               RADAR OSINT v4.2
             </span>
             <span className="text-white/20">•</span>
-            <span className="mono text-[10px] text-[#c084fc]">
+            <span className="mono text-[10px] text-[#f0abfc] font-bold">
               {telemetryLat}, {telemetryLng}
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/25 backdrop-blur-md">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/30 backdrop-blur-md">
             <Radio className="w-3 h-3 text-[#10b981] animate-pulse" />
             <span className="mono text-[10px] font-bold text-[#10b981] uppercase tracking-wider">
-              142 Satélites em Órbita
+              142 Satélites Ativos
             </span>
           </div>
         </div>
       )}
 
-      {/* ── MAIN GLOBE CANVAS CONTAINER ── */}
+      {/* ── THREE.JS 3D CANVAS STAGE ── */}
       <div
-        className={`relative w-full aspect-square flex items-center justify-center z-10 ${
+        className={`relative w-full aspect-square flex items-center justify-center z-10 touch-none ${
           isHero ? "max-h-[640px] lg:max-h-[700px]" : "max-h-[400px]"
         }`}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
       >
         {hasWebGL ? (
-          <canvas
-            ref={canvasRef}
-            onPointerDown={(e) => handlePointerDown(e.clientX, e.clientY)}
-            onPointerMove={(e) => handlePointerMove(e.clientX, e.clientY)}
-            onPointerUp={handlePointerUp}
-            onPointerOut={handlePointerUp}
-            onTouchStart={(e) => {
-              if (e.touches[0]) handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
-            }}
-            onTouchMove={(e) => {
-              if (e.touches[0]) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
-            }}
-            onTouchEnd={handlePointerUp}
-            style={{
-              width: "100%",
-              height: "100%",
-              cursor: "grab",
-              contain: "layout paint size",
-              touchAction: "none",
-            }}
-            aria-label="Globo 3D interativo do Radar OSINT ProspectandoAI"
-          />
+          <div ref={mountRef} className="w-full h-full flex items-center justify-center" />
         ) : (
-          /* High-End Futuristic Holographic Fallback */
-          <div className="relative w-80 h-80 rounded-full border-2 border-[#a855f7]/40 bg-[#0c101a] flex flex-col items-center justify-center shadow-[0_0_80px_rgba(168,85,247,0.3)]">
-            <div
-              className="absolute w-72 h-72 rounded-full border border-dashed border-[#c084fc]/50 animate-spin"
-              style={{ animationDuration: "24s" }}
-            />
-            <div className="absolute w-56 h-56 rounded-full border border-[#a855f7]/30 animate-ping opacity-25" />
-            <GlobeIcon className="w-12 h-12 text-[#a855f7] mb-2 animate-pulse" />
-            <span className="mono text-xs uppercase tracking-widest text-[#c084fc] font-bold">
+          <div className="relative w-80 h-80 rounded-full border-2 border-[#d946ef]/40 bg-[#0c101a] flex flex-col items-center justify-center shadow-[0_0_80px_rgba(217,70,239,0.35)]">
+            <GlobeIcon className="w-12 h-12 text-[#d946ef] mb-2 animate-pulse" />
+            <span className="mono text-xs uppercase tracking-widest text-[#f0abfc] font-bold">
               Radar Global Ativo
             </span>
-            <span className="mono text-[10px] text-white/50 mt-1">Modo Seguro 2D</span>
           </div>
         )}
 
         {/* Tactical Active Target Beacon Tooltip */}
         {activeCity && (
           <div className="absolute bottom-6 right-4 sm:right-8 z-30 pointer-events-auto">
-            <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-[#080b12]/90 border border-[#a855f7]/40 backdrop-blur-xl shadow-[0_12px_36px_rgba(168,85,247,0.25)]">
-              <div className="w-7 h-7 rounded-lg bg-[#a855f7]/20 border border-[#a855f7]/50 flex items-center justify-center">
-                <MapPin className="w-3.5 h-3.5 text-[#c084fc]" />
+            <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-[#080b12]/90 border border-[#d946ef]/40 backdrop-blur-xl shadow-[0_12px_36px_rgba(217,70,239,0.35)]">
+              <div className="w-7 h-7 rounded-lg bg-[#d946ef]/20 border border-[#d946ef]/50 flex items-center justify-center">
+                <MapPin className="w-3.5 h-3.5 text-[#f0abfc]" />
               </div>
               <div>
                 <p className="font-display text-xs font-bold text-white flex items-center gap-1.5">
                   {activeCity.name}, {activeCity.country}
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
                 </p>
-                <p className="mono text-[10px] text-[#c084fc] font-semibold">
+                <p className="mono text-[10px] text-[#f0abfc] font-semibold">
                   {activeCity.leads} • {activeCity.niche}
                 </p>
               </div>
@@ -423,7 +580,7 @@ export default function Globe({
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border mono text-[11px] font-bold uppercase tracking-wider transition-all ${
               isRotating
-                ? "bg-[#a855f7]/15 border-[#a855f7]/40 text-[#c084fc] shadow-[0_0_16px_rgba(168,85,247,0.25)]"
+                ? "bg-[#d946ef]/20 border-[#d946ef]/50 text-[#f0abfc] shadow-[0_0_18px_rgba(217,70,239,0.35)]"
                 : "bg-white/[0.04] border-white/10 text-white/60 hover:text-white"
             }`}
           >
@@ -434,16 +591,16 @@ export default function Globe({
           <button
             onClick={toggleSpeed}
             type="button"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 mono text-[11px] font-bold uppercase tracking-wider text-white/70 hover:text-white hover:border-[#a855f7]/40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 mono text-[11px] font-bold uppercase tracking-wider text-white/70 hover:text-white hover:border-[#d946ef]/40 transition-all"
           >
-            <Zap className="w-3 h-3 text-[#a855f7]" />
+            <Zap className="w-3 h-3 text-[#d946ef]" />
             Vel: {speedMode}
           </button>
 
           <button
             onClick={resetOrientation}
             type="button"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 mono text-[11px] font-bold uppercase tracking-wider text-white/70 hover:text-white hover:border-[#a855f7]/40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 mono text-[11px] font-bold uppercase tracking-wider text-white/70 hover:text-white hover:border-[#d946ef]/40 transition-all"
             title="Recentralizar no alvo principal"
           >
             <RotateCw className="w-3 h-3" />
@@ -457,7 +614,7 @@ export default function Globe({
         <div className="w-full mt-1 z-20">
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap px-2">
             <span className="mono text-[10px] uppercase tracking-widest text-white/40 mr-1 flex items-center gap-1 hidden sm:inline-flex">
-              <Compass className="w-3 h-3 text-[#a855f7]" /> Alvos Rápidos:
+              <Compass className="w-3 h-3 text-[#d946ef]" /> Alvos Rápidos:
             </span>
             {GLOBAL_TARGETS.map((city) => {
               const isSelected = activeCity.name === city.name;
@@ -468,13 +625,13 @@ export default function Globe({
                   type="button"
                   className={`group relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-display font-semibold transition-all ${
                     isSelected
-                      ? "bg-[#a855f7] border-[#c084fc] text-white shadow-[0_0_24px_rgba(168,85,247,0.55)] scale-105"
-                      : "bg-[#0b0e18]/80 border-white/10 text-white/70 hover:text-white hover:border-[#a855f7]/50 hover:bg-[#a855f7]/10"
+                      ? "bg-[#d946ef] border-[#f0abfc] text-white shadow-[0_0_25px_rgba(217,70,239,0.65)] scale-105"
+                      : "bg-[#0b0e18]/80 border-white/10 text-white/70 hover:text-white hover:border-[#d946ef]/50 hover:bg-[#d946ef]/10"
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      isSelected ? "bg-white animate-ping" : "bg-[#a855f7]"
+                      isSelected ? "bg-white animate-ping" : "bg-[#d946ef]"
                     }`}
                   />
                   <span>{city.name}</span>
