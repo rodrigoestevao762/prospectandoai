@@ -448,7 +448,7 @@ export default function InstaRadarPage() {
                   ? `https://www.instagram.com/${igHandle}/`
                   : null;
 
-                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`;
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (((emp as any).endereco) || emp.cidade))}`;
 
                 return (
                   <motion.div

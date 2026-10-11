@@ -440,7 +440,7 @@ export default function FoodsRadarPage() {
                     />
 
                     <div className="shrink-0 z-10">
-  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors shadow-lg" title="Ver no Google Maps">
+  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (((emp as any).endereco) || emp.cidade))}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors shadow-lg" title="Ver no Google Maps">
     <MapPin className="w-5 h-5" style={{ color: fonteInfo.color }} />
   </a>
 </div>

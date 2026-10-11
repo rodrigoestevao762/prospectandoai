@@ -3,9 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import { supabaseBrowser } from "@/lib/supabase-browser";
-import Globe from "@/components/Globe";
 import { Crosshair, ArrowLeft, ArrowRight, Shield, Zap, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
+
+const Globe = dynamic(() => import("@/components/Globe"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full max-w-[420px] aspect-square flex items-center justify-center">
+      <div className="w-36 h-36 rounded-full border border-[#a855f7]/30 animate-pulse bg-[#a855f7]/5" />
+    </div>
+  ),
+});
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -56,12 +65,12 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050608] grid lg:grid-cols-12 text-white selection:bg-[#6366f1] selection:text-white">
+    <main className="min-h-screen bg-[#050608] grid lg:grid-cols-12 text-white selection:bg-[#a855f7] selection:text-white">
       {/* ── PAINEL ESQUERDO: GLOBO 3D & ATMOSFERA ── */}
       <section className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative flex-col justify-between p-12 border-r border-white/[0.08] overflow-hidden bg-[#070910]">
-        {/* Background Grid & Aurora */}
+        {/* Background Grid & Electric Purple Aurora */}
         <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
-        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-gradient-to-tr from-[#6366f1]/20 to-transparent rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/3 w-[520px] h-[520px] bg-gradient-to-tr from-[#a855f7]/20 via-[#9333ea]/15 to-transparent rounded-full blur-[140px] pointer-events-none" />
 
         {/* Top Header */}
         <div className="relative z-10 flex items-center justify-between">
@@ -79,14 +88,14 @@ export default function LoginPage() {
 
         {/* Center 3D Globe Visual */}
         <div className="relative z-10 my-auto flex flex-col items-center justify-center">
-          <div className="w-full max-w-[420px] aspect-square relative flex items-center justify-center">
-            <Globe />
+          <div className="w-full max-w-[440px] aspect-square relative flex items-center justify-center">
+            <Globe size="compact" showControls={false} showCitySelector={false} />
           </div>
         </div>
 
         {/* Bottom Pitch */}
         <div className="relative z-10">
-          <p className="mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#818cf8] mb-2">
+          <p className="mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#c084fc] mb-2">
             Mapeamento em Tempo Real
           </p>
           <h2 className="font-display text-2xl font-black text-white leading-snug max-w-lg mb-4">
@@ -110,12 +119,12 @@ export default function LoginPage() {
         >
           {/* Logo */}
           <div className="mb-8 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#4f46e5] flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.4)]">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#a855f7] to-[#7e22ce] flex items-center justify-center shadow-[0_0_24px_rgba(168,85,247,0.5)]">
               <Crosshair className="w-5 h-5 text-white" />
             </div>
             <div>
               <span className="font-display text-xl font-black tracking-tight text-white">
-                Prospect<span className="text-[#818cf8]">AI</span>
+                Prospect<span className="text-[#c084fc]">AI</span>
               </span>
               <p className="mono text-[9px] uppercase tracking-widest text-[#94a3b8]">Portal de Acesso</p>
             </div>
@@ -155,7 +164,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={recuperarSenha}
-                    className="text-xs text-[#818cf8] hover:underline"
+                    className="text-xs text-[#c084fc] hover:underline"
                   >
                     Esqueceu?
                   </button>
@@ -175,7 +184,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={carregando}
-              className="btn-signal w-full py-4 rounded-xl text-sm font-bold uppercase tracking-wider mt-2 shadow-[0_0_25px_rgba(99,102,241,0.35)] flex items-center justify-center gap-2"
+              className="btn-signal w-full py-4 rounded-xl text-sm font-bold uppercase tracking-wider mt-2 shadow-[0_0_25px_rgba(168,85,247,0.4)] flex items-center justify-center gap-2"
             >
               {carregando ? (
                 "Autenticando..."
@@ -235,11 +244,11 @@ export default function LoginPage() {
             >
               {modo === "login" ? (
                 <>
-                  Não possui uma conta? <span className="text-[#818cf8] font-bold">Criar cadastro</span>
+                  Não possui uma conta? <span className="text-[#c084fc] font-bold">Criar cadastro</span>
                 </>
               ) : (
                 <>
-                  Já possui uma conta? <span className="text-[#818cf8] font-bold">Fazer login</span>
+                  Já possui uma conta? <span className="text-[#c084fc] font-bold">Fazer login</span>
                 </>
               )}
             </button>

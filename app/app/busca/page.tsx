@@ -359,7 +359,7 @@ export default function BuscaPage() {
         className="flex flex-col md:flex-row md:items-end justify-between gap-4"
       >
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/25 text-[#818cf8] mono text-[10px] font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#a855f7]/15 border border-[#a855f7]/30 text-[#c084fc] mono text-[10px] font-bold uppercase tracking-wider mb-2">
             <Radio className="w-3.5 h-3.5 animate-pulse" /> Motor de Varredura Multidimensional
           </div>
           <h1 className="font-display text-3xl sm:text-4xl font-black text-white tracking-tight">
@@ -386,7 +386,7 @@ export default function BuscaPage() {
             name: "Motor OSINT Maps",
             desc: "OpenStreetMap Global & Raio Metropolitano",
             icon: Globe,
-            accent: "#6366f1",
+            accent: "#a855f7",
           },
           {
             id: "insta",
@@ -414,20 +414,20 @@ export default function BuscaPage() {
               }}
               className={`p-4 rounded-2xl border text-left transition-all duration-200 relative overflow-hidden group ${
                 active
-                  ? "bg-[#0d121f] border-[#6366f1]/50 shadow-[0_0_25px_rgba(99,102,241,0.2)]"
+                  ? "bg-[#0d121f] border-[#a855f7]/50 shadow-[0_0_25px_rgba(168,85,247,0.25)]"
                   : "bg-[#080b12]/50 border-white/[0.06] hover:bg-white/[0.03] hover:border-white/[0.12]"
               }`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div
                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                    active ? "bg-[#6366f1] text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]" : "bg-white/[0.05] text-white/60"
+                    active ? "bg-[#a855f7] text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]" : "bg-white/[0.05] text-white/60"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
                 </div>
                 {active && (
-                  <span className="mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#6366f1]/20 text-[#c7d2fe] border border-[#6366f1]/30">
+                  <span className="mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#a855f7]/20 text-[#e9d5ff] border border-[#a855f7]/30">
                     Ativo
                   </span>
                 )}
@@ -471,7 +471,7 @@ export default function BuscaPage() {
                 Segmento (Alvo)
               </label>
               <div className="relative">
-                <Target className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#818cf8]" />
+                <Target className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#c084fc]" />
                 <select
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
@@ -555,14 +555,14 @@ export default function BuscaPage() {
         {/* Action Button */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/[0.06]">
           <div className="flex items-center gap-2 text-xs text-[#94a3b8] mono">
-            <Sparkles className="w-4 h-4 text-[#818cf8]" />
+            <Sparkles className="w-4 h-4 text-[#c084fc]" />
             <span>Motor calibrado para zero gateway timeouts.</span>
           </div>
 
           <button
             type="submit"
             disabled={carregando}
-            className="btn-signal w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(99,102,241,0.4)]"
+            className="btn-signal w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(168,85,247,0.4)]"
           >
             {carregando ? (
               <>

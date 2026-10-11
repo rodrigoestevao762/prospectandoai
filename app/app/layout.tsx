@@ -12,7 +12,7 @@ import {
 
 const LINKS = [
   { href: "/app/dashboard",     label: "Dashboard",       icon: <LayoutDashboard className="w-4 h-4" /> },
-  { href: "/app/busca",         label: "Radar OSINT",     icon: <Zap className="w-4 h-4" />, badge: "v4" },
+  { href: "/app/busca",         label: "Radar OSINT",     icon: <Zap className="w-4 h-4" />, badge: "v4.2" },
   { href: "/app",               label: "Alvos (Leads)",   icon: <Target className="w-4 h-4" /> },
   { href: "/app/vendas",        label: "Pipeline CRM",    icon: <Activity className="w-4 h-4" /> },
   { href: "/app/manutencao",    label: "Manutenção & MRR",icon: <DollarSign className="w-4 h-4" /> },
@@ -26,18 +26,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   return (
-    <div className="bg-[#050608] min-h-screen flex flex-col md:flex-row text-white font-sans selection:bg-[#6366f1] selection:text-white">
+    <div className="bg-[#050608] min-h-screen flex flex-col md:flex-row text-white font-sans selection:bg-[#a855f7] selection:text-white">
       {/* ── DESKTOP SIDEBAR ── */}
       <aside className="hidden md:flex flex-col w-64 border-r border-white/[0.07] bg-[#070910]/80 backdrop-blur-2xl relative z-30">
         {/* Brand Header */}
         <div className="p-6 flex items-center justify-between border-b border-white/[0.06]">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#4f46e5] flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.4)] group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#a855f7] to-[#7e22ce] flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.5)] group-hover:scale-105 transition-transform">
               <Crosshair className="w-4 h-4 text-white" />
             </div>
             <div>
               <span className="font-display font-black tracking-tight text-base text-white">
-                PROSPECT<span className="text-[#818cf8]">AI</span>
+                PROSPECT<span className="text-[#c084fc]">AI</span>
               </span>
               <p className="mono text-[8px] uppercase tracking-widest text-[#94a3b8]">OSINT Console</p>
             </div>
@@ -64,18 +64,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {active && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 bg-[#6366f1]/15 border border-[#6366f1]/30 rounded-xl"
+                    className="absolute inset-0 bg-[#a855f7]/15 border border-[#a855f7]/35 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.2)]"
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
                 <div className="flex items-center gap-3 relative z-10">
-                  <span className={active ? "text-[#818cf8]" : "text-white/50 group-hover:text-white/80"}>
+                  <span className={active ? "text-[#c084fc]" : "text-white/50 group-hover:text-white/80"}>
                     {l.icon}
                   </span>
                   <span className="text-[13px] tracking-wide font-medium">{l.label}</span>
                 </div>
                 {l.badge && (
-                  <span className="relative z-10 mono text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#6366f1]/25 text-[#c7d2fe] border border-[#6366f1]/40">
+                  <span className="relative z-10 mono text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#a855f7]/25 text-[#e9d5ff] border border-[#a855f7]/40">
                     {l.badge}
                   </span>
                 )}
@@ -109,11 +109,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* ── MOBILE TOPBAR ── */}
       <header className="md:hidden flex items-center justify-between p-4 border-b border-white/[0.06] bg-[#070910]/90 backdrop-blur-xl sticky top-0 z-50">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#6366f1] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#a855f7] to-[#7e22ce] flex items-center justify-center">
             <Crosshair className="w-4 h-4 text-white" />
           </div>
           <span className="font-display font-black tracking-tight text-sm">
-            PROSPECT<span className="text-[#818cf8]">AI</span>
+            PROSPECT<span className="text-[#c084fc]">AI</span>
           </span>
         </Link>
         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#10b981]/10 border border-[#10b981]/20">
@@ -126,7 +126,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 relative flex flex-col max-h-screen overflow-hidden bg-[#050608]">
         {/* Ambient Glow & Grid Layer */}
         <div className="absolute inset-0 bg-grid opacity-25 pointer-events-none" />
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-[#6366f1]/10 via-transparent to-transparent rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-[#a855f7]/15 via-transparent to-transparent rounded-full blur-[140px] pointer-events-none" />
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-hide relative z-10 pb-24 md:pb-8">
           <AnimatePresence mode="wait">
@@ -153,13 +153,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               key={l.href}
               href={l.href}
               className={`flex-1 shrink-0 flex flex-col items-center justify-center gap-1 py-3 px-2 min-w-[72px] transition-colors ${
-                active ? "text-[#818cf8]" : "text-[#94a3b8]"
+                active ? "text-[#c084fc]" : "text-[#94a3b8]"
               }`}
             >
               <div className="relative">
                 {l.icon}
                 {active && (
-                  <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#6366f1] shadow-[0_0_8px_#6366f1]" />
+                  <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#a855f7] shadow-[0_0_8px_#a855f7]" />
                 )}
               </div>
               <span className="text-[10px] font-medium tracking-tight truncate max-w-[64px]">
