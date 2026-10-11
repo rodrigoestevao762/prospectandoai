@@ -24,7 +24,13 @@ export async function middleware(request: NextRequest) {
   const { data } = await sb.auth.getUser();
   const path = request.nextUrl.pathname;
   const isAuthPage = path === "/login";
-  const isPublic = path === "/" || path.startsWith("/demo") || path.startsWith("/s/");
+  const isPublic =
+    path === "/" ||
+    path.startsWith("/demo") ||
+    path.startsWith("/s/") ||
+    path.endsWith(".json") ||
+    path.endsWith(".geojson") ||
+    path.endsWith(".ico");
 
   // RESTRIÇÃO EXTREMA: Apenas rodrigoestevao762@gmail.com
   const isAuthorizedUser = data?.user?.email === "rodrigoestevao762@gmail.com";
@@ -60,8 +66,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - auth/callback (auth callback route)
      * - api/ (API routes)
-     * - .*\.(png|jpg|jpeg|gif|svg|webp|ico|mp4)$ (static media files)
+     * - static files (.png, .jpg, .json, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico|auth/callback|api/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|mp4)$).*)"
+    "/((?!_next/static|_next/image|favicon.ico|auth/callback|api/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|mp4|json|geojson)$).*)"
   ],
 };

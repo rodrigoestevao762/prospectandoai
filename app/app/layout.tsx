@@ -26,27 +26,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   return (
-    <div className="bg-[#050608] min-h-screen flex flex-col md:flex-row text-white font-sans selection:bg-[#a855f7] selection:text-white">
+    <div className="bg-[#06070b] min-h-screen flex flex-col md:flex-row text-white font-sans selection:bg-[#6d28d9] selection:text-white">
       {/* ── DESKTOP SIDEBAR ── */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-white/[0.07] bg-[#070910]/80 backdrop-blur-2xl relative z-30">
+      <aside className="hidden md:flex flex-col w-64 border-r border-white/[0.07] bg-[#080912]/90 backdrop-blur-2xl relative z-30">
         {/* Brand Header */}
         <div className="p-6 flex items-center justify-between border-b border-white/[0.06]">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#a855f7] to-[#7e22ce] flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.5)] group-hover:scale-105 transition-transform">
+            <div className="w-8 h-8 rounded-lg bg-[#6d28d9] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
               <Crosshair className="w-4 h-4 text-white" />
             </div>
             <div>
               <span className="font-display font-black tracking-tight text-base text-white">
-                PROSPECT<span className="text-[#c084fc]">AI</span>
+                PROSPECT<span className="text-[#a78bfa]">AI</span>
               </span>
-              <p className="mono text-[8px] uppercase tracking-widest text-[#94a3b8]">OSINT Console</p>
+              <p className="font-mono text-[8px] uppercase tracking-widest text-zinc-500">Console B2B</p>
             </div>
           </Link>
         </div>
 
         {/* Navigation Modules */}
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-          <p className="px-3 text-[9px] mono uppercase tracking-[0.2em] text-[#64748b] font-bold mb-3">
+          <p className="px-3 text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-500 font-bold mb-3">
             Módulos de Controle
           </p>
           {LINKS.map((l) => {
@@ -58,24 +58,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 className={`relative flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group ${
                   active
                     ? "text-white font-bold"
-                    : "text-[#94a3b8] hover:text-white hover:bg-white/[0.04]"
+                    : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 {active && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 bg-[#a855f7]/15 border border-[#a855f7]/35 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                    className="absolute inset-0 bg-[#6d28d9]/20 border border-[#7c3aed]/40 rounded-xl shadow-sm"
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
                 <div className="flex items-center gap-3 relative z-10">
-                  <span className={active ? "text-[#c084fc]" : "text-white/50 group-hover:text-white/80"}>
+                  <span className={active ? "text-[#a78bfa]" : "text-zinc-500 group-hover:text-white/80"}>
                     {l.icon}
                   </span>
                   <span className="text-[13px] tracking-wide font-medium">{l.label}</span>
                 </div>
                 {l.badge && (
-                  <span className="relative z-10 mono text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#a855f7]/25 text-[#e9d5ff] border border-[#a855f7]/40">
+                  <span className="relative z-10 font-mono text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#6d28d9]/30 text-[#a78bfa] border border-[#7c3aed]/40">
                     {l.badge}
                   </span>
                 )}

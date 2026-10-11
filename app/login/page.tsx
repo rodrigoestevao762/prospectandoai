@@ -5,13 +5,13 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { supabaseBrowser } from "@/lib/supabase-browser";
-import { Crosshair, ArrowLeft, ArrowRight, Shield, Zap, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Crosshair, ArrowLeft, ArrowRight, ShieldCheck, AlertCircle, CheckCircle2 } from "lucide-react";
 
 const Globe = dynamic(() => import("@/components/Globe"), {
   ssr: false,
   loading: () => (
     <div className="w-full max-w-[420px] aspect-square flex items-center justify-center">
-      <div className="w-36 h-36 rounded-full border border-[#a855f7]/30 animate-pulse bg-[#a855f7]/5" />
+      <div className="w-36 h-36 rounded-full border border-violet-900/40 animate-pulse bg-violet-950/20" />
     </div>
   ),
 });
@@ -65,46 +65,46 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050608] grid lg:grid-cols-12 text-white selection:bg-[#a855f7] selection:text-white">
-      {/* ── PAINEL ESQUERDO: GLOBO 3D & ATMOSFERA ── */}
-      <section className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative flex-col justify-between p-12 border-r border-white/[0.08] overflow-hidden bg-[#070910]">
-        {/* Background Grid & Electric Purple Aurora */}
-        <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
-        <div className="absolute top-1/4 left-1/3 w-[520px] h-[520px] bg-gradient-to-tr from-[#a855f7]/20 via-[#9333ea]/15 to-transparent rounded-full blur-[140px] pointer-events-none" />
+    <main className="min-h-screen bg-[#06070b] grid lg:grid-cols-12 text-white selection:bg-[#6d28d9] selection:text-white">
+      {/* ── PAINEL ESQUERDO: GLOBO 3D & TELEMETRIA ── */}
+      <section className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative flex-col justify-between p-12 border-r border-white/[0.08] overflow-hidden bg-[#080a12]">
+        {/* Background Grid */}
+        <div className="absolute inset-0 bg-grid opacity-25 pointer-events-none" />
+        <div className="absolute top-1/3 left-1/3 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(109,40,217,0.15)_0%,transparent_70%)] blur-2xl pointer-events-none" />
 
         {/* Top Header */}
         <div className="relative z-10 flex items-center justify-between">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Voltar ao site
           </Link>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#10b981]/10 border border-[#10b981]/25">
-            <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-            <span className="mono text-[10px] text-[#10b981] font-bold uppercase tracking-wider">Satélites Prontos</span>
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-mono text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Rede Operacional</span>
           </div>
         </div>
 
         {/* Center 3D Globe Visual */}
         <div className="relative z-10 my-auto flex flex-col items-center justify-center">
-          <div className="w-full max-w-[440px] aspect-square relative flex items-center justify-center">
-            <Globe size="compact" showControls={false} showCitySelector={false} />
+          <div className="w-full max-w-[420px] aspect-square relative flex items-center justify-center">
+            <Globe size="compact" showControls={false} showHubSelector={false} />
           </div>
         </div>
 
         {/* Bottom Pitch */}
         <div className="relative z-10">
-          <p className="mono text-[10px] font-bold uppercase tracking-[0.25em] text-[#c084fc] mb-2">
-            Mapeamento em Tempo Real
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#a78bfa] mb-2">
+            Base Geoespacial B2B
           </p>
-          <h2 className="font-display text-2xl font-black text-white leading-snug max-w-lg mb-4">
-            Milhares de empresas entram no radar a cada minuto esperando por uma proposta.
+          <h2 className="font-display text-xl font-bold text-white leading-snug max-w-lg mb-3">
+            Mapeamento contínuo de empresas com oportunidade imediata de prestação de serviços.
           </h2>
-          <div className="flex flex-wrap gap-4 text-xs text-white/40 mono uppercase tracking-wider">
+          <div className="flex flex-wrap gap-4 text-xs text-zinc-500 font-mono">
             <span>• 195 Países</span>
-            <span>• 3 Motores OSINT</span>
-            <span>• Auto-Qualificação</span>
+            <span>• Raio até 100km</span>
+            <span>• WhatsApp Verificado</span>
           </div>
         </div>
       </section>
@@ -112,37 +112,37 @@ export default function LoginPage() {
       {/* ── PAINEL DIREITO: FORMULÁRIO DE LOGIN ── */}
       <section className="lg:col-span-6 xl:col-span-5 flex items-center justify-center p-6 sm:p-12 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
           className="w-full max-w-md"
         >
           {/* Logo */}
-          <div className="mb-8 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#a855f7] to-[#7e22ce] flex items-center justify-center shadow-[0_0_24px_rgba(168,85,247,0.5)]">
-              <Crosshair className="w-5 h-5 text-white" />
+          <div className="mb-8 flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-[#6d28d9] flex items-center justify-center shadow-sm">
+              <Crosshair className="w-4 h-4 text-white" />
             </div>
             <div>
-              <span className="font-display text-xl font-black tracking-tight text-white">
-                Prospect<span className="text-[#c084fc]">AI</span>
+              <span className="font-display text-lg font-bold tracking-tight text-white">
+                Prospect<span className="text-[#a78bfa]">AI</span>
               </span>
-              <p className="mono text-[9px] uppercase tracking-widest text-[#94a3b8]">Portal de Acesso</p>
+              <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-500">Portal de Acesso</p>
             </div>
           </div>
 
-          <h1 className="font-display text-3xl font-black text-white mb-2">
-            {modo === "login" ? "Acesse seu radar." : "Crie seu acesso gratuito."}
+          <h1 className="font-display text-2xl font-black text-white mb-2">
+            {modo === "login" ? "Acesse sua conta." : "Crie seu acesso gratuito."}
           </h1>
-          <p className="text-sm text-[#94a3b8] mb-8">
+          <p className="text-sm text-zinc-400 mb-8">
             {modo === "login"
-              ? "Insira suas credenciais para gerenciar seus alvos e disparos."
-              : "Comece a buscar clientes em segundos sem informar cartão."}
+              ? "Insira suas credenciais para gerenciar seus alvos e prospecções."
+              : "Comece a buscar empresas sem site em segundos."}
           </p>
 
           {/* Form */}
           <form onSubmit={entrar} className="space-y-4">
             <div>
-              <label className="block text-[11px] mono uppercase tracking-wider text-white/60 mb-2">
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
                 E-mail Corporativo
               </label>
               <input
@@ -151,20 +151,20 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome@empresa.com"
-                className="field field-premium w-full rounded-xl px-4 py-3.5 text-sm"
+                className="w-full rounded-lg px-3.5 py-3 text-sm bg-[#0d0f18] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#7c3aed]"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-[11px] mono uppercase tracking-wider text-white/60">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
                   Senha
                 </label>
                 {modo === "login" && (
                   <button
                     type="button"
                     onClick={recuperarSenha}
-                    className="text-xs text-[#c084fc] hover:underline"
+                    className="text-xs text-[#a78bfa] hover:underline"
                   >
                     Esqueceu?
                   </button>
@@ -177,14 +177,14 @@ export default function LoginPage() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••••••"
-                className="field field-premium w-full rounded-xl px-4 py-3.5 text-sm"
+                className="w-full rounded-lg px-3.5 py-3 text-sm bg-[#0d0f18] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#7c3aed]"
               />
             </div>
 
             <button
               type="submit"
               disabled={carregando}
-              className="btn-signal w-full py-4 rounded-xl text-sm font-bold uppercase tracking-wider mt-2 shadow-[0_0_25px_rgba(168,85,247,0.4)] flex items-center justify-center gap-2"
+              className="btn-signal w-full py-3.5 rounded-lg text-sm font-semibold mt-2 flex items-center justify-center gap-2"
             >
               {carregando ? (
                 "Autenticando..."
@@ -200,7 +200,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
             <div className="h-[1px] flex-1 bg-white/[0.08]" />
-            <span className="mono text-[10px] uppercase tracking-widest text-white/30">ou</span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">ou</span>
             <div className="h-[1px] flex-1 bg-white/[0.08]" />
           </div>
 
@@ -208,7 +208,7 @@ export default function LoginPage() {
           <button
             onClick={google}
             type="button"
-            className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-white/90 text-sm font-medium transition-colors"
+            className="w-full flex items-center justify-center gap-2.5 py-3 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-white/90 text-xs font-semibold transition-colors"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -232,7 +232,7 @@ export default function LoginPage() {
           </button>
 
           {/* Toggle Login / Signup */}
-          <div className="mt-8 text-center">
+          <div className="mt-7 text-center">
             <button
               onClick={() => {
                 setModo(modo === "login" ? "cadastro" : "login");
@@ -240,15 +240,15 @@ export default function LoginPage() {
                 setMsg(null);
               }}
               type="button"
-              className="text-xs text-[#94a3b8] hover:text-white transition-colors"
+              className="text-xs text-zinc-400 hover:text-white transition-colors"
             >
               {modo === "login" ? (
                 <>
-                  Não possui uma conta? <span className="text-[#c084fc] font-bold">Criar cadastro</span>
+                  Não possui uma conta? <span className="text-[#a78bfa] font-semibold">Criar cadastro</span>
                 </>
               ) : (
                 <>
-                  Já possui uma conta? <span className="text-[#c084fc] font-bold">Fazer login</span>
+                  Já possui uma conta? <span className="text-[#a78bfa] font-semibold">Fazer login</span>
                 </>
               )}
             </button>
@@ -259,24 +259,24 @@ export default function LoginPage() {
             {erro && (
               <motion.div
                 key="erro"
-                initial={{ opacity: 0, y: -8 }}
+                initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="mt-6 flex items-start gap-3 p-4 rounded-xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-xs text-[#fca5a5]"
+                exit={{ opacity: 0, y: -6 }}
+                className="mt-5 flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-300"
               >
-                <AlertCircle className="w-4 h-4 shrink-0 text-[#ef4444] mt-0.5" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
                 <span>{erro}</span>
               </motion.div>
             )}
             {msg && (
               <motion.div
                 key="msg"
-                initial={{ opacity: 0, y: -8 }}
+                initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="mt-6 flex items-start gap-3 p-4 rounded-xl bg-[#10b981]/10 border border-[#10b981]/30 text-xs text-[#6ee7b7]"
+                exit={{ opacity: 0, y: -6 }}
+                className="mt-5 flex items-start gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300"
               >
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-[#10b981] mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
                 <span>{msg}</span>
               </motion.div>
             )}

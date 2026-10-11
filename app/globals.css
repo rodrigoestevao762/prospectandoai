@@ -17,20 +17,21 @@
 }
 
 :root {
-  --void: #050608;
-  --deep: #090a14;
-  --panel: rgba(14, 16, 28, 0.75);
-  --panel-solid: #0e111f;
-  --surface-0: #050608;
-  --surface-1: #0e111f;
-  --surface-2: #161b30;
-  --surface-3: #1f2642;
+  --void: #06070b;
+  --deep: #090a10;
+  --panel: rgba(13, 15, 24, 0.75);
+  --panel-solid: #0d0f18;
+  --surface-0: #06070b;
+  --surface-1: #0d0f18;
+  --surface-2: #141724;
+  --surface-3: #1c2033;
   --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(217, 70, 239, 0.45);
-  --signal: #d946ef;
-  --signal-neon: #f0abfc;
-  --signal-dim: #c026d3;
-  --signal-glow: rgba(217, 70, 239, 0.75);
+  --line-strong: rgba(124, 58, 237, 0.45);
+  --signal: #6d28d9;
+  --signal-vivid: #7c3aed;
+  --signal-dark: #4c1d95;
+  --signal-neon: #8b5cf6;
+  --signal-glow: rgba(109, 40, 217, 0.4);
   --cyan: #38bdf8;
   --amber: #f59e0b;
   --alert: #ef4444;
@@ -45,10 +46,10 @@
 }
 
 .cyber-theme {
-  --void: #040508;
-  --deep: #080b12;
-  --panel: rgba(10, 14, 24, 0.82);
-  --panel-solid: #0a0e18;
+  --void: #05060a;
+  --deep: #080912;
+  --panel: rgba(12, 14, 22, 0.85);
+  --panel-solid: #0c0e16;
   --amber: #10b981;
   --alert: #f43f5e;
   --ink: #f8fafc;
@@ -77,41 +78,36 @@ body {
 }
 
 /* ---------- Selection ---------- */
-::selection { background: #d946ef; color: #ffffff; }
+::selection { background: #6d28d9; color: #ffffff; }
 
 /* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--deep); }
 ::-webkit-scrollbar-thumb { background: #2e1065; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: var(--signal); }
+::-webkit-scrollbar-thumb:hover { background: #6d28d9; }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ============================================================
-   FUNDOS ATMOSFÉRICOS
+   FUNDOS ESTRUTURAIS (STARTUP SÓLIDA)
    ============================================================ */
 
 .bg-void {
   background: var(--void);
 }
 
-/* Aurora animada com tons Roxo Elétrico Hiper-Vibrante */
+/* Vignette sutil e elegante em Roxo Escuro & Vivo (Sem duas cores) */
 .aurora {
   position: absolute;
-  inset: -50%;
-  background: conic-gradient(
-    from var(--aurora-angle) at 50% 50%,
-    rgba(217, 70, 239, 0.22),
-    rgba(240, 171, 252, 0.16),
-    rgba(192, 38, 211, 0.14),
-    rgba(217, 70, 239, 0.22),
-    transparent 50%
-  );
-  animation: aurora-spin 22s linear infinite;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1000px;
+  height: 500px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(109, 40, 217, 0.2) 0%, rgba(76, 29, 149, 0.08) 45%, transparent 75%);
   pointer-events: none;
-  border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(60px);
 }
 @keyframes aurora-spin {
   to { --aurora-angle: 360deg; }
@@ -311,66 +307,59 @@ body {
 .mono { font-family: var(--font-mono); }
 
 .grad-text, .text-gradient-indigo {
-  background: linear-gradient(135deg, #ffffff 0%, #fdf4ff 25%, #f0abfc 60%, #d946ef 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
 }
 
-.grad-text-cyan {
-  background: linear-gradient(135deg, #f0abfc 0%, #d946ef 50%, #38bdf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.grad-text-vivid {
+  color: #a78bfa;
 }
 
 /* ============================================================
-   BOTÕES E INTERAÇÃO
+   BOTÕES E INTERAÇÃO (PROFISSIONAL SAAS / STARTUP)
    ============================================================ */
 
 .btn-signal {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #d946ef 0%, #a21caf 100%);
+  background: #6d28d9;
+  border: 1px solid rgba(167, 139, 250, 0.35);
   color: #ffffff;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  font-family: var(--font-body);
+  letter-spacing: 0.02em;
   box-shadow:
-    0 0 0 1px rgba(217, 70, 239, 0.55),
-    0 12px 36px -6px rgba(217, 70, 239, 0.7);
-  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease, filter 0.25s ease;
-}
-.btn-signal::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 60%);
-  pointer-events: none;
+    0 1px 2px 0 rgba(0, 0, 0, 0.5),
+    0 8px 20px -4px rgba(109, 40, 217, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .btn-signal:hover {
-  filter: brightness(1.15);
-  transform: translateY(-2px) scale(1.01);
+  background: #7c3aed;
+  border-color: rgba(167, 139, 250, 0.6);
+  transform: translateY(-1px);
   box-shadow:
-    0 0 0 1px rgba(240, 171, 252, 0.9),
-    0 22px 52px -8px rgba(217, 70, 239, 0.9);
+    0 12px 28px -6px rgba(109, 40, 217, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
-.btn-signal:active { transform: translateY(0) scale(0.99); }
+.btn-signal:active {
+  transform: translateY(0);
+}
 
 .btn-ghost {
-  border: 1px solid var(--line);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  letter-spacing: 0.08em;
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
-  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s ease;
+  transition: all 0.2s ease;
 }
 .btn-ghost:hover {
-  border-color: rgba(217, 70, 239, 0.55);
-  background: rgba(217, 70, 239, 0.12);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px -10px rgba(217, 70, 239, 0.35);
+  border-color: rgba(124, 58, 237, 0.4);
+  background: rgba(109, 40, 217, 0.12);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .btn-danger {
