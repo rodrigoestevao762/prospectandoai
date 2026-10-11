@@ -4,19 +4,50 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { CATEGORIAS } from "@/lib/categorias";
-import { Search, MapPin, Target, Zap, Activity, Globe, Save, Camera, Utensils } from "lucide-react";
+import {
+  Search, MapPin, Target, Zap, Activity, Globe, Save,
+  Camera, Utensils, Sparkles, Filter, Check, ArrowRight,
+  Radio, Compass, Shield, ExternalLink
+} from "lucide-react";
 
 type Empresa = {
-  osmId: string; nome: string; categoria: string; cidade: string; pais: string;
-  telefone: string | null; website: string | null; instagram: string | null; email: string | null;
-  endereco: string; score: number; nivel: "quente" | "morno" | "frio";
+  osmId: string;
+  nome: string;
+  categoria: string;
+  cidade: string;
+  pais: string;
+  telefone: string | null;
+  website: string | null;
+  instagram: string | null;
+  email: string | null;
+  endereco: string;
+  score: number;
+  nivel: "quente" | "morno" | "frio";
   foto?: string | null;
 };
 
-const NIVEL_ACCENT: Record<Empresa["nivel"], string> = {
-  quente: "#ff5d5d",
-  morno: "#ffb02d",
-  frio: "#55685f",
+const NIVEL_CONFIG: Record<
+  Empresa["nivel"],
+  { border: string; bg: string; text: string; icon: string }
+> = {
+  quente: {
+    border: "rgba(239,68,68,0.4)",
+    bg: "rgba(239,68,68,0.1)",
+    text: "#ef4444",
+    icon: "🔥",
+  },
+  morno: {
+    border: "rgba(245,158,11,0.4)",
+    bg: "rgba(245,158,11,0.1)",
+    text: "#f59e0b",
+    icon: "💡",
+  },
+  frio: {
+    border: "rgba(100,116,139,0.4)",
+    bg: "rgba(100,116,139,0.1)",
+    text: "#94a3b8",
+    icon: "❄️",
+  },
 };
 
 export default function BuscaPage() {
@@ -27,7 +58,7 @@ export default function BuscaPage() {
   const [nichoInsta, setNichoInsta] = useState("");
   const [cidade, setCidade] = useState("");
   const [pais, setPais] = useState("");
-  
+
   const [resultados, setResultados] = useState<Empresa[] | null>(null);
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
   const [carregando, setCarregando] = useState(false);
@@ -37,104 +68,129 @@ export default function BuscaPage() {
 
   async function checarRedes(emp: Empresa) {
     setChecando(emp.osmId);
-    const res = await fetch('/api/enrich-search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade, pais: emp.pais }) }); const text = await res.text(); let json = {}; try { json = JSON.parse(text); } catch { console.error('Enrich error:', text); }
-    setChecando(null);
-    if (res.ok && json.data) {
-      setResultados(resul => resul?.map(r => r.osmId === emp.osmId ? { ...r, ...json.data } : r) || null);
+    try {
+      const res = await fetch("/api/enrich-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade, pais: emp.pais }),
+      });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setResultados(
+          (resul) =>
+            resul?.map((r) => (r.osmId === emp.osmId ? { ...r, ...json.data } : r)) || null
+        );
+      }
+    } catch (e) {
+      console.error("Enrich error:", e);
     }
+    setChecando(null);
   }
 
   async function buscar(e: React.FormEvent) {
     e.preventDefault();
-    setCarregando(true); setErro(null); setResultados(null); setResultados(null); setSalvos(new Set());
-    
-    let limitFinal = parseInt(limite) || 300;
+    setCarregando(true);
+    setErro(null);
+    setResultados(null);
+    setSalvos(new Set());
+
+    const limitFinal = parseInt(limite) || 300;
 
     if (engine === "osint") {
       try {
-        const { getCategoria, CATEGORIAS } = await import('@/lib/categorias');
-        const { geocodificar, buscarEmpresas } = await import('@/lib/overpass');
-        const { qualificar } = await import('@/lib/qualificacao');
+        const { getCategoria, CATEGORIAS } = await import("@/lib/categorias");
+        const { geocodificar, buscarEmpresas } = await import("@/lib/overpass");
+        const { qualificar } = await import("@/lib/qualificacao");
 
         const cat = getCategoria(categoria);
         if (!cidade || (categoria !== "todos" && !cat)) {
           setCarregando(false);
-          return setErro("Categoria e cidade obrigatórias");
+          return setErro("Informe a localização (cidade) e a categoria.");
         }
-        
-        setErro("Geocodificando cidade... (Buscando coordenadas)");
+
+        setErro("Localizando coordenadas no satélite...");
         const geo = await geocodificar(cidade + (pais ? ", " + pais : ""));
         if (!geo) {
           setCarregando(false);
-          return setErro("Cidade não encontrada no mapa");
+          return setErro("Cidade não localizada no mapa geográfico.");
         }
 
-        setErro("Extraindo até " + limitFinal + " leads do mapa global... (Isso pode levar até 120 segundos, por favor aguarde)");
+        setErro(`Varrendo até ${limitFinal} alvos com motor OSINT ultrarrápido...`);
         const tags = cat
           ? cat.tags
           : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
-        
-        let empresasRaw: any[] = [];
+
+        const empresasRaw: any[] = [];
         let mult = 1;
-        const maxMult = limitFinal > 500 ? 5 : 3; // Mega Brain: expanda at 5x se pedirem muitos leads
-        
-        const limiteMult = raioManual !== 'auto' ? 1 : maxMult;
+        const maxMult = limitFinal > 500 ? 5 : 3;
+
+        const limiteMult = raioManual !== "auto" ? 1 : maxMult;
         while (mult <= limiteMult) {
-            if (mult > 1) {
-                setErro(`Ampliando raio do satlite (Nvel ${mult})... Buscando mais leads para atingir a meta de ${limitFinal}...`);
+          if (mult > 1) {
+            setErro(`Expandindo raio metropolitano (Nível ${mult})... Meta: ${limitFinal} leads.`);
+          }
+
+          let realRadius = geo.radiusM;
+          let realMult = mult;
+          if (raioManual !== "auto") {
+            realRadius = parseInt(raioManual) * 1000;
+            realMult = 1;
+          }
+
+          const raw = await buscarEmpresas(
+            cat?.id || "todos",
+            tags,
+            geo.lat,
+            geo.lng,
+            realRadius,
+            cidade,
+            geo.paisNome,
+            null,
+            limitFinal,
+            realMult
+          );
+
+          const map = new Map();
+          empresasRaw.forEach((r) => map.set(r.endereco + r.nome, r));
+          let novos = 0;
+          raw.forEach((r: any) => {
+            if (!map.has(r.endereco + r.nome)) {
+              empresasRaw.push(r);
+              map.set(r.endereco + r.nome, r);
+              novos++;
             }
-            
-            let realRadius = geo.radiusM;
-            let realMult = mult;
-            if (raioManual !== 'auto') {
-               realRadius = parseInt(raioManual) * 1000;
-               realMult = 1;
-            }
-            const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, realRadius, cidade, geo.paisNome, null, limitFinal, realMult);
-            
-            const map = new Map();
-            empresasRaw.forEach(r => map.set(r.endereco + r.nome, r));
-            let novos = 0;
-            raw.forEach((r: any) => {
-                if (!map.has(r.endereco + r.nome)) {
-                    empresasRaw.push(r);
-                    map.set(r.endereco + r.nome, r);
-                    novos++;
-                }
-            });
-            
-            if (empresasRaw.length >= limitFinal) {
-                break; // Atingiu a meta
-            }
-            
-            if (novos === 0 && mult > 1) {
-                break; // Esgotou a regio
-            }
-            
-            mult++;
-            if (mult <= maxMult) {
-               await new Promise(r => setTimeout(r, 2000));
-            }
+          });
+
+          if (empresasRaw.length >= limitFinal) break;
+          if (novos === 0 && mult > 1) break;
+
+          mult++;
+          if (mult <= limiteMult) {
+            await new Promise((r) => setTimeout(r, 1200));
+          }
         }
-        
-        setErro("Qualificando " + empresasRaw.length + " leads encontrados...");
+
+        setErro(`Qualificando ${empresasRaw.length} leads detectados...`);
         const empresas = empresasRaw.map((e) => {
-          const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
+          const q = qualificar({
+            website: e.website,
+            instagram: e.instagram,
+            email: e.email,
+            telefone: e.telefone,
+            endereco: e.endereco,
+          });
           return { ...e, score: q.score, nivel: q.nivel };
         });
 
         empresas.sort((a: any, b: any) => b.score - a.score || a.nome.localeCompare(b.nome));
-        
+
         setResultados(empresas);
         setCarregando(false);
         setErro(null);
         return;
       } catch (err: any) {
         setCarregando(false);
-        if (err.message && (err.message.includes("504") || err.message.includes("TIMEOUT") || err.message.includes("timeout"))) {
-           return setErro('O sat?lite sofreu Timeout Interno porque a varredura exigiu muito processamento. Tente buscar por um bairro espec?fico.');
-        }
-        setErro("Falha crítica ao conectar com satélites do OSINT: " + err.message);
+        setErro("Falha no satélite: " + (err.message || "Erro de conexão"));
         return;
       }
     }
@@ -151,20 +207,14 @@ export default function BuscaPage() {
     }
 
     try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); 
-      const text = await res.text(); 
-      let json; 
-      try { json = JSON.parse(text); } catch (e) { 
-        setCarregando(false); 
-        if (text.includes('504') || text.includes('TIMEOUT')) { 
-          return setErro('Tempo limite excedido no servidor (504).'); 
-        } 
-        return setErro('Erro no servidor (não retornou JSON). Resposta: ' + text.substring(0, 40)); 
-      }
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData),
+      });
+      const json = await res.json();
       setCarregando(false);
-      
-      if (!res.ok) return setErro(json.erro || "Erro na busca");
-      
+      if (!res.ok) return setErro(json.erro || "Falha na busca.");
       setResultados(json.empresas || json.resultados || []);
     } catch (err: any) {
       setCarregando(false);
@@ -174,323 +224,543 @@ export default function BuscaPage() {
 
   async function salvar(emp: Empresa) {
     const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
     if (!user) return;
-    const { data, error } = await sb.from('leads').upsert({
-      user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-      telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: (emp.email && emp.email.includes('duckduckgo.com')) ? null : emp.email,
-      fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
-      osm_id: emp.osmId, score: emp.score, nivel: emp.nivel
-    }, { onConflict: 'user_id,osm_id', ignoreDuplicates: true }).select('id').maybeSingle();
+    const { error } = await sb
+      .from("leads")
+      .upsert(
+        {
+          user_id: user.id,
+          nome: emp.nome,
+          categoria: emp.categoria,
+          cidade: emp.cidade,
+          pais: emp.pais,
+          telefone: emp.telefone,
+          website: emp.website,
+          instagram: emp.instagram,
+          email: emp.email && emp.email.includes("duckduckgo.com") ? null : emp.email,
+          fonte: engine === "insta" ? "instagram" : engine === "foods" ? "ifood" : "osm",
+          osm_id: emp.osmId,
+          score: emp.score,
+          nivel: emp.nivel,
+        },
+        { onConflict: "user_id,osm_id", ignoreDuplicates: true }
+      )
+      .select("id")
+      .maybeSingle();
+
     if (!error) setSalvos((s) => new Set(s).add(emp.osmId));
     else setErro(error.message);
   }
 
   async function enriquecerLoteRadar() {
     if (!resultados) return;
-    const semRedes = resultados.filter(e => !e.instagram);
-    if (semRedes.length === 0) return alert('Nenhum lead precisa de enriquecimento (ou todos j� t�m redes).');
-    if (!confirm('Deseja acionar a varredura profunda para buscar redes sociais de ' + semRedes.length + ' empresas ao vivo? Isso pode demorar v�rios minutos se a lista for muito grande!')) return;
-    
-    setChecando('all');
+    const semRedes = resultados.filter((e) => !e.instagram);
+    if (semRedes.length === 0) return alert("Todos os alvos já possuem dados sociais.");
+    if (!confirm(`Iniciar varredura profunda de redes sociais para ${semRedes.length} empresas?`))
+      return;
+
+    setChecando("all");
     const batchSize = 10;
     for (let i = 0; i < semRedes.length; i += batchSize) {
       const lote = semRedes.slice(i, i + batchSize);
-      await Promise.all(lote.map(async (emp) => {
-        try {
-          const q = encodeURIComponent(emp.nome + ' ' + (emp.endereco || emp.cidade));
-          const r = await fetch('/api/enrich-search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade || emp.endereco, pais: emp.pais })
+      await Promise.all(
+        lote.map(async (emp) => {
+          try {
+            const r = await fetch("/api/enrich-search", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ nome: emp.nome, cidade: emp.cidade || emp.endereco, pais: emp.pais }),
             });
-          if (r.ok) {
-            const resJson = await r.json();
-            if (resJson.success && resJson.data) {
-              setResultados(res => res ? res.map(e => e.osmId === emp.osmId ? { 
-                ...e, 
-                instagram: resJson.data.instagram || e.instagram, 
-                facebook: resJson.data.facebook || e.facebook, 
-                website: resJson.data.website || e.website, 
-                telefone: resJson.data.telefone || e.telefone,
-                email: resJson.data.email || e.email
-              } : e) : null);
+            if (r.ok) {
+              const resJson = await r.json();
+              if (resJson.success && resJson.data) {
+                setResultados((res) =>
+                  res
+                    ? res.map((e) =>
+                        e.osmId === emp.osmId
+                          ? {
+                              ...e,
+                              instagram: resJson.data.instagram || e.instagram,
+                              facebook: resJson.data.facebook || e.facebook,
+                              website: resJson.data.website || e.website,
+                              telefone: resJson.data.telefone || e.telefone,
+                              email: resJson.data.email || e.email,
+                            }
+                          : e
+                      )
+                    : null
+                );
+              }
             }
-          }
-        } catch (e) {}
-      }));
+          } catch (e) {}
+        })
+      );
     }
     setChecando(null);
-    alert('Varredura de redes conclu�da com sucesso!');
   }
 
-  async function salvarEmLote(nivel?: 'quente' | 'morno' | 'frio') {
+  async function salvarEmLote(nivel?: "quente" | "morno" | "frio") {
     if (!resultados) return;
-    let lista = somenteInstagram ? resultados.filter(e => e.instagram) : resultados;
-    if (nivel) lista = lista.filter(e => e.nivel === nivel);
-    const naoSalvos = lista.filter(e => !salvos.has(e.osmId));
+    let lista = somenteInstagram ? resultados.filter((e) => e.instagram) : resultados;
+    if (nivel) lista = lista.filter((e) => e.nivel === nivel);
+    const naoSalvos = lista.filter((e) => !salvos.has(e.osmId));
     if (naoSalvos.length === 0) return;
     setCarregando(true);
     const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
     if (!user) return setCarregando(false);
     const chunkSize = 500;
     for (let i = 0; i < naoSalvos.length; i += chunkSize) {
       const pedaco = naoSalvos.slice(i, i + chunkSize);
-      const rows = pedaco.map(emp => ({
-        user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-        telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: (emp.email && emp.email.includes('duckduckgo.com')) ? null : emp.email,
-        fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
-        osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
+      const rows = pedaco.map((emp) => ({
+        user_id: user.id,
+        nome: emp.nome,
+        categoria: emp.categoria,
+        cidade: emp.cidade,
+        pais: emp.pais,
+        telefone: emp.telefone,
+        website: emp.website,
+        instagram: emp.instagram,
+        email: emp.email && emp.email.includes("duckduckgo.com") ? null : emp.email,
+        fonte: engine === "insta" ? "instagram" : engine === "foods" ? "ifood" : "osm",
+        osm_id: emp.osmId,
+        score: emp.score,
+        nivel: emp.nivel,
       }));
-      const { error } = await sb.from('leads').upsert(rows, { onConflict: 'user_id,osm_id', ignoreDuplicates: true });
+      const { error } = await sb
+        .from("leads")
+        .upsert(rows, { onConflict: "user_id,osm_id", ignoreDuplicates: true });
       if (!error) {
-        setSalvos(s => {
+        setSalvos((s) => {
           const ns = new Set(s);
-          pedaco.forEach(emp => ns.add(emp.osmId));
+          pedaco.forEach((emp) => ns.add(emp.osmId));
           return ns;
         });
-      } else { setErro('ERRO DB: ' + error.code + ' - ' + error.message); break; }
+      } else {
+        setErro("ERRO DB: " + error.message);
+        break;
+      }
     }
     setCarregando(false);
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <p className="eyebrow flex items-center gap-2"><Globe className="w-4 h-4" /> MÁQUINA DE CAPTURA GLOBAL</p>
-        <h1 className="headline mt-2 text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-[var(--signal)]">
-          Radar OSINT Unificado
-        </h1>
-        <p className="mt-2 text-[12px] text-[var(--ink-dim)] max-w-2xl">
-          Busque milhões de empresas através de 3 motores simultâneos: Mapeamento Global, Deep Scan no Instagram e Varredura de Delivery.
-        </p>
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* ── HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col md:flex-row md:items-end justify-between gap-4"
+      >
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/25 text-[#818cf8] mono text-[10px] font-bold uppercase tracking-wider mb-2">
+            <Radio className="w-3.5 h-3.5 animate-pulse" /> Motor de Varredura Multidimensional
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-black text-white tracking-tight">
+            Radar OSINT <span className="grad-text">Unificado</span>
+          </h1>
+          <p className="text-[#94a3b8] text-sm mt-1 max-w-2xl">
+            Descubra milhares de empresas ativas sem presença digital. Escolha o motor tático, amplie o raio geográfico e capture dados enriquecidos.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+            <span className="mono text-[11px] text-white/70 font-semibold">Overpass Cluster Ativo</span>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Tabs / Motores */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        <button onClick={() => { setEngine("osint"); setResultados(null); }} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'osint' ? 'bg-[var(--signal)]/10 border-[var(--signal)] text-[var(--signal)]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
-          <Globe className="w-6 h-6" />
-          <span className="font-bold tracking-widest uppercase text-[11px]">Motor OSINT Maps</span>
-        </button>
-        <button onClick={() => { setEngine("insta"); setResultados(null); }} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'insta' ? 'bg-[#e879f9]/10 border-[#e879f9] text-[#e879f9]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
-          <Camera className="w-6 h-6" />
-          <span className="font-bold tracking-widest uppercase text-[11px]">Radar Instagram</span>
-        </button>
-        <button onClick={() => { setEngine("foods"); setResultados(null); }} className={`flex-1 min-w-[200px] p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${engine === 'foods' ? 'bg-[#facc15]/10 border-[#facc15] text-[#facc15]' : 'bg-black/40 border-white/5 text-white/50 hover:bg-white/5'}`}>
-          <Utensils className="w-6 h-6" />
-          <span className="font-bold tracking-widest uppercase text-[11px]">Radar Foods & Delivery</span>
-        </button>
+      {/* ── SELETOR DE MOTORES (TABS MODERNAS) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[
+          {
+            id: "osint",
+            name: "Motor OSINT Maps",
+            desc: "OpenStreetMap Global & Raio Metropolitano",
+            icon: Globe,
+            accent: "#6366f1",
+          },
+          {
+            id: "insta",
+            name: "Radar Instagram",
+            desc: "Deep Scan por Nicho e Seguidores",
+            icon: Camera,
+            accent: "#ec4899",
+          },
+          {
+            id: "foods",
+            name: "Radar Foods & Delivery",
+            desc: "Pizzarias, Sushis e Gastronomia",
+            icon: Utensils,
+            accent: "#f59e0b",
+          },
+        ].map((tab) => {
+          const active = engine === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setEngine(tab.id as any);
+                setResultados(null);
+              }}
+              className={`p-4 rounded-2xl border text-left transition-all duration-200 relative overflow-hidden group ${
+                active
+                  ? "bg-[#0d121f] border-[#6366f1]/50 shadow-[0_0_25px_rgba(99,102,241,0.2)]"
+                  : "bg-[#080b12]/50 border-white/[0.06] hover:bg-white/[0.03] hover:border-white/[0.12]"
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                    active ? "bg-[#6366f1] text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]" : "bg-white/[0.05] text-white/60"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+                {active && (
+                  <span className="mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#6366f1]/20 text-[#c7d2fe] border border-[#6366f1]/30">
+                    Ativo
+                  </span>
+                )}
+              </div>
+              <h3 className="font-display font-bold text-sm text-white">{tab.name}</h3>
+              <p className="text-xs text-[#94a3b8] mt-0.5 line-clamp-1">{tab.desc}</p>
+            </button>
+          );
+        })}
       </div>
 
-      <motion.form 
-        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}
-        onSubmit={buscar} 
-        className="panel p-5 flex flex-wrap gap-4 rounded-3xl bg-black/40 border border-white/10 shadow-[0_0_30px_rgba(56,189,248,0.05)] relative overflow-hidden"
+      {/* ── PAINEL DE DISPARO DA BUSCA ── */}
+      <motion.form
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        onSubmit={buscar}
+        className="glass-premium p-6 sm:p-8 rounded-3xl relative overflow-hidden"
       >
-        <div className={`absolute right-0 top-0 w-64 h-64 blur-[100px] opacity-10 pointer-events-none ${engine === 'insta' ? 'bg-[#e879f9]' : engine === 'foods' ? 'bg-[#facc15]' : 'bg-[var(--signal)]'}`} />
-        
-        {engine === "insta" ? (
-          <div className="flex-1 min-w-[200px] relative z-10">
-            <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">Nicho / Palavra-chave</label>
-            <div className="relative">
-              <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#e879f9]" />
-              <input required value={nichoInsta} onChange={(e) => setNichoInsta(e.target.value)} placeholder="Ex: dentista, arquitetura..."
-                className="w-full bg-[#030609] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:border-[#e879f9] outline-none font-mono" />
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+          {/* Campo Categoria / Nicho */}
+          {engine === "insta" ? (
+            <div className="sm:col-span-4">
+              <label className="block text-[11px] mono uppercase tracking-wider text-white/60 mb-2">
+                Nicho / Palavra-Chave
+              </label>
+              <div className="relative">
+                <Target className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ec4899]" />
+                <input
+                  required
+                  value={nichoInsta}
+                  onChange={(e) => setNichoInsta(e.target.value)}
+                  placeholder="Ex: estética, arquitetura, odontologia..."
+                  className="field field-premium w-full rounded-xl pl-10 pr-4 py-3 text-sm"
+                />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex-1 min-w-[200px] relative z-10">
-            <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">Segmento (Alvo)</label>
-            <div className="relative">
-              <Target className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${engine === 'foods' ? 'text-[#facc15]' : 'text-[var(--signal)]'}`} />
-              <select value={categoria} onChange={(e) => setCategoria(e.target.value)}
-                className={`w-full bg-[#030609] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white outline-none appearance-none font-mono ${engine === 'foods' ? 'focus:border-[#facc15]' : 'focus:border-[var(--signal)]'}`}>
-                {engine === "foods" ? (
-                  <>
-                    <option value="restaurante">Restaurantes</option>
-                    <option value="hamburgueria">Hamburguerias</option>
-                    <option value="pizzaria">Pizzarias</option>
-                    <option value="sushi">Sushi / Oriental</option>
-                    <option value="acai">Açaí / Sorveterias</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="todos">Todos os Comércios</option>
-                    {CATEGORIAS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-                  </>
-                )}
-              </select>
+          ) : (
+            <div className="sm:col-span-4">
+              <label className="block text-[11px] mono uppercase tracking-wider text-white/60 mb-2">
+                Segmento (Alvo)
+              </label>
+              <div className="relative">
+                <Target className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#818cf8]" />
+                <select
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  className="field field-premium w-full rounded-xl pl-10 pr-4 py-3 text-sm appearance-none cursor-pointer"
+                >
+                  {engine === "foods" ? (
+                    <>
+                      <option value="restaurante">Restaurantes em Geral</option>
+                      <option value="hamburgueria">Hamburguerias & Lanches</option>
+                      <option value="pizzaria">Pizzarias</option>
+                      <option value="sushi">Sushi & Oriental</option>
+                      <option value="acai">Açaí & Sorveterias</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="todos">Todos os Comércios & Negócios</option>
+                      {CATEGORIAS.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-                  <div className="flex-none w-[120px] relative z-10">
-            <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">RAIO</label>
+          {/* Localização (Cidade) */}
+          <div className="sm:col-span-4">
+            <label className="block text-[11px] mono uppercase tracking-wider text-white/60 mb-2">
+              Localização (Cidade do Planeta)
+            </label>
             <div className="relative">
-              <select value={raioManual} onChange={(e) => setRaioManual(e.target.value)}
-                className={`w-full bg-[#030609] border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none font-mono appearance-none ${engine === 'foods' ? 'focus:border-[#facc15]' : engine === 'insta' ? 'focus:border-[#e879f9]' : 'focus:border-[var(--signal)]'}`}>
-                <option value="auto">Auto</option>
-                <option value="5">5 km</option>
-                <option value="10">10 km</option>
-                <option value="25">25 km</option>
-                <option value="50">50 km</option>
-                <option value="100">100 km</option>
-              </select>
+              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#38bdf8]" />
+              <input
+                required
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+                placeholder="Ex: Barcelona, Roma, Lisboa..."
+                className="field field-premium w-full rounded-xl pl-10 pr-4 py-3 text-sm"
+              />
             </div>
           </div>
 
-          <div className="flex-none w-[100px] relative z-10">
-            <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">MÁX LEADS</label>
-            <div className="relative">
-              <input type="number" value={limite} onChange={(e) => setLimite(e.target.value)} required placeholder="300"
-                className={`w-full bg-[#030609] border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none font-mono ${engine === 'foods' ? 'focus:border-[#facc15]' : engine === 'insta' ? 'focus:border-[#e879f9]' : 'focus:border-[var(--signal)]'}`} />
-            </div>
+          {/* Raio Geográfico (Dropdown) */}
+          <div className="sm:col-span-2">
+            <label className="block text-[11px] mono uppercase tracking-wider text-white/60 mb-2">
+              Raio de Busca
+            </label>
+            <select
+              value={raioManual}
+              onChange={(e) => setRaioManual(e.target.value)}
+              className="field field-premium w-full rounded-xl px-3 py-3 text-sm appearance-none cursor-pointer"
+            >
+              <option value="auto">Auto (Smart)</option>
+              <option value="5">5 km (Bairro)</option>
+              <option value="10">10 km (Centro)</option>
+              <option value="25">25 km (Cidade)</option>
+              <option value="50">50 km (Metrópole)</option>
+              <option value="100">100 km (Região)</option>
+            </select>
           </div>
 
-<div className="flex-1 min-w-[200px] relative z-10">
-          <label className="block text-[10px] mono text-[var(--ink-dim)] uppercase tracking-widest mb-1.5">Localização (Cidade)</label>
-          <div className="relative">
-            <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${engine === 'insta' ? 'text-[#e879f9]' : engine === 'foods' ? 'text-[#facc15]' : 'text-[var(--signal)]'}`} />
-            <input required value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: Lisboa ou 'Mundial'"
-              className={`w-full bg-[#030609] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white outline-none font-mono ${engine === 'insta' ? 'focus:border-[#e879f9]' : engine === 'foods' ? 'focus:border-[#facc15]' : 'focus:border-[var(--signal)]'}`} />
+          {/* Máx Leads */}
+          <div className="sm:col-span-2">
+            <label className="block text-[11px] mono uppercase tracking-wider text-white/60 mb-2">
+              Máx Leads
+            </label>
+            <input
+              type="number"
+              required
+              value={limite}
+              onChange={(e) => setLimite(e.target.value)}
+              placeholder="300"
+              className="field field-premium w-full rounded-xl px-3 py-3 text-sm text-center"
+            />
           </div>
         </div>
 
-        <div className="w-full md:w-auto self-end relative z-10">
-          <button type="submit" disabled={carregando} className={`w-full md:w-auto btn-3d text-black font-bold border-none py-3 px-8 flex items-center justify-center gap-2 h-[46px] ${engine === 'insta' ? 'bg-[#e879f9] shadow-[0_0_20px_rgba(232,121,249,0.3)]' : engine === 'foods' ? 'bg-[#facc15] shadow-[0_0_20px_rgba(250,204,21,0.3)]' : 'bg-[var(--signal)] shadow-[0_0_20px_rgba(56,189,248,0.3)]'}`}>
-            {carregando ? <Activity className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-            {carregando ? "RASTREANDO..." : "ACIONAR RADAR"}
+        {/* Action Button */}
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/[0.06]">
+          <div className="flex items-center gap-2 text-xs text-[#94a3b8] mono">
+            <Sparkles className="w-4 h-4 text-[#818cf8]" />
+            <span>Motor calibrado para zero gateway timeouts.</span>
+          </div>
+
+          <button
+            type="submit"
+            disabled={carregando}
+            className="btn-signal w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-bold tracking-wide uppercase flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(99,102,241,0.4)]"
+          >
+            {carregando ? (
+              <>
+                <Activity className="w-4 h-4 animate-spin" /> Mapeando Satélites...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4" /> Acionar Radar Tático
+              </>
+            )}
           </button>
         </div>
       </motion.form>
 
+      {/* ── STATUS / FEEDBACK ── */}
       <AnimatePresence>
         {erro && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="mono rounded-xl border border-[var(--alert)]/40 bg-[var(--alert)]/10 px-4 py-3 text-xs text-[var(--alert)] shadow-[0_0_15px_rgba(255,93,93,0.1)] flex items-center gap-3">
-            <Zap className="w-4 h-4 shrink-0" /> {erro}
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="p-4 rounded-2xl bg-[#6366f1]/10 border border-[#6366f1]/30 text-xs mono text-[#c7d2fe] flex items-center gap-3 shadow-[0_0_20px_rgba(99,102,241,0.15)]"
+          >
+            <Activity className="w-4 h-4 shrink-0 text-[#818cf8] animate-spin" />
+            <span>{erro}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        {carregando ? (
-          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="py-24 flex flex-col items-center justify-center relative">
-            <div className="radar mb-8" style={{ width: 100, height: 100, opacity: 0.8, borderColor: engine === 'insta' ? '#e879f9' : engine === 'foods' ? '#facc15' : 'var(--signal)' }}>
-              <div className="radar-sweep" style={{ background: `linear-gradient(90deg, transparent 50%, ${engine === 'insta' ? 'rgba(232,121,249,0.5)' : engine === 'foods' ? 'rgba(250,204,21,0.5)' : 'rgba(56,189,248,0.5)'} 100%)` }} />
-            </div>
-            <p className="mono text-sm font-bold uppercase tracking-widest animate-pulse" style={{ color: engine === 'insta' ? '#e879f9' : engine === 'foods' ? '#facc15' : 'var(--signal)' }}>
-              [ Conectando a satélites {engine.toUpperCase()}... ]
-            </p>
-          </motion.div>
-        ) : resultados ? (
-          <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="mt-4 mb-6 flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-black/20 border border-white/5">
-              <p className="mono text-[11px] uppercase tracking-widest text-[var(--ink-dim)]">
-                <span className="font-bold" style={{ color: engine === 'insta' ? '#e879f9' : engine === 'foods' ? '#facc15' : 'var(--signal)' }}>{somenteInstagram ? resultados.filter(e => e.instagram).length : resultados.length}</span> ALVOS DETECTADOS
-              </p>
-              <div className="flex gap-4 items-center">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className="relative flex items-center justify-center w-10 h-5 rounded-full bg-black border border-white/10 transition-colors group-hover:border-[#e879f9]/50">
-                    <motion.div 
-                      className="absolute w-4 h-4 rounded-full bg-[#e879f9]"
-                      initial={false}
-                      animate={{ x: somenteInstagram ? 10 : -10, opacity: somenteInstagram ? 1 : 0.4 }}
-                    />
-                  </div>
-                  <input type="checkbox" className="hidden" checked={somenteInstagram} onChange={(e) => setSomenteInstagram(e.target.checked)} />
-                  <span className={`mono text-[10px] uppercase tracking-widest transition-colors ${somenteInstagram ? 'text-[#e879f9]' : 'text-[var(--ink-faint)]'}`}>
-                    C/ INSTAGRAM
-                  </span>
-                </label>
-                <div className="h-4 w-px bg-white/10" />
-                <div className="flex items-center gap-2">
-                  <button onClick={() => salvarEmLote()} disabled={carregando || (somenteInstagram ? resultados.filter(e => e.instagram) : resultados).every(e => salvos.has(e.osmId))}
-                    className="btn-3d bg-white/10 hover:bg-white/20 border-none text-[10px] px-3 py-1.5 flex items-center gap-1 text-white">
-                    <Save className="w-3 h-3" /> SALVAR TUDO
-                    </button>
-                    <button onClick={() => salvarEmLote("quente")} disabled={carregando || !resultados.some(e => e.nivel === "quente" && !salvos.has(e.osmId))}
-                      className="btn-3d bg-[#ff5d5d]/10 hover:bg-[#ff5d5d]/20 border-none text-[10px] px-3 py-1.5 flex items-center gap-1 text-[#ff5d5d]">
-                      🔥 QUENTES
-                    </button>
-                    <button onClick={() => salvarEmLote("morno")} disabled={carregando || !resultados.some(e => e.nivel === "morno" && !salvos.has(e.osmId))}
-                      className="btn-3d bg-[#ffb02d]/10 hover:bg-[#ffb02d]/20 border-none text-[10px] px-3 py-1.5 flex items-center gap-1 text-[#ffb02d]">
-                      ? MORNOS
-                    </button>
-                    <button onClick={() => salvarEmLote("frio")} disabled={carregando || !resultados.some(e => e.nivel === "frio" && !salvos.has(e.osmId))}
-                      className="btn-3d bg-[#55685f]/10 hover:bg-[#55685f]/20 border-none text-[10px] px-3 py-1.5 flex items-center gap-1 text-[#55685f]">
-                      ❄️ FRIOS
-                    </button>
-                    <div className="w-px h-4 bg-white/10 mx-1"></div>
-                    <button onClick={enriquecerLoteRadar} disabled={carregando || checando !== null}
-                      className="btn-3d bg-purple-500/10 hover:bg-purple-500/20 border-none text-[10px] px-3 py-1.5 flex items-center gap-1 text-purple-400">
-                      <Search className="w-3 h-3" /> ENRIQUECER LOTE
-                    </button>
-                </div>
-              </div>
+      {/* ── RADAR PULSE CARREGANDO ── */}
+      {carregando && (
+        <div className="py-20 flex flex-col items-center justify-center text-center">
+          <div className="radar w-28 h-28 mb-6" />
+          <p className="font-display font-bold text-lg text-white mb-1">
+            Varredura Orbital em Andamento
+          </p>
+          <p className="mono text-xs text-[#94a3b8] uppercase tracking-widest">
+            Cruzando nós geográficos e calculando threat scores...
+          </p>
+        </div>
+      )}
+
+      {/* ── RESULTADOS ENCONTRADOS ── */}
+      {resultados && !carregando && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+          {/* Action Bar */}
+          <div className="p-4 rounded-2xl bg-[#0c101a] border border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="font-display font-black text-xl text-white">
+                {somenteInstagram ? resultados.filter((e) => e.instagram).length : resultados.length}
+              </span>
+              <span className="mono text-xs uppercase tracking-wider text-[#94a3b8]">
+                Alvos Detectados
+              </span>
             </div>
 
-            {/* CARDS COM FOTOS GRANDES ENCIMA */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {(somenteInstagram ? resultados.filter(e => e.instagram) : resultados).map((emp, i) => {
-                const accent = NIVEL_ACCENT[emp.nivel];
-                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`;
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs mono uppercase tracking-wider text-white/70 cursor-pointer hover:bg-white/[0.06] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={somenteInstagram}
+                  onChange={(e) => setSomenteInstagram(e.target.checked)}
+                  className="rounded accent-[#6366f1]"
+                />
+                Com Instagram
+              </label>
 
-                return (
-                  <div key={emp.osmId}
-                    className="relative flex flex-col rounded-3xl bg-[#05080c] border border-white/10 hover:border-white/20 hover:-translate-y-1 transition-all group overflow-hidden shadow-lg"
-                  >
-                    <div className="absolute top-0 inset-x-0 h-32 blur-[50px] opacity-10 group-hover:opacity-20 pointer-events-none transition-opacity" style={{ backgroundColor: accent }} />
-                    
-                    {/* Maps Redirect Header (Super Fast) */}
-                    <div className="w-full h-24 bg-gradient-to-b from-white/5 to-transparent relative border-b border-white/5 flex items-center justify-center overflow-hidden">
-                      <a href={mapsUrl} target="_blank" rel="noopener noreferrer" 
-                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] mono uppercase tracking-widest text-white transition-all shadow-[0_0_10px_rgba(255,255,255,0.05)] hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:scale-105">
-                        <MapPin className="w-4 h-4 text-[var(--signal)]" />
-                        Ver no Google Maps
+              <div className="h-4 w-px bg-white/10" />
+
+              <button
+                onClick={() => salvarEmLote()}
+                className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 text-xs font-semibold text-white border border-white/[0.08] transition-colors flex items-center gap-1.5"
+              >
+                <Save className="w-3.5 h-3.5 text-[#818cf8]" /> Salvar Tudo
+              </button>
+
+              <button
+                onClick={() => salvarEmLote("quente")}
+                className="px-3 py-1.5 rounded-xl bg-[#ef4444]/10 hover:bg-[#ef4444]/20 text-xs font-semibold text-[#ef4444] border border-[#ef4444]/25 transition-colors"
+              >
+                🔥 Quentes
+              </button>
+
+              <button
+                onClick={() => salvarEmLote("morno")}
+                className="px-3 py-1.5 rounded-xl bg-[#f59e0b]/10 hover:bg-[#f59e0b]/20 text-xs font-semibold text-[#f59e0b] border border-[#f59e0b]/25 transition-colors"
+              >
+                💡 Mornos
+              </button>
+
+              <button
+                onClick={enriquecerLoteRadar}
+                disabled={checando !== null}
+                className="px-3.5 py-1.5 rounded-xl bg-[#6366f1]/15 hover:bg-[#6366f1]/25 text-xs font-semibold text-[#818cf8] border border-[#6366f1]/30 transition-colors flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Enriquecer Lote
+              </button>
+            </div>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {(somenteInstagram ? resultados.filter((e) => e.instagram) : resultados).map((emp) => {
+              const cfg = NIVEL_CONFIG[emp.nivel];
+              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                emp.nome + " " + (emp.endereco || emp.cidade)
+              )}`;
+
+              return (
+                <div
+                  key={emp.osmId}
+                  className="relative rounded-2xl bg-[#0a0e18] border border-white/[0.08] hover:border-[#6366f1]/40 transition-all duration-300 p-5 flex flex-col justify-between group overflow-hidden shadow-lg"
+                >
+                  {/* Top Level Pill & Maps Link */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span
+                        className="mono text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 border"
+                        style={{ borderColor: cfg.border, backgroundColor: cfg.bg, color: cfg.text }}
+                      >
+                        <span>{cfg.icon}</span>
+                        <span>{emp.nivel}</span>
+                      </span>
+
+                      <a
+                        href={mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white/40 hover:text-white transition-colors p-1"
+                        title="Ver no Google Maps"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </a>
-
-                      {/* Distintivo de Nível flutuante */}
-                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest border border-white/10 flex items-center gap-1">
-                        <span>{emp.nivel === "quente" ? "🔥" : emp.nivel === "morno" ? "💡" : "❄"}</span>
-                        <span style={{ color: accent }}>{emp.nivel}</span>
-                      </div>
                     </div>
-                    
-                    <div className="p-5 flex flex-col flex-1 relative z-10">
-                      <div className="mb-4">
-                        <h2 className="font-display font-bold text-lg text-white group-hover:text-[var(--signal)] transition-colors line-clamp-1 mb-1" title={emp.nome}>
-                          {emp.nome}
-                        </h2>
-                        <p className="mono text-[10px] uppercase tracking-widest text-[var(--ink-faint)] line-clamp-1">📍 {emp.endereco || emp.cidade}</p>
-                      </div>
 
-                      <div className="mono text-[10px] space-y-1.5 text-[var(--ink-dim)] flex-1">
-                        {emp.telefone && <p className="flex items-center gap-2"><span className="w-4">📞</span> {emp.telefone}</p>}
-                        {emp.instagram && <p className="flex items-center gap-2 text-[#e879f9]"><span className="w-4">💜</span> @{emp.instagram.replace('@','')}</p>}
-                        {emp.website ? <p className="flex items-center gap-2"><span className="w-4">🌐</span> ACTV</p> : <p className="flex items-center gap-2 text-[var(--signal)] font-bold animate-pulse"><span className="w-4">🚫</span> S/ SITE</p>}
-                      </div>
-                      
-                      <div className="flex gap-2 w-full mt-5 pt-4 border-t border-white/5">
-                        <button onClick={() => checarRedes(emp)} disabled={!!checando}
-                          className="flex-1 btn-3d bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] px-0">
-                          {checando === emp.osmId ? "SCAN..." : "🔍 DEEP SCAN"}
-                        </button>
-                        <button onClick={() => salvar(emp)} disabled={salvos.has(emp.osmId)}
-                          className={`flex-1 btn-3d text-[10px] px-0 font-bold ${salvos.has(emp.osmId) ? 'bg-white/10 text-white/50 border-none' : 'bg-[var(--signal)] text-black border-none shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:scale-105'}`}>
-                          {salvos.has(emp.osmId) ? "✓ TRAVADO" : "TRAVAR ALVO"}
-                        </button>
-                      </div>
+                    <h3
+                      className="font-display font-bold text-base text-white group-hover:text-[#818cf8] transition-colors line-clamp-1 mb-1"
+                      title={emp.nome}
+                    >
+                      {emp.nome}
+                    </h3>
+
+                    <p className="mono text-[11px] text-[#94a3b8] line-clamp-1 mb-4">
+                      📍 {emp.endereco || emp.cidade}
+                    </p>
+
+                    {/* Metadata Chips */}
+                    <div className="space-y-1.5 text-xs text-[#94a3b8] mono border-t border-white/[0.06] pt-3">
+                      {emp.telefone && (
+                        <p className="flex items-center gap-2 truncate">
+                          <span className="text-white/40">📞</span> {emp.telefone}
+                        </p>
+                      )}
+                      {emp.instagram && (
+                        <p className="flex items-center gap-2 truncate text-[#ec4899]">
+                          <span>💜</span> @{emp.instagram.replace("@", "")}
+                        </p>
+                      )}
+                      {emp.website ? (
+                        <p className="flex items-center gap-2 text-white/50">
+                          <span>🌐</span> Tem Website
+                        </p>
+                      ) : (
+                        <p className="flex items-center gap-2 text-[#818cf8] font-bold">
+                          <span>⚡</span> SEM WEBSITE (OPORTUNIDADE)
+                        </p>
+                      )}
                     </div>
                   </div>
-                  );
-                })}
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+
+                  {/* Bottom Actions */}
+                  <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center gap-2">
+                    <button
+                      onClick={() => checarRedes(emp)}
+                      disabled={!!checando}
+                      className="flex-1 py-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-[11px] mono font-medium text-white/80 border border-white/[0.08] transition-colors"
+                    >
+                      {checando === emp.osmId ? "Scan..." : "Deep Scan"}
+                    </button>
+
+                    <button
+                      onClick={() => salvar(emp)}
+                      disabled={salvos.has(emp.osmId)}
+                      className={`flex-1 py-2 rounded-lg text-[11px] mono font-bold uppercase tracking-wider transition-all ${
+                        salvos.has(emp.osmId)
+                          ? "bg-white/[0.06] text-white/40 border border-transparent"
+                          : "bg-[#6366f1] text-white shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:brightness-110"
+                      }`}
+                    >
+                      {salvos.has(emp.osmId) ? "✓ Salvo" : "Salvar Lead"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

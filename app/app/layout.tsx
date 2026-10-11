@@ -4,17 +4,21 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
-import { Activity, Target, Zap, LayoutDashboard, Database, Map, Globe, Settings, LogOut, CheckCircle, DollarSign } from "lucide-react";
+import {
+  Activity, Target, Zap, LayoutDashboard,
+  Map, Globe, Settings, LogOut, DollarSign,
+  Crosshair, Radio, Shield, Sparkles
+} from "lucide-react";
 
 const LINKS = [
-  { href: "/app/dashboard",    label: "Dashboard",   icon: <LayoutDashboard className="w-4 h-4" /> },
-  { href: "/app/vendas",       label: "Pipeline CRM",icon: <Activity className="w-4 h-4" /> },
-  { href: "/app/manutencao",   label: "Manutenção",  icon: <DollarSign className="w-4 h-4" /> },
-  { href: "/app",              label: "Alvos (Leads)",icon: <Target className="w-4 h-4" /> },
-  { href: "/app/busca",        label: "Radar OSINT", icon: <Zap className="w-4 h-4" /> },
-  { href: "/app/mapa",         label: "Cartografia", icon: <Map className="w-4 h-4" /> },
-  { href: "/app/sites",        label: "Deploy Sites",icon: <Globe className="w-4 h-4" /> },
-  { href: "/app/configuracoes",label: "Sistema",     icon: <Settings className="w-4 h-4" /> },
+  { href: "/app/dashboard",     label: "Dashboard",       icon: <LayoutDashboard className="w-4 h-4" /> },
+  { href: "/app/busca",         label: "Radar OSINT",     icon: <Zap className="w-4 h-4" />, badge: "v4" },
+  { href: "/app",               label: "Alvos (Leads)",   icon: <Target className="w-4 h-4" /> },
+  { href: "/app/vendas",        label: "Pipeline CRM",    icon: <Activity className="w-4 h-4" /> },
+  { href: "/app/manutencao",    label: "Manutenção & MRR",icon: <DollarSign className="w-4 h-4" /> },
+  { href: "/app/mapa",          label: "Cartografia 3D",  icon: <Map className="w-4 h-4" /> },
+  { href: "/app/sites",         label: "Deploy Sites",    icon: <Globe className="w-4 h-4" /> },
+  { href: "/app/configuracoes", label: "Configurações",   icon: <Settings className="w-4 h-4" /> },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -22,76 +26,116 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   return (
-    <div className="bg-[#030609] min-h-screen flex flex-col md:flex-row text-white font-sans selection:bg-[var(--signal)] selection:text-black">
-      {/* SIDEBAR (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-white/5 bg-black/40 backdrop-blur-xl relative z-20">
-        <div className="p-6 flex items-center gap-3 border-b border-white/5">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-[var(--signal)] flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.5)]">
-              <Target className="w-4 h-4 text-black" />
+    <div className="bg-[#050608] min-h-screen flex flex-col md:flex-row text-white font-sans selection:bg-[#6366f1] selection:text-white">
+      {/* ── DESKTOP SIDEBAR ── */}
+      <aside className="hidden md:flex flex-col w-64 border-r border-white/[0.07] bg-[#070910]/80 backdrop-blur-2xl relative z-30">
+        {/* Brand Header */}
+        <div className="p-6 flex items-center justify-between border-b border-white/[0.06]">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6366f1] to-[#4f46e5] flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.4)] group-hover:scale-105 transition-transform">
+              <Crosshair className="w-4 h-4 text-white" />
             </div>
-            <span className="font-display font-black tracking-widest text-lg">PROSPECT<span className="text-[var(--signal)]">AI</span></span>
+            <div>
+              <span className="font-display font-black tracking-tight text-base text-white">
+                PROSPECT<span className="text-[#818cf8]">AI</span>
+              </span>
+              <p className="mono text-[8px] uppercase tracking-widest text-[#94a3b8]">OSINT Console</p>
+            </div>
           </Link>
         </div>
 
+        {/* Navigation Modules */}
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-          <p className="px-3 text-[10px] mono uppercase tracking-widest text-[var(--ink-dim)] mb-4">Módulos do Sistema</p>
+          <p className="px-3 text-[9px] mono uppercase tracking-[0.2em] text-[#64748b] font-bold mb-3">
+            Módulos de Controle
+          </p>
           {LINKS.map((l) => {
             const active = path === l.href;
             return (
               <Link
                 key={l.href}
                 href={l.href}
-                className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${active ? 'text-white' : 'text-[var(--ink-dim)] hover:text-white hover:bg-white/5'}`}
+                className={`relative flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group ${
+                  active
+                    ? "text-white font-bold"
+                    : "text-[#94a3b8] hover:text-white hover:bg-white/[0.04]"
+                }`}
               >
                 {active && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 bg-gradient-to-r from-[var(--signal)]/20 to-transparent border-l-2 border-[var(--signal)] rounded-xl"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="absolute inset-0 bg-[#6366f1]/15 border border-[#6366f1]/30 rounded-xl"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
-                <span className="relative z-10">{l.icon}</span>
-                <span className="relative z-10 font-medium text-[13px] tracking-wide">{l.label}</span>
+                <div className="flex items-center gap-3 relative z-10">
+                  <span className={active ? "text-[#818cf8]" : "text-white/50 group-hover:text-white/80"}>
+                    {l.icon}
+                  </span>
+                  <span className="text-[13px] tracking-wide font-medium">{l.label}</span>
+                </div>
+                {l.badge && (
+                  <span className="relative z-10 mono text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[#6366f1]/25 text-[#c7d2fe] border border-[#6366f1]/40">
+                    {l.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/5">
+        {/* Satellite Health Indicator & Logout */}
+        <div className="p-4 border-t border-white/[0.06] space-y-3">
+          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+              <span className="mono text-[10px] text-white/60 uppercase tracking-wider font-semibold">Satélites</span>
+            </div>
+            <span className="mono text-[10px] text-[#10b981] font-bold">100% LIVE</span>
+          </div>
+
           <button
-            onClick={async () => { await supabaseBrowser().auth.signOut(); window.location.href = "/login"; }}
-            className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-[var(--ink-dim)] hover:text-[var(--alert)] hover:bg-[var(--alert)]/10 transition-colors text-[13px] font-medium"
+            onClick={async () => {
+              await supabaseBrowser().auth.signOut();
+              window.location.href = "/login";
+            }}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-[#94a3b8] hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors text-[12px] font-medium"
           >
-            <LogOut className="w-4 h-4" /> Encerrar Sessão
+            <LogOut className="w-4 h-4" /> Desconectar Sessão
           </button>
         </div>
       </aside>
 
-      {/* MOBILE TOPBAR */}
-      <header className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="w-6 h-6 rounded bg-[var(--signal)] flex items-center justify-center">
-            <Target className="w-3 h-3 text-black" />
+      {/* ── MOBILE TOPBAR ── */}
+      <header className="md:hidden flex items-center justify-between p-4 border-b border-white/[0.06] bg-[#070910]/90 backdrop-blur-xl sticky top-0 z-50">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#6366f1] flex items-center justify-center">
+            <Crosshair className="w-4 h-4 text-white" />
           </div>
-          <span className="font-display font-black tracking-widest text-sm">PROSPECT<span className="text-[var(--signal)]">AI</span></span>
+          <span className="font-display font-black tracking-tight text-sm">
+            PROSPECT<span className="text-[#818cf8]">AI</span>
+          </span>
         </Link>
+        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#10b981]/10 border border-[#10b981]/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+          <span className="mono text-[9px] text-[#10b981] font-bold">ONLINE</span>
+        </div>
       </header>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 relative flex flex-col max-h-screen overflow-hidden">
-        {/* Subtle Cyber Grid Background */}
-        <div className="absolute inset-0 bg-grid opacity-5 pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.05)_0%,transparent_50%)] pointer-events-none" />
+      {/* ── MAIN CONTENT WORKSPACE ── */}
+      <main className="flex-1 relative flex flex-col max-h-screen overflow-hidden bg-[#050608]">
+        {/* Ambient Glow & Grid Layer */}
+        <div className="absolute inset-0 bg-grid opacity-25 pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-[#6366f1]/10 via-transparent to-transparent rounded-full blur-[140px] pointer-events-none" />
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-hide relative z-10">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-hide relative z-10 pb-24 md:pb-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={path}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25 }}
               className="h-full"
             >
               {children}
@@ -100,21 +144,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAV */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 border-t border-white/5 bg-black/90 backdrop-blur-xl pb-safe z-50 flex overflow-x-auto scrollbar-hide">
+      {/* ── MOBILE BOTTOM NAVIGATION ── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 border-t border-white/[0.08] bg-[#080b12]/95 backdrop-blur-2xl z-50 flex overflow-x-auto scrollbar-hide">
         {LINKS.map((l) => {
           const active = path === l.href;
           return (
             <Link
               key={l.href}
               href={l.href}
-              className={`flex-1 shrink-0 flex flex-col items-center justify-center gap-1 p-3 min-w-[70px] ${active ? 'text-[var(--signal)]' : 'text-[var(--ink-dim)]'}`}
+              className={`flex-1 shrink-0 flex flex-col items-center justify-center gap-1 py-3 px-2 min-w-[72px] transition-colors ${
+                active ? "text-[#818cf8]" : "text-[#94a3b8]"
+              }`}
             >
               <div className="relative">
                 {l.icon}
-                {active && <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--signal)] shadow-[0_0_8px_var(--signal)]" />}
+                {active && (
+                  <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#6366f1] shadow-[0_0_8px_#6366f1]" />
+                )}
               </div>
-              <span className="text-[9px] font-medium tracking-wider">{l.label}</span>
+              <span className="text-[10px] font-medium tracking-tight truncate max-w-[64px]">
+                {l.label}
+              </span>
             </Link>
           );
         })}
@@ -122,4 +172,3 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
