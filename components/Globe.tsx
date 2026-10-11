@@ -519,8 +519,8 @@ export default function Globe({
 
       {/* ── 3D CANVAS STAGE ── */}
       <div
-        className={`relative w-full aspect-square flex items-center justify-center z-10 touch-none ${
-          isHero ? "max-h-[600px] lg:max-h-[640px]" : "max-h-[380px]"
+        className={`relative w-full flex items-center justify-center z-10 touch-pan-y ${
+          isHero ? "h-[340px] sm:h-[440px] lg:h-[580px] max-w-[580px] aspect-square" : "h-[280px] sm:h-[360px] max-w-[360px] aspect-square"
         }`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -530,7 +530,7 @@ export default function Globe({
         {hasWebGL ? (
           <div ref={mountRef} className="w-full h-full flex items-center justify-center" />
         ) : (
-          <div className="relative w-80 h-80 rounded-full border border-violet-900/40 bg-[#0d0f18] flex flex-col items-center justify-center">
+          <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full border border-violet-900/40 bg-[#0d0f18] flex flex-col items-center justify-center">
             <GlobeIcon className="w-10 h-10 text-violet-500 mb-2" />
             <span className="font-mono text-xs uppercase tracking-widest text-zinc-400 font-bold">
               Base Vetorial Carregada
@@ -540,23 +540,20 @@ export default function Globe({
 
         {/* Enterprise Selected Hub Tooltip */}
         {activeHub && isHero && (
-          <div className="absolute bottom-4 right-4 sm:right-6 z-30 pointer-events-auto max-w-[280px]">
-            <div className="p-3.5 rounded-xl bg-[#0d0f18]/95 border border-white/[0.1] backdrop-blur-xl shadow-xl">
-              <div className="flex items-center gap-2 mb-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#a78bfa]" />
-                <p className="font-display text-xs font-bold text-white flex items-center gap-1.5">
+          <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-6 z-30 pointer-events-auto max-w-[240px] sm:max-w-[280px]">
+            <div className="p-3 sm:p-3.5 rounded-xl bg-[#0d0f18]/95 border border-white/[0.1] backdrop-blur-xl shadow-xl">
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
+                <MapPin className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
+                <p className="font-display text-xs font-bold text-white truncate">
                   {activeHub.name}, {activeHub.region}
-                  <span className="text-[10px] text-zinc-400 font-normal">({activeHub.country})</span>
+                  <span className="text-[10px] text-zinc-400 font-normal ml-1 hidden sm:inline">({activeHub.country})</span>
                 </p>
               </div>
-              <p className="font-mono text-[11px] text-[#a78bfa] font-bold mb-1">
+              <p className="font-mono text-[10px] sm:text-[11px] text-[#a78bfa] font-bold mb-0.5">
                 {activeHub.leads}
               </p>
-              <p className="text-[10px] text-zinc-400 leading-tight mb-1">
+              <p className="text-[9px] sm:text-[10px] text-zinc-400 leading-tight">
                 <strong className="text-zinc-300">Déficit:</strong> {activeHub.missingWebsites}
-              </p>
-              <p className="text-[10px] text-zinc-500">
-                Segmentos: {activeHub.segments}
               </p>
             </div>
           </div>

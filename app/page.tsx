@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { useTilt3D } from "@/hooks/useAnimations";
@@ -10,16 +10,22 @@ import {
   ArrowRight, Search, Activity, BarChart3,
   Crosshair, Layers, MapPin, CheckCircle2,
   Phone, Globe as GlobeIcon, FileText, Send,
-  Sliders, ShieldCheck, Database, Building2
+  Sliders, ShieldCheck, Database, Building2,
+  Mail, Flame, Server, Network, DownloadCloud
 } from "lucide-react";
+
+// Dynamic Client-Only Load for 3D Background with zero SSR issues
+const Background3D = dynamic(() => import("@/components/Background3D"), {
+  ssr: false,
+});
 
 // Dynamic Client-Only Load for Globe to guarantee zero-SSR hydration issues
 const Globe = dynamic(() => import("@/components/Globe"), {
   ssr: false,
   loading: () => (
-    <div className="w-full max-w-[600px] aspect-square flex flex-col items-center justify-center">
-      <div className="w-64 h-64 rounded-full border border-violet-900/40 animate-pulse bg-violet-950/20 flex items-center justify-center shadow-lg">
-        <div className="w-44 h-44 rounded-full border border-dashed border-violet-500/40 animate-spin" />
+    <div className="w-full max-w-[580px] h-[340px] sm:h-[440px] lg:h-[580px] flex flex-col items-center justify-center">
+      <div className="w-56 h-56 rounded-full border border-violet-900/40 animate-pulse bg-violet-950/20 flex items-center justify-center shadow-lg">
+        <div className="w-36 h-36 rounded-full border border-dashed border-violet-500/40 animate-spin" />
       </div>
       <span className="font-mono text-xs uppercase tracking-widest text-violet-400 font-semibold mt-4 animate-pulse">
         Carregando Base Vetorial 3D...
@@ -32,7 +38,10 @@ const Globe = dynamic(() => import("@/components/Globe"), {
 const TICKER_ITEMS = [
   "RADAR GEOESPACIAL B2B ATIVO",
   "COBERTURA METROPOLITANA ATÉ 100KM",
+  "DISPARO EM MASSA AUTOMATIZADO WHATSAPP",
+  "CARTOGRAFIA MUNDIAL & HEATMAP DE DENSIDADE",
   "AUDITORIA AUTOMÁTICA DE AUSÊNCIA DE WEBSITE",
+  "AUDITOR DE DOMÍNIOS & DNS EM TEMPO REAL",
   "ENRIQUECIMENTO DE DECISORES & WHATSAPP",
   "ROTEIROS CONSULTIVOS DE PROSPECÇÃO",
   "COBERTURA EM 195 PAÍSES",
@@ -55,7 +64,7 @@ function Ticker() {
   );
 }
 
-/* ─── REAL INTERACTIVE PLATFORM DEMO CONSOLE (SUBSTITUTES FAKE TERMINAL) ─── */
+/* ─── REAL INTERACTIVE PLATFORM DEMO CONSOLE ─── */
 interface DemoLead {
   name: string;
   niche: string;
@@ -259,10 +268,10 @@ function BentoCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       className={`relative rounded-2xl border border-white/[0.08] bg-[#0d0f18] hover:border-violet-500/40 transition-colors duration-300 overflow-hidden group ${className}`}
     >
       <div
@@ -282,13 +291,12 @@ function BentoCard({
 
 /* ─── MAIN LANDING PAGE ─── */
 export default function ProspectAILanding() {
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
-  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
-
   return (
     <main className="relative min-h-screen text-white bg-[#06070b] overflow-x-hidden selection:bg-[#6d28d9] selection:text-white">
-      {/* ── SUBTLE SOLID PURPLE VIGNETTE (NO MULTI-COLOR GRADIENTS) ── */}
+      {/* ── 3D INTERACTIVE BACKGROUND CONSTELLATION & DEPTH GRID ── */}
+      <Background3D />
+
+      {/* ── SUBTLE SOLID PURPLE VIGNETTE BACKDROP ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-[radial-gradient(ellipse_at_top,rgba(109,40,217,0.18)_0%,rgba(76,29,149,0.05)_50%,transparent_75%)] blur-2xl" />
         <div className="absolute inset-0 bg-grid opacity-25" />
@@ -320,7 +328,7 @@ export default function ProspectAILanding() {
             <div className="hidden md:flex items-center gap-1 bg-white/[0.02] border border-white/[0.04] rounded-lg p-1">
               {[
                 { name: "Console de Busca", href: "#console" },
-                { name: "Arquitetura & Motores", href: "#funcionalidades" },
+                { name: "Módulos & Arquitetura", href: "#funcionalidades" },
                 { name: "Como Funciona", href: "#como-funciona" },
                 { name: "Planos de Acesso", href: "#planos" },
               ].map((item) => (
@@ -351,52 +359,29 @@ export default function ProspectAILanding() {
         </div>
       </motion.nav>
 
-      {/* ── HERO SECTION: PROFESSIONAL STARTUP LAYOUT ── */}
+      {/* ── HERO SECTION: RESPONSIVE ALL-DEVICES (NEVER FADES ON SCROLL) ── */}
       <section className="relative min-h-[92vh] flex items-center pt-24 pb-16 px-4 sm:px-6 z-10">
-        <motion.div
-          style={{ y: heroY, opacity: heroOpacity }}
-          className="mx-auto max-w-7xl w-full grid lg:grid-cols-12 gap-10 lg:gap-12 items-center"
-        >
-          {/* Left Column: Clear, High-Value Value Proposition (6 cols) */}
-          <div className="lg:col-span-6 flex flex-col items-start text-left pt-4">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#6d28d9]/15 border border-[#7c3aed]/30 mb-6"
-            >
+        <div className="mx-auto max-w-7xl w-full grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* Left Column: Clear Value Proposition (6 cols) */}
+          <div className="lg:col-span-6 flex flex-col items-start text-left pt-2 sm:pt-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#6d28d9]/15 border border-[#7c3aed]/30 mb-6">
               <ShieldCheck className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span className="font-mono text-[11px] font-semibold tracking-wider uppercase text-zinc-200">
                 Plataforma de Prospecção Geoespacial B2B
               </span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08, duration: 0.6 }}
-              className="font-display font-black text-4xl sm:text-5xl xl:text-6xl tracking-tight leading-[1.08] mb-6 text-white"
-            >
+            <h1 className="font-display font-black text-3xl sm:text-5xl xl:text-6xl tracking-tight leading-[1.08] mb-6 text-white">
               Encontre empresas locais com déficit digital{" "}
               <span className="text-[#a78bfa]">sem intermediários.</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.16, duration: 0.6 }}
-              className="text-zinc-400 text-base sm:text-lg max-w-xl leading-relaxed mb-8 font-normal"
-            >
+            <p className="text-zinc-400 text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed mb-8 font-normal">
               Mapeie em minutos regiões metropolitanas de até 100km, identifique empresas sem site profissional ou com páginas obsoletas e acesse os contatos diretos de sócios e tomadores de decisão com WhatsApp verificado.
-            </motion.p>
+            </p>
 
             {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.24, duration: 0.6 }}
-              className="flex flex-wrap items-center gap-3.5 w-full sm:w-auto mb-10"
-            >
+            <div className="flex flex-wrap items-center gap-3.5 w-full sm:w-auto mb-10">
               <Link
                 href="/login"
                 className="btn-signal flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-semibold w-full sm:w-auto"
@@ -409,55 +394,45 @@ export default function ProspectAILanding() {
               >
                 Ver Demonstração ao Vivo
               </a>
-            </motion.div>
+            </div>
 
             {/* Metrics Breakdown */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.32, duration: 0.6 }}
-              className="grid grid-cols-3 gap-6 pt-6 border-t border-white/[0.08] w-full max-w-lg"
-            >
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-white/[0.08] w-full max-w-lg">
               <div>
-                <p className="font-display text-2xl font-black text-white">195+</p>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Países Mapeados</p>
+                <p className="font-display text-xl sm:text-2xl font-black text-white">195+</p>
+                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Países Mapeados</p>
               </div>
               <div>
-                <p className="font-display text-2xl font-black text-[#a78bfa]">100km</p>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Raio Metropolitano</p>
+                <p className="font-display text-xl sm:text-2xl font-black text-[#a78bfa]">100km</p>
+                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Raio Metropolitano</p>
               </div>
               <div>
-                <p className="font-display text-2xl font-black text-emerald-400">Zero</p>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Timeouts de Busca</p>
+                <p className="font-display text-xl sm:text-2xl font-black text-emerald-400">Zero</p>
+                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Timeouts de Busca</p>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Right Column: Professional 3D Vector Globe (6 cols) */}
-          <div className="lg:col-span-6 relative flex items-center justify-center w-full">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full flex items-center justify-center"
-            >
+          {/* Right Column: Professional 3D Vector Globe (Mobile & Desktop Perfect) */}
+          <div className="lg:col-span-6 relative flex items-center justify-center w-full mt-4 lg:mt-0">
+            <div className="relative w-full flex items-center justify-center">
               <Globe size="hero" showControls={true} showHubSelector={true} />
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ── TICKER STRIP ── */}
       <Ticker />
 
-      {/* ── INTERACTIVE PLATFORM CONSOLE DEMO (REPLACES FAKE TERMINAL) ── */}
+      {/* ── INTERACTIVE PLATFORM CONSOLE DEMO ── */}
       <section id="console" className="relative z-10 py-24 px-4 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a78bfa] mb-2 block">
               Demonstração Interativa da Ferramenta
             </span>
-            <h2 className="font-display text-3xl sm:text-4xl font-black text-white tracking-tight">
+            <h2 className="font-display text-2xl sm:text-4xl font-black text-white tracking-tight">
               Veja a qualidade dos dados gerados em segundos.
             </h2>
             <p className="text-zinc-400 text-sm max-w-xl mx-auto mt-2">
@@ -468,24 +443,27 @@ export default function ProspectAILanding() {
         </div>
       </section>
 
-      {/* ── BENTO GRID ARSENAL TECNOLÓGICO ── */}
+      {/* ── EXPANDED BENTO GRID (ALL USER REQUESTED MODULES) ── */}
       <section id="funcionalidades" className="relative z-10 py-24 px-4 sm:px-6 border-t border-white/[0.06]">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#6d28d9]/15 border border-[#7c3aed]/30 mb-3">
               <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
               <span className="font-mono text-[10px] font-semibold tracking-wider uppercase text-zinc-300">
-                Arquitetura de Dados B2B
+                Arquitetura de Dados B2B Completa
               </span>
             </div>
 
             <h2 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-white">
-              Engenharia de dados desenhada para fechar contratos.
+              Engenharia de dados e automação para prospecção de alta escala.
             </h2>
+            <p className="text-zinc-400 text-sm max-w-2xl mx-auto mt-3">
+              Da captura geoespacial do território ao disparo em massa automatizado e acompanhamento no CRM Kanban.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Card 1: Motor Geoespacial (Large 2-col) */}
+            {/* Card 1: Motor Geoespacial 100km (Large 2-col) */}
             <BentoCard className="lg:col-span-2 p-7" delay={0}>
               <div className="flex flex-col h-full justify-between">
                 <div>
@@ -499,7 +477,7 @@ export default function ProspectAILanding() {
                     Mapeamento Territorial com Raio Expansível até 100km
                   </h3>
                   <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed mb-6">
-                    A infraestrutura do ProspectAI divide a busca em clusters de nós geográficos paralelos. Isso permite varrer regiões metropolitanas completas em cidades brasileiras e internacionais sem sofrer Timeouts 504 e captando todas as empresas cadastradas.
+                    A infraestrutura do ProspectAI divide a busca em clusters de nós geográficos paralelos. Isso permite varrer regiões metropolitanas completas em cidades brasileiras e internacionais sem sofrer Timeouts 504 e captando todas as empresas cadastradas no OpenStreetMap.
                   </p>
                 </div>
                 <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/[0.06]">
@@ -517,11 +495,47 @@ export default function ProspectAILanding() {
               </div>
             </BentoCard>
 
-            {/* Card 2: Auditoria Automatizada */}
-            <BentoCard className="p-7" delay={0.08}>
+            {/* Card 2: Disparo em Massa Automatizado (Requested by User) */}
+            <BentoCard className="p-7" delay={0.06}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#6d28d9]/30 text-emerald-400 font-semibold border border-emerald-500/30">
+                  MÓDULO 02 • DISPARO EM MASSA
+                </span>
+                <Send className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-white mb-2">Disparo em Massa Automatizado</h3>
+              <p className="text-zinc-400 text-xs leading-relaxed mb-4">
+                Envio multi-canal escalável com conexão direta de instâncias WhatsApp e SMTP corporativo. Rotação automática de canais, cadência inteligente anti-bloqueio e intervalos humanizados programáveis.
+              </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• Rotação de Chips</span>
+                <span>• Anti-Ban Delay</span>
+              </div>
+            </BentoCard>
+
+            {/* Card 3: Cartografia Mundial & Heatmap (Requested by User) */}
+            <BentoCard className="p-7" delay={0.1}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-[#a78bfa] font-semibold border border-white/10">
+                  MÓDULO 03 • CARTOGRAFIA MUNDIAL
+                </span>
+                <Flame className="w-5 h-5 text-[#a78bfa]" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-white mb-2">Cartografia & Heatmap de Densidade</h3>
+              <p className="text-zinc-400 text-xs leading-relaxed mb-4">
+                Visualização cartográfica em camadas com mapa de calor mostrando a concentração de empresas sem site por bairro e setor econômico. Identifique polos comerciais com alta densidade para prospecção cirúrgica.
+              </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• Zonas Comerciais</span>
+                <span>• Mapas de Calor</span>
+              </div>
+            </BentoCard>
+
+            {/* Card 4: Auditoria Automatizada */}
+            <BentoCard className="p-7" delay={0.14}>
               <div className="flex items-center justify-between mb-4">
                 <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
-                  MÓDULO 02 • AUDITORIA
+                  MÓDULO 04 • AUDITORIA WEB
                 </span>
                 <Search className="w-5 h-5 text-zinc-400" />
               </div>
@@ -529,13 +543,35 @@ export default function ProspectAILanding() {
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 O robô audita automaticamente cada empresa: checa a existência de website, validade de certificado SSL, conformidade com dispositivos móveis e tempo de carregamento para entregar o argumento de venda pronto.
               </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• Checagem SSL</span>
+                <span>• Auditoria Mobile</span>
+              </div>
             </BentoCard>
 
-            {/* Card 3: Enriquecimento de Dados */}
-            <BentoCard className="p-7" delay={0.12}>
+            {/* Card 5: Auditor de Domínios & DNS em Tempo Real (Requested by User) */}
+            <BentoCard className="p-7" delay={0.18}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-amber-300 font-semibold border border-white/10">
+                  MÓDULO 05 • DOMÍNIOS & DNS
+                </span>
+                <Server className="w-5 h-5 text-amber-400" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-white mb-2">Auditor de Domínios & DNS</h3>
+              <p className="text-zinc-400 text-xs leading-relaxed mb-4">
+                Varredura instantânea de status de registro (Whois), registros MX, SPF/DKIM e domínios congelados ou expirados. Encontre clientes que perderam o domínio e precisam de recuperação imediata.
+              </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• Domínios Expirados</span>
+                <span>• Registros DNS/MX</span>
+              </div>
+            </BentoCard>
+
+            {/* Card 6: Enriquecimento de Dados & WhatsApp */}
+            <BentoCard className="p-7" delay={0.22}>
               <div className="flex items-center justify-between mb-4">
                 <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
-                  MÓDULO 03 • DECISORES
+                  MÓDULO 06 • DECISORES
                 </span>
                 <Phone className="w-5 h-5 text-zinc-400" />
               </div>
@@ -543,34 +579,64 @@ export default function ProspectAILanding() {
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Elimine a barreira de secretárias ou números fixos inoperantes. A plataforma extrai números de WhatsApp ativos, páginas comerciais no Instagram e e-mails para abordagem direta com o decisor.
               </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• WhatsApp Ativo</span>
+                <span>• Instagram Business</span>
+              </div>
             </BentoCard>
 
-            {/* Card 4: Roteiros Consultivos */}
-            <BentoCard className="p-7" delay={0.16}>
+            {/* Card 7: Roteiros Consultivos */}
+            <BentoCard className="p-7" delay={0.26}>
               <div className="flex items-center justify-between mb-4">
                 <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
-                  MÓDULO 04 • CONVERSÃO
+                  MÓDULO 07 • CONVERSÃO
                 </span>
                 <FileText className="w-5 h-5 text-zinc-400" />
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Roteiros de Abordagem Personalizados</h3>
+              <h3 className="font-display text-lg font-bold text-white mb-2">Roteiros Consultivos de Venda</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Gere abordagens consultivas sob medida com base nas deficiências detectadas na empresa alvo. Textos objetivos, persuasivos e prontos para envio sem parecer spam.
               </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• Pitches de Alto Impacto</span>
+                <span>• Copy Consultiva</span>
+              </div>
             </BentoCard>
 
-            {/* Card 5: Pipeline CRM */}
-            <BentoCard className="p-7" delay={0.2}>
+            {/* Card 8: Pipeline CRM */}
+            <BentoCard className="p-7" delay={0.3}>
               <div className="flex items-center justify-between mb-4">
                 <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
-                  MÓDULO 05 • CRM
+                  MÓDULO 08 • CRM KANBAN
                 </span>
                 <BarChart3 className="w-5 h-5 text-zinc-400" />
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Gestão de Funil & Contratos Recorrentes</h3>
+              <h3 className="font-display text-lg font-bold text-white mb-2">Gestão de Funil & Contratos MRR</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Mova leads pelas etapas de Primeiro Contato, Proposta Enviada e Fechado. Acompanhe a receita mensal recorrente (MRR) de manutenção e criação de sites em um único painel.
               </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• Controle de MRR</span>
+                <span>• Funil Integrado</span>
+              </div>
+            </BentoCard>
+
+            {/* Card 9: Integrações & Exportação */}
+            <BentoCard className="p-7" delay={0.34}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
+                  MÓDULO 09 • INTEGRAÇÕES
+                </span>
+                <DownloadCloud className="w-5 h-5 text-zinc-400" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-white mb-2">Exportação & Webhooks Imediatos</h3>
+              <p className="text-zinc-400 text-xs leading-relaxed mb-4">
+                Exporte listas completas em formato CSV ou conecte via Webhooks ao seu CRM (HubSpot, RD Station, ActiveCampaign) para disparo e automação contínua.
+              </p>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-[10px] text-zinc-400">
+                <span>• Planilhas CSV</span>
+                <span>• Webhooks REST</span>
+              </div>
             </BentoCard>
           </div>
         </div>
@@ -687,9 +753,11 @@ export default function ProspectAILanding() {
                   {[
                     "Buscas ilimitadas em qualquer metrópole",
                     "Expansão de raio completo de até 100km",
-                    "Detecção avançada de falhas em websites",
-                    "Extração de WhatsApp e contatos diretos",
-                    "Geração de roteiros consultivos de venda",
+                    "Disparo em massa automatizado WhatsApp & Email",
+                    "Cartografia mundial e heatmap de densidade",
+                    "Auditor de domínios congelados & servidores DNS",
+                    "Detecção avançada de falhas em websites e SSL",
+                    "Extração de WhatsApp e contatos diretos do decisor",
                     "Pipeline CRM com controle de contratos MRR",
                     "Exportação CSV sem limites e suporte prioritário",
                   ].map((f) => (
