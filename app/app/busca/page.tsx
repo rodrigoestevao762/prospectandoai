@@ -145,7 +145,7 @@ export default function BuscaPage() {
             realRadius,
             cidade,
             geo.paisNome,
-            null,
+            geo.bbox,
             limitFinal,
             realMult
           );

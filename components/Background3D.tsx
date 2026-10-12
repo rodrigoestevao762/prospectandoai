@@ -63,15 +63,15 @@ export default function Background3D() {
 
       geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
 
-      // Circular particle texture for soft organic bokeh
+      // Circular particle texture for soft organic luminous bokeh
       const canvas = document.createElement("canvas");
       canvas.width = 32;
       canvas.height = 32;
       const ctx = canvas.getContext("2d")!;
       const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-      grad.addColorStop(0, "rgba(255, 255, 255, 0.9)");
-      grad.addColorStop(0.3, "rgba(139, 92, 246, 0.6)");
-      grad.addColorStop(0.8, "rgba(91, 33, 182, 0.15)");
+      grad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+      grad.addColorStop(0.3, "rgba(167, 139, 250, 0.7)");
+      grad.addColorStop(0.7, "rgba(109, 40, 217, 0.25)");
       grad.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 32, 32);
@@ -79,11 +79,11 @@ export default function Background3D() {
       const pTexture = new THREE.CanvasTexture(canvas);
 
       const mat = new THREE.PointsMaterial({
-        color: 0x8b5cf6,
-        size: 2.8,
+        color: 0xa78bfa,
+        size: 3.2,
         map: pTexture,
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.36,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });

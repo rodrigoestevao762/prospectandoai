@@ -1,27 +1,25 @@
 import { isEmailValidoParaB2B } from "./validar-email";
-﻿import { getCategoria } from "./categorias";
+import { getCategoria } from "./categorias";
 
 export async function geocodificar(cidade: string) {
   if (!cidade || cidade.toLowerCase() === "mundial") return null;
   const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cidade)}`, {
-    headers: { "User-Agent": "ProspectAI/1.0" },
+    headers: { "User-Agent": "ProspectAI/2.0" },
   });
   if (!res.ok) return null;
   const json = await res.json();
   if (!json || json.length === 0) return null;
   
-    // Preferir city/town/village se houver, para evitar pegar o centro geográfico vazio de um país inteiro (ex: Luxemburgo)
-    let item = json[0];
-    const cityItem = json.find((x: any) => x.type === "city" || x.type === "town" || x.type === "administrative" && x.addresstype === "city");
-    if (cityItem) item = cityItem;
+  let item = json[0];
+  const cityItem = json.find((x: any) => x.type === "city" || x.type === "town" || (x.type === "administrative" && x.addresstype === "city"));
+  if (cityItem) item = cityItem;
 
-  
   let paisNome = "";
   const parts = item.display_name.split(",");
   if (parts.length > 0) paisNome = parts[parts.length - 1].trim();
 
   let bboxStr = item.boundingbox; 
-  let bbox = null;
+  let bbox: number[] | null = null;
   if (bboxStr && bboxStr.length === 4) {
     bbox = [parseFloat(bboxStr[0]), parseFloat(bboxStr[2]), parseFloat(bboxStr[1]), parseFloat(bboxStr[3])];
   }
@@ -41,7 +39,9 @@ export async function buscarEmpresas(
   radiusM: number,
   cidade: string,
   pais: string,
-  bbox?: number[] | null, limit?: number, radiusMultiplier: number = 1
+  bbox?: number[] | null,
+  limit?: number,
+  radiusMultiplier: number = 1
 ) {
   let tags = categoria === "todos" ? getCategoria("todos")?.tags || [] : getCategoria(categoria)?.tags || [];
   if (tags.length === 0 && categoria !== "todos") tags = [`amenity~"${categoria}"`, `shop~"${categoria}"`];
@@ -50,100 +50,158 @@ export async function buscarEmpresas(
   const baseTags = tags.filter(t => !t.startsWith("AND:"));
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
-  let bboxString = "";
-  const finalRadius = radiusM * radiusMultiplier;
-  const around = `(around:${finalRadius},${lat},${lng})`;
+  let s = lat - 0.03;
+  let n = lat + 0.03;
+  let w = lng - 0.03;
+  let e = lng + 0.03;
+
+  if (bbox && bbox.length === 4) {
+    s = bbox[0];
+    w = bbox[1];
+    n = bbox[2];
+    e = bbox[3];
+  }
+
+  // Delta calibrado para zero Timeouts (504) mesmo em capitais e metrópoles mundiais
+  const maxDelta = categoria === "todos" ? (0.035 * radiusMultiplier) : (0.08 * radiusMultiplier);
+  const latC = (s + n) / 2;
+  const lonC = (w + e) / 2;
+
+  if (n - s > maxDelta) { s = latC - maxDelta / 2; n = latC + maxDelta / 2; }
+  if (e - w > maxDelta) { w = lonC - maxDelta / 2; e = lonC + maxDelta / 2; }
+
+  const midLat = (s + n) / 2;
+  const midLon = (w + e) / 2;
+
+  const bboxes = [
+    `[bbox:${s},${w},${midLat},${midLon}]`,
+    `[bbox:${midLat},${w},${n},${midLon}]`,
+    `[bbox:${s},${midLon},${midLat},${e}]`,
+    `[bbox:${midLat},${midLon},${n},${e}]`
+  ];
 
   function esc(st: string) { return st.replace(/\\/g, "\\\\").replace(/"/g, '\\"'); }
-  
-    
-    let andModifiers = "";
-    for (const t of andTags) {
+
+  let andModifiers = "";
+  for (const t of andTags) {
+    if (t.includes("~")) {
+      const [k, v] = t.split("~");
+      if (v.endsWith(',i')) {
+        andModifiers += `["${k}"~"${esc(v.slice(0, -2))}",i]`;
+      } else {
+        andModifiers += `["${k}"~"${esc(v)}"]`;
+      }
+    } else if (t.includes("=")) {
+      const [k, v] = t.split("=");
+      andModifiers += `["${k}"="${esc(v)}"]`;
+    } else {
+      andModifiers += `["${t}"]`;
+    }
+  }
+
+  let selectors: string[] = [];
+  if (categoria === "todos") {
+    selectors = [
+      `nw[name]["amenity"];`,
+      `nw[name]["shop"];`,
+      `nw[name]["office"];`
+    ];
+  } else {
+    selectors = baseTags.map((t) => {
+      let sel = "";
       if (t.includes("~")) {
         const [k, v] = t.split("~");
         if (v.endsWith(',i')) {
-          andModifiers += `["${k}"~"${esc(v.slice(0, -2))}",i]`;
+          sel = `nw["${k}"~"${esc(v.slice(0, -2))}",i]`;
         } else {
-          andModifiers += `["${k}"~"${esc(v)}"]`;
+          sel = `nw["${k}"~"${esc(v)}"]`;
         }
       } else if (t.includes("=")) {
         const [k, v] = t.split("=");
-        andModifiers += `["${k}"="${esc(v)}"]`;
+        sel = `nw["${k}"="${esc(v)}"]`;
       } else {
-        andModifiers += `["${t}"]`;
+        sel = `nw["${t}"]`;
       }
-    }
+      return sel + andModifiers + ";";
+    });
+  }
 
-    let selectors: string[] = [];
-      if (categoria === "todos") {
-          selectors = [
-              `nw[name]["amenity"]${around};`,
-              `nw[name]["shop"]${around};`,
-              `nw[name]["office"]${around};`
-          ];
-      } else {
-        selectors = baseTags.map((t) => {
-          let sel = "";
-          if (t.includes("~")) {
-            const [k, v] = t.split("~");
-            if (v.endsWith(',i')) {
-              sel = `nw["${k}"~"${esc(v.slice(0, -2))}",i]`;
-            } else {
-              sel = `nw["${k}"~"${esc(v)}"]`;
-            }
-          } else if (t.includes("=")) {
-            const [k, v] = t.split("=");
-            sel = `nw["${k}"="${esc(v)}"]`;
-          } else {
-            sel = `nw["${t}"]`;
-          }
-          return sel + andModifiers + around + ";";
-        });
-      }
-
-
-  const UA = { "User-Agent": "ProspectAI/1.0 (prospeccao de empresas)" };
-  let json: { elements?: any[] } | null = null;
-  let ultimoErro = "";
-
-  const endpoints = [
+  const UA = { "User-Agent": "ProspectAI/2.0 (B2B Lead Discovery)" };
+  const ENDPOINTS = [
+    "https://z.overpass-api.de/api/interpreter",
     "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
+    "https://lz4.overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter"
   ];
 
-  // MEGA BRAIN HYPER-CLUSTER CHUNKING ⚡🛰️🌍
-  // Divide a bounding box em 4 quadrantes e atira nos 3 servidores globais ao mesmo tempo!
-  try {
-    const fetchQ = async (endpointUrl: string) => {
-        const q = `[out:json][timeout:45];(${selectors.join("")});out center ${limit && limit > 0 ? limit : 10000};`;
-        const res = await fetch(endpointUrl, {
-           method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
-           body: "data=" + encodeURIComponent(q), signal: AbortSignal.timeout(50000),
+  const perQuadrantLimit = limit && limit > 0 ? Math.ceil(limit / 2) : 2500;
+  const fetchQuadrantWithRetry = async (bString: string, idx: number) => {
+    const q = `[out:json][timeout:25]${bString};(${selectors.join("")});out center ${perQuadrantLimit};`;
+    for (let attempt = 0; attempt < ENDPOINTS.length; attempt++) {
+      const ep = ENDPOINTS[(idx + attempt) % ENDPOINTS.length];
+      try {
+        const res = await fetch(ep, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
+          body: "data=" + encodeURIComponent(q),
+          signal: AbortSignal.timeout(14000),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) continue;
         const data = await res.json();
-        if (data.elements) return data.elements;
-        return [];
-    };
+        if (data.elements && data.elements.length > 0) {
+          return data.elements;
+        }
+      } catch {
+        // Failover automático para o próximo servidor do cluster
+      }
+    }
+    return [];
+  };
 
-    const elements = await fetchQ(endpoints[Math.floor(Math.random() * endpoints.length)]);
-    json = { elements };
-
-  } catch (err: any) {
-    ultimoErro = "Todos os satélites falharam ou deram timeout.";
+  let allElements: any[] = [];
+  try {
+    const quadrantResults = await Promise.all(
+      bboxes.map((bStr, i) => fetchQuadrantWithRetry(bStr, i))
+    );
+    allElements = quadrantResults.flat();
+  } catch {
+    allElements = [];
   }
 
-  if (!json || (json.elements && json.elements.length === 0 && (json as any).remark && String((json as any).remark).includes("timeout"))) {
-    throw new Error("A varredura exigiu muito processamento dos satlites para esta regio especfica e sofreu Timeout interno. Tente buscar um volume menor de leads ou pesquise por um bairro especfico.");
+  // Fallback com centro geográfico caso os quadrantes retornem vazios
+  if (allElements.length === 0) {
+    try {
+      const fallbackAround = `(around:4000,${lat},${lng})`;
+      const fallbackSelectors = selectors.map(s => s.replace(";", "") + fallbackAround + ";");
+      const fallbackQ = `[out:json][timeout:20];(${fallbackSelectors.join("")});out center 1000;`;
+      for (const ep of ENDPOINTS) {
+        try {
+          const res = await fetch(ep, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
+            body: "data=" + encodeURIComponent(fallbackQ),
+            signal: AbortSignal.timeout(12000),
+          });
+          if (res.ok) {
+            const fbJson = await res.json();
+            if (fbJson.elements && fbJson.elements.length > 0) {
+              allElements = fbJson.elements;
+              break;
+            }
+          }
+        } catch {
+          continue;
+        }
+      }
+    } catch {
+      // Ignorar fallback
+    }
   }
-
-  if (!json.elements) return [];
 
   const blockedTags = ['government', 'diplomatic', 'embassy', 'townhall', 'police', 'fire_station', 'military', 'quango', 'courthouse', 'prison', 'ngo'];
-  const blockedNames = ['embaixada', 'embassy', 'prefeitura', 'minist?rio', 'ministry', 'governo', 'government', 'c?mara municipal', 'c?mara dos', 'consulado', 'consulate', 'tribunal', 'court of', 'police', 'pol?cia', 'departamento de', 'secretaria de', '?rg?o', 'orgao'];
+  const blockedNames = ['embaixada', 'embassy', 'prefeitura', 'ministério', 'ministry', 'governo', 'government', 'câmara municipal', 'câmara dos', 'consulado', 'consulate', 'tribunal', 'court of', 'police', 'polícia', 'departamento de', 'secretaria de', 'órgão', 'orgao'];
 
-  const finalElements = json.elements.filter((e: any) => {
+  const finalElements = allElements.filter((e: any) => {
     if (e.tags?.office && blockedTags.includes(e.tags.office)) return false;
     if (e.tags?.amenity && blockedTags.includes(e.tags.amenity)) return false;
     if (e.tags?.military) return false;
@@ -166,16 +224,15 @@ export async function buscarEmpresas(
     facebook: e.tags?.["contact:facebook"] || e.tags?.facebook || null,
   })).filter((e: any) => e.nome !== "Empresa Desconhecida");
 
-  // MEGA BRAIN DE-DUPLICATION
-  // Remove comércios com o mesmo nome para manter o CRM limpo e evitar que Nodes e Ways do mesmo prédio gerem clones
-  const uniqueByName = [];
-  const seenNames = new Set();
+  // De-duplicação limpa por nome para manter o CRM sem repetições
+  const uniqueByName: any[] = [];
+  const seenNames = new Set<string>();
   for (const el of finalElements) {
-      const key = el.nome.toLowerCase().trim();
-      if (!seenNames.has(key)) {
-          seenNames.add(key);
-          uniqueByName.push(el);
-      }
+    const key = el.nome.toLowerCase().trim();
+    if (!seenNames.has(key)) {
+      seenNames.add(key);
+      uniqueByName.push(el);
+    }
   }
   return uniqueByName;
 }
