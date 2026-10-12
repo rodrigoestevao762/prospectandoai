@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 
 export async function supabaseServer() {
   const cookieStore = await cookies();
+  const isProduction = process.env.NODE_ENV === "production";
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,7 +17,12 @@ export async function supabaseServer() {
         setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, {
+                ...options,
+                secure: isProduction,
+                sameSite: "lax",
+                path: "/",
+              })
             );
           } catch {
             // chamadas de servidor: middleware renova a sessão
@@ -29,6 +36,6 @@ export async function supabaseServer() {
 export async function usuarioObrigatorio() {
   const sb = await supabaseServer();
   const { data } = await sb.auth.getUser();
-  if (!data?.user) throw new Error("não autenticado"); // Liberado temporariamente para o amigo acessar
+  if (!data?.user) throw new Error("não autenticado");
   return { sb, user: data.user };
 }

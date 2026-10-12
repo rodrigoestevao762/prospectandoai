@@ -47,3 +47,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ erro: err.message, elements: [] }, { status: 500 });
   }
 }
+

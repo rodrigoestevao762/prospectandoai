@@ -3,6 +3,8 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const isProduction = process.env.NODE_ENV === "production";
+
   const sb = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,12 +17,18 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, {
+              ...options,
+              secure: isProduction,
+              sameSite: "lax",
+              path: "/",
+            })
           );
         },
       },
     }
   );
+
   const { data } = await sb.auth.getUser();
   const path = request.nextUrl.pathname;
   const isAuthPage = path === "/login";
@@ -32,28 +40,42 @@ export async function middleware(request: NextRequest) {
     path.endsWith(".geojson") ||
     path.endsWith(".ico");
 
-  // RESTRIÇÃO EXTREMA: Apenas rodrigoestevao762@gmail.com
-  const isAuthorizedUser = data?.user?.email === "rodrigoestevao762@gmail.com";
+  // Lista de e-mails autorizados (rodrigoestevao762@gmail.com padrão + variáveis de ambiente)
+  const userEmail = data?.user?.email?.toLowerCase() || "";
+  const extraAllowed = (process.env.ALLOWED_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 
+  const isAuthorizedUser =
+    userEmail === "rodrigoestevao762@gmail.com" ||
+    (adminEmail && userEmail === adminEmail) ||
+    extraAllowed.includes(userEmail) ||
+    process.env.ALLOW_ALL_USERS === "true";
+
+  // Se o usuário não está logado e tenta acessar página protegida
   if (!data.user && !isAuthPage && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
-  
+
+  // Se logou com e-mail não autorizado, redireciona para o login com mensagem clara de segurança
   if (data.user && !isAuthorizedUser && !isAuthPage && !isPublic) {
-    // Se logou com e-mail errado, chuta pro login
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.searchParams.set("error", "unauthorized");
     return NextResponse.redirect(url);
   }
 
+  // Se já está logado e autorizado e tenta entrar na página de login, leva direto ao dashboard
   if (data.user && isAuthorizedUser && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
   }
-  
+
   return response;
 }
 

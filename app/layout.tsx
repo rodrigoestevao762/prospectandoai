@@ -16,6 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+import CookieConsent from "@/components/CookieConsent";
+
 export const metadata: Metadata = {
   title: "ProspectAI — Plataforma Geoespacial de Inteligência de Vendas B2B",
   description:
@@ -27,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased font-sans`}>
         {children}
+        <CookieConsent />
       </body>
     </html>
   );
