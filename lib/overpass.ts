@@ -63,7 +63,7 @@ export async function buscarEmpresas(
   }
 
   // Delta calibrado para zero Timeouts (504) mesmo em capitais e metrópoles mundiais
-  const maxDelta = categoria === "todos" ? (0.035 * radiusMultiplier) : (0.08 * radiusMultiplier);
+  const maxDelta = categoria === "todos" ? (0.028 * radiusMultiplier) : (0.07 * radiusMultiplier);
   const latC = (s + n) / 2;
   const lonC = (w + e) / 2;
 
@@ -104,6 +104,7 @@ export async function buscarEmpresas(
     selectors = [
       `nw[name]["amenity"];`,
       `nw[name]["shop"];`,
+      `nw[name]["craft"];`,
       `nw[name]["office"];`
     ];
   } else {
@@ -128,13 +129,11 @@ export async function buscarEmpresas(
 
   const UA = { "User-Agent": "ProspectAI/2.0 (B2B Lead Discovery)" };
   const ENDPOINTS = [
-    "https://z.overpass-api.de/api/interpreter",
     "https://overpass-api.de/api/interpreter",
-    "https://lz4.overpass-api.de/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter"
+    "https://lz4.overpass-api.de/api/interpreter"
   ];
 
-  const perQuadrantLimit = limit && limit > 0 ? Math.ceil(limit / 2) : 2500;
+  const perQuadrantLimit = limit && limit > 0 ? Math.min(Math.ceil(limit / 2), 1500) : 1500;
   const fetchQuadrantWithRetry = async (bString: string, idx: number) => {
     const q = `[out:json][timeout:25]${bString};(${selectors.join("")});out center ${perQuadrantLimit};`;
     for (let attempt = 0; attempt < ENDPOINTS.length; attempt++) {
@@ -144,7 +143,7 @@ export async function buscarEmpresas(
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
           body: "data=" + encodeURIComponent(q),
-          signal: AbortSignal.timeout(14000),
+          signal: AbortSignal.timeout(24000),
         });
         if (!res.ok) continue;
         const data = await res.json();

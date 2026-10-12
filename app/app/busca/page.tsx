@@ -169,7 +169,7 @@ export default function BuscaPage() {
           });
 
           if (empresasRaw.length >= limitFinal) break;
-          if (novos === 0 && mult > 1) break;
+          if (novos === 0 && mult > 2) break;
 
           mult++;
           if (mult <= limiteMult) {
