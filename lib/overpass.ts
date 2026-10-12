@@ -50,8 +50,19 @@ export async function buscarEmpresas(
   const baseTags = tags.filter(t => !t.startsWith("AND:"));
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
-  // Sempre centraliza no epicentro comercial da cidade (lat, lng) para máxima densidade de negócios
-  const maxDelta = categoria === "todos" ? (0.035 * radiusMultiplier) : (0.07 * radiusMultiplier);
+  // Centraliza no epicentro comercial da cidade (lat, lng) e calibra a malha conforme o raio solicitado
+  let baseDelta = 0.035;
+  if (radiusM && radiusM > 0) {
+    const degreeDiameter = (radiusM * 2) / 111000;
+    if (categoria === "todos") {
+      // Para 'todos os comércios', o teto para máxima densidade sem timeout 504 é 0.065 graus
+      baseDelta = Math.max(0.025, Math.min(degreeDiameter, 0.065));
+    } else {
+      // Para nichos específicos, permite expansão em larga escala
+      baseDelta = Math.max(0.035, Math.min(degreeDiameter, 0.35));
+    }
+  }
+  const maxDelta = baseDelta * radiusMultiplier;
 
   let s = lat - maxDelta / 2;
   let n = lat + maxDelta / 2;
@@ -115,15 +126,36 @@ export async function buscarEmpresas(
     });
   }
 
-  const UA = { "User-Agent": "ProspectAI/2.0 (B2B Lead Discovery)" };
+  const UA = typeof window === "undefined" ? { "User-Agent": "ProspectAI/2.0 (B2B Lead Discovery)" } : {};
   const ENDPOINTS = [
+    "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass-api.de/api/interpreter",
-    "https://lz4.overpass-api.de/api/interpreter"
+    "https://overpass.kumi.systems/api/interpreter"
   ];
 
   const perQuadrantLimit = limit && limit > 0 ? Math.min(Math.ceil(limit / 2), 1500) : 1500;
   const fetchQuadrantWithRetry = async (bString: string, idx: number) => {
     const q = `[out:json][timeout:25]${bString};(${selectors.join("")});out center ${perQuadrantLimit};`;
+
+    // Se estiver rodando no navegador, utiliza o proxy Next.js para evitar bloqueio 406 de User-Agent
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/overpass-proxy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: q, attemptIndex: idx }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.elements) && data.elements.length > 0) {
+            return data.elements;
+          }
+        }
+      } catch {
+        // Fallback direto se o proxy local falhar
+      }
+    }
+
     for (let attempt = 0; attempt < ENDPOINTS.length; attempt++) {
       const ep = ENDPOINTS[(idx + attempt) % ENDPOINTS.length];
       try {
@@ -161,23 +193,44 @@ export async function buscarEmpresas(
       const fallbackAround = `(around:4000,${lat},${lng})`;
       const fallbackSelectors = selectors.map(s => s.replace(";", "") + fallbackAround + ";");
       const fallbackQ = `[out:json][timeout:20];(${fallbackSelectors.join("")});out center 1000;`;
-      for (const ep of ENDPOINTS) {
+
+      if (typeof window !== "undefined") {
         try {
-          const res = await fetch(ep, {
+          const res = await fetch("/api/overpass-proxy", {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
-            body: "data=" + encodeURIComponent(fallbackQ),
-            signal: AbortSignal.timeout(12000),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: fallbackQ, attemptIndex: 0 }),
           });
           if (res.ok) {
             const fbJson = await res.json();
-            if (fbJson.elements && fbJson.elements.length > 0) {
+            if (fbJson && Array.isArray(fbJson.elements) && fbJson.elements.length > 0) {
               allElements = fbJson.elements;
-              break;
             }
           }
         } catch {
-          continue;
+          // Ignorar erro do proxy
+        }
+      }
+
+      if (allElements.length === 0) {
+        for (const ep of ENDPOINTS) {
+          try {
+            const res = await fetch(ep, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
+              body: "data=" + encodeURIComponent(fallbackQ),
+              signal: AbortSignal.timeout(12000),
+            });
+            if (res.ok) {
+              const fbJson = await res.json();
+              if (fbJson.elements && fbJson.elements.length > 0) {
+                allElements = fbJson.elements;
+                break;
+              }
+            }
+          } catch {
+            continue;
+          }
         }
       }
     } catch {

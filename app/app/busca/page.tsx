@@ -177,6 +177,13 @@ export default function BuscaPage() {
           }
         }
 
+        if (empresasRaw.length === 0) {
+          setResultados([]);
+          setCarregando(false);
+          setErro("Nenhum alvo comercial detectado no quadrante selecionado. Tente calibrar o raio ou buscar por 'Todos os Comércios'.");
+          return;
+        }
+
         setErro(`Qualificando ${empresasRaw.length} leads detectados...`);
         const empresas = empresasRaw.map((e) => {
           const q = qualificar({
