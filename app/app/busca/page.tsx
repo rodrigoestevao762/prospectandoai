@@ -150,13 +150,20 @@ export default function BuscaPage() {
             realMult
           );
 
+          const getLeadKey = (r: any) => {
+            const n = (r.nome || "").toLowerCase().trim();
+            const end = (r.endereco || "").toLowerCase().trim();
+            return end ? `${n}::${end}` : `${n}::${r.osmId || r.id || ""}`;
+          };
+
           const map = new Map();
-          empresasRaw.forEach((r) => map.set(r.endereco + r.nome, r));
+          empresasRaw.forEach((r) => map.set(getLeadKey(r), r));
           let novos = 0;
           raw.forEach((r: any) => {
-            if (!map.has(r.endereco + r.nome)) {
+            const k = getLeadKey(r);
+            if (!map.has(k)) {
               empresasRaw.push(r);
-              map.set(r.endereco + r.nome, r);
+              map.set(k, r);
               novos++;
             }
           });

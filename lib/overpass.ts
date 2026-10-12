@@ -224,13 +224,16 @@ export async function buscarEmpresas(
     facebook: e.tags?.["contact:facebook"] || e.tags?.facebook || null,
   })).filter((e: any) => e.nome !== "Empresa Desconhecida");
 
-  // De-duplicação limpa por nome para manter o CRM sem repetições
+  // De-duplicação inteligente por Unidade/Filial:
+  // Permite filiais com o mesmo nome em ruas ou endereços diferentes (ou nós distintos do mapa)
   const uniqueByName: any[] = [];
-  const seenNames = new Set<string>();
+  const seenKeys = new Set<string>();
   for (const el of finalElements) {
-    const key = el.nome.toLowerCase().trim();
-    if (!seenNames.has(key)) {
-      seenNames.add(key);
+    const nome = el.nome.toLowerCase().trim();
+    const end = el.endereco ? el.endereco.toLowerCase().trim() : "";
+    const key = end ? `${nome}::${end}` : `${nome}::${el.osmId}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
       uniqueByName.push(el);
     }
   }
