@@ -1,36 +1,31 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-jakarta",
-  weight: ["600", "700", "800"],
-});
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-plex-mono",
+  variable: "--font-mono",
   weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "ProspectAI — Radar global de leads sem site",
+  title: "ProspectAI — Plataforma Geoespacial de Inteligência de Vendas B2B",
   description:
-    "Encontre empresas em todo o mundo que ainda não têm site, qualifique automaticamente e gere mensagens personalizadas com IA no idioma de cada país.",
+    "Infraestrutura corporativa para mapeamento de empresas locais, detecção de déficit digital e prospecção direta com tomadores de decisão.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${jakarta.variable} ${inter.variable} ${jetbrainsMono.variable} noise`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased font-sans`}>
         {children}
       </body>
     </html>

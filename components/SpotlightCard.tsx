@@ -25,18 +25,18 @@ export function SpotlightCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setOpacity(1)}
       onMouseLeave={() => setOpacity(0)}
-      className={`relative rounded-2xl border border-white/[0.06] bg-[#0c1018] overflow-hidden transition-all duration-300 hover:border-white/[0.12] ${className}`}
+      className={`relative rounded-xl border border-white/[0.07] bg-[#0c0e17] overflow-hidden transition-all duration-300 hover:border-zinc-700/80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] ${className}`}
     >
-      {/* Spotlight overlay */}
+      {/* Subtle cursor spotlight */}
       <div
         className="pointer-events-none absolute -inset-px transition-opacity duration-500"
         style={{
           opacity,
-          background: `radial-gradient(350px circle at ${position.x}px ${position.y}px, rgba(109, 40, 217, 0.2), transparent 70%)`,
+          background: `radial-gradient(350px circle at ${position.x}px ${position.y}px, rgba(124, 58, 237, 0.08), transparent 70%)`,
         }}
       />
-      {/* Top edge sheen */}
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#7c3aed]/40 to-transparent" />
+      {/* Clean top edge hairline sheen */}
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       <div className="relative z-10">{children}</div>
     </div>
   );

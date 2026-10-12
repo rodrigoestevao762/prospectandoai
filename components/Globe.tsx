@@ -97,12 +97,12 @@ function createWorldTexture(): THREE.CanvasTexture {
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  // 1. Solid Deep Obsidian Space Ocean
-  ctx.fillStyle = "#070812";
+  // 1. Solid Matte Deep Obsidian Space Ocean
+  ctx.fillStyle = "#08090f";
   ctx.fillRect(0, 0, width, height);
 
   // 2. Tactical Latitude & Longitude Coordinate Grid (Graticules)
-  ctx.strokeStyle = "rgba(124, 58, 237, 0.12)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
   ctx.lineWidth = 1;
   // Parallels (Latitude)
   for (let lat = -75; lat <= 75; lat += 15) {
@@ -123,8 +123,8 @@ function createWorldTexture(): THREE.CanvasTexture {
 
   // 3. Render Continents from bundled GeoJSON
   if (WORLD_LAND_DATA && (WORLD_LAND_DATA as any).features) {
-    // Fill Pass: Deep Solid Dark Royal Violet Continent Body
-    ctx.fillStyle = "#1e0b3d";
+    // Fill Pass: Executive Dark Slate / Graphite Landmass Body
+    ctx.fillStyle = "#141724";
 
     const drawPolygon = (coords: number[][]) => {
       ctx.beginPath();
@@ -150,9 +150,9 @@ function createWorldTexture(): THREE.CanvasTexture {
       }
     });
 
-    // Stroke Pass: Crisp Vivid Electric Violet Coastline Borders (No multi-color blur)
-    ctx.strokeStyle = "#7c3aed";
-    ctx.lineWidth = 1.8;
+    // Stroke Pass: Crisp Hairline Coastline Borders (Executive GIS Style)
+    ctx.strokeStyle = "#333a50";
+    ctx.lineWidth = 1.2;
 
     const strokePolygon = (coords: number[][]) => {
       ctx.beginPath();
@@ -179,7 +179,7 @@ function createWorldTexture(): THREE.CanvasTexture {
     });
 
     // Clean Geographic Coordinate Mesh on Continents
-    ctx.fillStyle = "rgba(167, 139, 250, 0.28)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
     const imgData = ctx.getImageData(0, 0, width, height);
     const data = imgData.data;
     for (let y = 10; y < height - 10; y += 14) {
@@ -188,7 +188,7 @@ function createWorldTexture(): THREE.CanvasTexture {
         // If pixel is on continent landmass
         if (data[idx] > 20) {
           ctx.beginPath();
-          ctx.arc(x, y, 1.0, 0, Math.PI * 2);
+          ctx.arc(x, y, 0.9, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -297,17 +297,17 @@ export default function Globe({
       worldTexture = createWorldTexture();
       const globeMaterial = new THREE.MeshPhongMaterial({
         map: worldTexture,
-        specular: new THREE.Color("#7c3aed"),
-        shininess: 20,
-        emissive: new THREE.Color("#180630"),
-        emissiveIntensity: 0.25,
+        specular: new THREE.Color("#2a3045"),
+        shininess: 14,
+        emissive: new THREE.Color("#080910"),
+        emissiveIntensity: 0.08,
       });
 
       const globeMesh = new THREE.Mesh(globeGeometry, globeMaterial);
       globeGroup.add(globeMesh);
 
-      // 3. Clean Atmospheric Limb Rim Shell (Single Deep Violet Hue)
-      const atmosGeometry = new THREE.SphereGeometry(globeRadius * 1.14, 64, 64);
+      // 3. Physically Grounded Thin Atmospheric Limb Shell
+      const atmosGeometry = new THREE.SphereGeometry(globeRadius * 1.12, 64, 64);
       const atmosMaterial = new THREE.ShaderMaterial({
         vertexShader: `
           varying vec3 vNormal;
@@ -319,8 +319,8 @@ export default function Globe({
         fragmentShader: `
           varying vec3 vNormal;
           void main() {
-            float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
-            gl_FragColor = vec4(0.48, 0.23, 0.93, 1.0) * intensity * 1.4;
+            float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.8);
+            gl_FragColor = vec4(0.35, 0.22, 0.65, 1.0) * intensity * 0.65;
           }
         `,
         blending: THREE.AdditiveBlending,
@@ -330,15 +330,15 @@ export default function Globe({
       const atmosMesh = new THREE.Mesh(atmosGeometry, atmosMaterial);
       scene.add(atmosMesh);
 
-      // 4. Clean Architectural Directional Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+      // 4. Balanced Architectural Directional Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
       scene.add(ambientLight);
 
-      const rimLight = new THREE.DirectionalLight(0x7c3aed, 2.4);
+      const rimLight = new THREE.DirectionalLight(0x6d28d9, 1.4);
       rimLight.position.set(4, 3, 5);
       scene.add(rimLight);
 
-      const subtleFill = new THREE.DirectionalLight(0x4c1d95, 0.8);
+      const subtleFill = new THREE.DirectionalLight(0x334155, 0.7);
       subtleFill.position.set(-4, -2, -3);
       scene.add(subtleFill);
 
@@ -350,15 +350,15 @@ export default function Globe({
         const isSp = hub.name === "São Paulo";
         const dotGeo = new THREE.SphereGeometry(isSp ? 0.022 : 0.016, 16, 16);
         const dotMat = new THREE.MeshBasicMaterial({
-          color: isSp ? 0x10b981 : 0xa78bfa,
+          color: isSp ? 0x10b981 : 0xcbd5e1,
         });
         const dotMesh = new THREE.Mesh(dotGeo, dotMat);
         dotMesh.position.copy(pos);
         globeGroup.add(dotMesh);
 
         // Subtly elevated marker stem
-        const stemGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.04, 8);
-        const stemMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed });
+        const stemGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.035, 8);
+        const stemMat = new THREE.MeshBasicMaterial({ color: 0x475569 });
         const stemMesh = new THREE.Mesh(stemGeo, stemMat);
         stemMesh.position.copy(pos.clone().multiplyScalar(1.015));
         stemMesh.lookAt(new THREE.Vector3(0, 0, 0));
@@ -485,10 +485,10 @@ export default function Globe({
         isHero ? "max-w-[720px] lg:max-w-[760px]" : "max-w-[420px]"
       } ${className}`}
     >
-      {/* ── SOLID DEEP PURPLE BACKDROP VIGNETTE (NO MULTI-COLOR BLUR) ── */}
+      {/* ── SUBTLE SOLID DEPTH BACKDROP (NO NEON GLOW) ── */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
         <div
-          className={`rounded-full bg-[radial-gradient(circle,rgba(109,40,217,0.18)_0%,rgba(76,29,149,0.06)_45%,transparent_75%)] blur-2xl ${
+          className={`rounded-full bg-[radial-gradient(circle,rgba(91,33,182,0.12)_0%,rgba(15,23,42,0.02)_50%,transparent_75%)] blur-2xl ${
             isHero ? "w-[640px] h-[640px]" : "w-[360px] h-[360px]"
           }`}
         />
@@ -497,19 +497,19 @@ export default function Globe({
       {/* ── TOP ENTERPRISE HUD BAR ── */}
       {isHero && (
         <div className="w-full flex items-center justify-between px-4 sm:px-6 mb-3 z-20 pointer-events-none">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#0a0c14]/90 border border-white/[0.08] backdrop-blur-md shadow-sm">
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#0c0e17]/90 border border-white/[0.08] backdrop-blur-md shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
             <span className="font-mono text-[10px] font-bold text-white/90 tracking-wider uppercase">
               BASE GEOESPACIAL B2B
             </span>
             <span className="text-white/20">•</span>
-            <span className="font-mono text-[10px] text-[#a78bfa] font-semibold">
+            <span className="font-mono text-[10px] text-zinc-300 font-semibold">
               {telemetryLat}, {telemetryLng}
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0a0c14]/90 border border-white/[0.08] backdrop-blur-md">
-            <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0c0e17]/90 border border-white/[0.08] backdrop-blur-md">
+            <Layers className="w-3.5 h-3.5 text-zinc-400" />
             <span className="font-mono text-[10px] font-medium text-white/60 uppercase tracking-wider">
               Malha Vetorial Natural Earth
             </span>
@@ -530,8 +530,8 @@ export default function Globe({
         {hasWebGL ? (
           <div ref={mountRef} className="w-full h-full flex items-center justify-center" />
         ) : (
-          <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full border border-violet-900/40 bg-[#0d0f18] flex flex-col items-center justify-center">
-            <GlobeIcon className="w-10 h-10 text-violet-500 mb-2" />
+          <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full border border-zinc-800 bg-[#0d0f18] flex flex-col items-center justify-center">
+            <GlobeIcon className="w-10 h-10 text-zinc-500 mb-2" />
             <span className="font-mono text-xs uppercase tracking-widest text-zinc-400 font-bold">
               Base Vetorial Carregada
             </span>
@@ -541,15 +541,15 @@ export default function Globe({
         {/* Enterprise Selected Hub Tooltip */}
         {activeHub && isHero && (
           <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-6 z-30 pointer-events-auto max-w-[240px] sm:max-w-[280px]">
-            <div className="p-3 sm:p-3.5 rounded-xl bg-[#0d0f18]/95 border border-white/[0.1] backdrop-blur-xl shadow-xl">
+            <div className="p-3 sm:p-3.5 rounded-xl bg-[#0c0e17]/95 border border-white/[0.1] backdrop-blur-xl shadow-2xl">
               <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
-                <MapPin className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 <p className="font-display text-xs font-bold text-white truncate">
                   {activeHub.name}, {activeHub.region}
                   <span className="text-[10px] text-zinc-400 font-normal ml-1 hidden sm:inline">({activeHub.country})</span>
                 </p>
               </div>
-              <p className="font-mono text-[10px] sm:text-[11px] text-[#a78bfa] font-bold mb-0.5">
+              <p className="font-mono text-[10px] sm:text-[11px] text-zinc-200 font-semibold mb-0.5">
                 {activeHub.leads}
               </p>
               <p className="text-[9px] sm:text-[10px] text-zinc-400 leading-tight">
@@ -568,8 +568,8 @@ export default function Globe({
             type="button"
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-[11px] font-semibold tracking-wider transition-all ${
               isRotating
-                ? "bg-[#6d28d9]/20 border-[#7c3aed]/50 text-white"
-                : "bg-white/[0.03] border-white/10 text-zinc-400 hover:text-white"
+                ? "bg-violet-950/60 border-violet-700/60 text-violet-200"
+                : "bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-white"
             }`}
           >
             {isRotating ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
@@ -579,10 +579,10 @@ export default function Globe({
           <button
             onClick={recenter}
             type="button"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 font-mono text-[11px] font-semibold text-zinc-300 hover:text-white hover:border-violet-500/40 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/80 border border-zinc-800 font-mono text-[11px] font-semibold text-zinc-300 hover:text-white hover:border-zinc-700 transition-all"
             title="Recentralizar no Brasil"
           >
-            <RotateCw className="w-3 h-3 text-[#a78bfa]" />
+            <RotateCw className="w-3 h-3 text-zinc-400" />
             Centralizar Brasil
           </button>
         </div>
@@ -593,7 +593,7 @@ export default function Globe({
         <div className="w-full mt-1 z-20">
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap px-2">
             <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 mr-1 hidden sm:inline-flex items-center gap-1">
-              <Compass className="w-3 h-3 text-violet-400" /> Metrópoles:
+              <Compass className="w-3 h-3 text-zinc-400" /> Metrópoles:
             </span>
             {ENTERPRISE_HUBS.map((hub) => {
               const isSelected = activeHub.name === hub.name;
@@ -604,13 +604,13 @@ export default function Globe({
                   type="button"
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
                     isSelected
-                      ? "bg-[#6d28d9] border-[#8b5cf6] text-white shadow-md font-semibold"
+                      ? "bg-violet-700 border-violet-500 text-white shadow-sm font-semibold"
                       : "bg-[#0c0e16]/80 border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/20"
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      isSelected ? "bg-white" : "bg-violet-400/60"
+                      isSelected ? "bg-white" : "bg-zinc-500"
                     }`}
                   />
                   <span>{hub.name}</span>

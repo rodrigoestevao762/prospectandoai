@@ -8,11 +8,22 @@ import { SpotlightCard } from "@/components/SpotlightCard";
 import { useTilt3D } from "@/hooks/useAnimations";
 import {
   ArrowRight, Search, Activity, BarChart3,
-  Crosshair, Layers, MapPin, CheckCircle2,
+  Layers, MapPin, CheckCircle2,
   Phone, Globe as GlobeIcon, FileText, Send,
   Sliders, ShieldCheck, Database, Building2,
-  Mail, Flame, Server, Network, DownloadCloud
+  Server, DownloadCloud, Radio, Users2
 } from "lucide-react";
+
+// Precision Radar Mark for High-End Engineering Branding
+function LogoMark({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+      <circle cx="12" cy="12" r="8" strokeOpacity="0.4" strokeDasharray="3 3" />
+    </svg>
+  );
+}
 
 // Dynamic Client-Only Load for 3D Background with zero SSR issues
 const Background3D = dynamic(() => import("@/components/Background3D"), {
@@ -24,17 +35,17 @@ const Globe = dynamic(() => import("@/components/Globe"), {
   ssr: false,
   loading: () => (
     <div className="w-full max-w-[580px] h-[340px] sm:h-[440px] lg:h-[580px] flex flex-col items-center justify-center">
-      <div className="w-56 h-56 rounded-full border border-violet-900/40 animate-pulse bg-violet-950/20 flex items-center justify-center shadow-lg">
-        <div className="w-36 h-36 rounded-full border border-dashed border-violet-500/40 animate-spin" />
+      <div className="w-48 h-48 rounded-full border border-zinc-800 animate-pulse bg-zinc-950/40 flex items-center justify-center">
+        <div className="w-28 h-28 rounded-full border border-dashed border-zinc-700 animate-spin" />
       </div>
-      <span className="font-mono text-xs uppercase tracking-widest text-violet-400 font-semibold mt-4 animate-pulse">
+      <span className="font-mono text-xs uppercase tracking-widest text-zinc-400 font-semibold mt-4 animate-pulse">
         Carregando Base Vetorial 3D...
       </span>
     </div>
   ),
 });
 
-/* ─── LIVE TICKER STRIP ─── */
+/* ─── LIVE TICKER STRIP (PRECISION TELEMETRY STREAM) ─── */
 const TICKER_ITEMS = [
   "RADAR GEOESPACIAL B2B ATIVO",
   "COBERTURA METROPOLITANA ATÉ 100KM",
@@ -51,12 +62,12 @@ const TICKER_ITEMS = [
 
 function Ticker() {
   return (
-    <div className="relative overflow-hidden border-y border-white/[0.08] bg-[#070910] py-3 select-none">
-      <div className="flex gap-0 animate-[marquee_28s_linear_infinite] w-max">
+    <div className="relative overflow-hidden border-y border-white/[0.06] bg-[#07080e] py-2.5 select-none">
+      <div className="flex gap-0 animate-[marquee_32s_linear_infinite] w-max">
         {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
-          <span key={i} className="flex items-center gap-6 px-8 font-mono text-[11px] font-semibold tracking-[0.2em] uppercase text-zinc-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed]" />
-            <span className="hover:text-white transition-colors duration-200">{item}</span>
+          <span key={i} className="flex items-center gap-6 px-8 font-mono text-[10px] font-medium tracking-[0.2em] uppercase text-zinc-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-600" />
+            <span className="hover:text-zinc-200 transition-colors duration-150">{item}</span>
           </span>
         ))}
       </div>
@@ -70,28 +81,29 @@ interface DemoLead {
   niche: string;
   neighborhood: string;
   issue: string;
+  issueType: "danger" | "warning" | "info" | "neutral";
   whatsapp: string;
   priority: "Alta" | "Imediata" | "Média";
 }
 
 const DEMO_LEADS_DATA: Record<string, DemoLead[]> = {
   "São Paulo, SP": [
-    { name: "Clínica Odonto Vida", niche: "Odontologia", neighborhood: "Perdizes", issue: "Sem Website Detectado", whatsapp: "(11) 98421-9920", priority: "Alta" },
-    { name: "Auto Mecânica Paulista", niche: "Automotivo", neighborhood: "Mooca", issue: "Domínio Expirado", whatsapp: "(11) 97134-1180", priority: "Imediata" },
-    { name: "Bistrô & Café Jardins", niche: "Gastronomia", neighborhood: "Jardins", issue: "Sem Cardápio Próprio", whatsapp: "(11) 99820-4411", priority: "Alta" },
-    { name: "Escritório Contábil Souza", niche: "Contabilidade", neighborhood: "Pinheiros", issue: "Site Não-Mobile / Lento", whatsapp: "(11) 96510-3302", priority: "Média" },
+    { name: "Clínica Odonto Vida", niche: "Odontologia", neighborhood: "Perdizes", issue: "Sem Website Detectado", issueType: "danger", whatsapp: "(11) 98421-9920", priority: "Alta" },
+    { name: "Auto Mecânica Paulista", niche: "Automotivo", neighborhood: "Mooca", issue: "Domínio Expirado", issueType: "warning", whatsapp: "(11) 97134-1180", priority: "Imediata" },
+    { name: "Bistrô & Café Jardins", niche: "Gastronomia", neighborhood: "Jardins", issue: "Sem Cardápio Próprio", issueType: "info", whatsapp: "(11) 99820-4411", priority: "Alta" },
+    { name: "Escritório Contábil Souza", niche: "Contabilidade", neighborhood: "Pinheiros", issue: "Site Não-Mobile / Lento", issueType: "neutral", whatsapp: "(11) 96510-3302", priority: "Média" },
   ],
   "Rio de Janeiro, RJ": [
-    { name: "Consultório Dr. Marcelo", niche: "Saúde & Estética", neighborhood: "Barra da Tijuca", issue: "Sem Website Detectado", whatsapp: "(21) 98840-7711", priority: "Alta" },
-    { name: "Academia Iron Fit", niche: "Fitness", neighborhood: "Botafogo", issue: "Página Social sem Domínio", whatsapp: "(21) 97412-3390", priority: "Imediata" },
-    { name: "Pizzaria Artesanal Lapa", niche: "Gastronomia", neighborhood: "Lapa", issue: "Dependência de Marketplace", whatsapp: "(21) 99310-8844", priority: "Alta" },
-    { name: "Imobiliária Carioca Prime", niche: "Imóveis", neighborhood: "Ipanema", issue: "Site sem Certificado SSL", whatsapp: "(21) 96120-5590", priority: "Média" },
+    { name: "Consultório Dr. Marcelo", niche: "Saúde & Estética", neighborhood: "Barra da Tijuca", issue: "Sem Website Detectado", issueType: "danger", whatsapp: "(21) 98840-7711", priority: "Alta" },
+    { name: "Academia Iron Fit", niche: "Fitness", neighborhood: "Botafogo", issue: "Página Social sem Domínio", issueType: "warning", whatsapp: "(21) 97412-3390", priority: "Imediata" },
+    { name: "Pizzaria Artesanal Lapa", niche: "Gastronomia", neighborhood: "Lapa", issue: "Dependência de Marketplace", issueType: "info", whatsapp: "(21) 99310-8844", priority: "Alta" },
+    { name: "Imobiliária Carioca Prime", niche: "Imóveis", neighborhood: "Ipanema", issue: "Site sem Certificado SSL", issueType: "neutral", whatsapp: "(21) 96120-5590", priority: "Média" },
   ],
   "Belo Horizonte, MG": [
-    { name: "Distribuidora Minas Aço", niche: "Logística & B2B", neighborhood: "Contagem", issue: "Sem Website Detectado", whatsapp: "(31) 98711-2200", priority: "Alta" },
-    { name: "Ateliê & Confeitaria Savassi", niche: "Alimentação", neighborhood: "Savassi", issue: "Domínio Expirado", whatsapp: "(31) 97320-4491", priority: "Imediata" },
-    { name: "Clínica Veterinária Pampulha", niche: "Pet & Vet", neighborhood: "Pampulha", issue: "Sem Presença Digital", whatsapp: "(31) 99410-6622", priority: "Alta" },
-    { name: "Advocacia & Perícias BH", niche: "Jurídico", neighborhood: "Lourdes", issue: "Site Obsoleto / Desktop Only", whatsapp: "(31) 96811-9940", priority: "Média" },
+    { name: "Distribuidora Minas Aço", niche: "Logística & B2B", neighborhood: "Contagem", issue: "Sem Website Detectado", issueType: "danger", whatsapp: "(31) 98711-2200", priority: "Alta" },
+    { name: "Ateliê & Confeitaria Savassi", niche: "Alimentação", neighborhood: "Savassi", issue: "Domínio Expirado", issueType: "warning", whatsapp: "(31) 97320-4491", priority: "Imediata" },
+    { name: "Clínica Veterinária Pampulha", niche: "Pet & Vet", neighborhood: "Pampulha", issue: "Sem Presença Digital", issueType: "danger", whatsapp: "(31) 99410-6622", priority: "Alta" },
+    { name: "Advocacia & Perícias BH", niche: "Jurídico", neighborhood: "Lourdes", issue: "Site Obsoleto / Desktop Only", issueType: "neutral", whatsapp: "(31) 96811-9940", priority: "Média" },
   ],
 };
 
@@ -109,15 +121,15 @@ function InteractivePlatformPreview() {
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#090b12] overflow-hidden shadow-2xl">
+    <div className="rounded-xl border border-white/[0.08] bg-[#0a0c14] overflow-hidden shadow-2xl">
       {/* Platform Console Header */}
-      <div className="px-5 py-4 border-b border-white/[0.07] bg-[#0c0e18] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="px-5 py-3.5 border-b border-white/[0.07] bg-[#0d0f19] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#6d28d9]/25 border border-[#7c3aed]/40 flex items-center justify-center">
-            <Building2 className="w-4 h-4 text-[#a78bfa]" />
+          <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
+            <Building2 className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="font-display text-sm font-bold text-white">Console Operacional de Varredura</h4>
+            <h4 className="font-semibold text-sm text-white">Console Operacional de Varredura</h4>
             <p className="text-[11px] text-zinc-400">Ambiente de demonstração com alvos reais mapeados</p>
           </div>
         </div>
@@ -130,11 +142,11 @@ function InteractivePlatformPreview() {
       </div>
 
       {/* Control Filter Bar */}
-      <div className="p-4 sm:p-5 border-b border-white/[0.06] bg-[#090b14]/50 flex flex-wrap items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 border-b border-white/[0.06] bg-[#090b12] flex flex-wrap items-center justify-between gap-4">
         {/* City Filter Pills */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-zinc-400 font-medium mr-1 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-[#a78bfa]" /> Metrópole:
+            <MapPin className="w-3.5 h-3.5 text-zinc-400" /> Metrópole:
           </span>
           {Object.keys(DEMO_LEADS_DATA).map((city) => (
             <button
@@ -143,8 +155,8 @@ function InteractivePlatformPreview() {
               type="button"
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 selectedCity === city
-                  ? "bg-[#6d28d9] text-white shadow-sm font-semibold"
-                  : "bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08]"
+                  ? "bg-violet-700 text-white font-semibold shadow-sm"
+                  : "bg-zinc-900/80 border border-zinc-800/80 text-zinc-400 hover:text-white hover:border-zinc-700"
               }`}
             >
               {city}
@@ -155,7 +167,7 @@ function InteractivePlatformPreview() {
         {/* Radius Filter Pills */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-zinc-400 font-medium mr-1 flex items-center gap-1">
-            <Sliders className="w-3.5 h-3.5 text-[#a78bfa]" /> Raio:
+            <Sliders className="w-3.5 h-3.5 text-zinc-400" /> Raio:
           </span>
           {["10 km", "25 km", "50 km", "100 km"].map((r) => (
             <button
@@ -164,7 +176,7 @@ function InteractivePlatformPreview() {
               type="button"
               className={`px-2.5 py-1 rounded-md text-[11px] font-mono transition-all ${
                 activeRadius === r
-                  ? "bg-white/10 text-white border border-white/20 font-bold"
+                  ? "bg-zinc-800 text-white border border-zinc-700 font-bold"
                   : "text-zinc-500 hover:text-zinc-300"
               }`}
             >
@@ -197,14 +209,22 @@ function InteractivePlatformPreview() {
                   {lead.neighborhood}
                 </td>
                 <td className="py-3.5 px-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-300 font-mono text-[10px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-[10px] font-semibold ${
+                    lead.issueType === "danger"
+                      ? "bg-rose-950/30 border border-rose-800/40 text-rose-300"
+                      : lead.issueType === "warning"
+                      ? "bg-amber-950/30 border border-amber-800/40 text-amber-300"
+                      : lead.issueType === "info"
+                      ? "bg-violet-950/30 border border-violet-800/40 text-violet-300"
+                      : "bg-sky-950/30 border border-sky-800/40 text-sky-300"
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
                     {lead.issue}
                   </span>
                 </td>
                 <td className="py-3.5 px-4">
                   <span className="inline-flex items-center gap-1.5 text-zinc-200 font-mono text-[11px]">
-                    <Phone className="w-3 h-3 text-[#a78bfa]" />
+                    <Phone className="w-3 h-3 text-zinc-400" />
                     {lead.whatsapp}
                   </span>
                 </td>
@@ -212,7 +232,7 @@ function InteractivePlatformPreview() {
                   <button
                     onClick={() => handleCopy(lead.whatsapp, idx)}
                     type="button"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-[#6d28d9] hover:text-white border border-white/10 text-zinc-300 font-medium text-xs transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-violet-700 hover:text-white border border-zinc-800 text-zinc-300 font-medium text-xs transition-all"
                   >
                     {copiedIndex === idx ? (
                       <>
@@ -235,12 +255,12 @@ function InteractivePlatformPreview() {
       {/* Footer Banner */}
       <div className="p-4 border-t border-white/[0.06] bg-[#070912] flex items-center justify-between text-xs text-zinc-400">
         <span className="flex items-center gap-2">
-          <Database className="w-4 h-4 text-[#a78bfa]" />
+          <Database className="w-4 h-4 text-zinc-400" />
           Mostrando 4 de centenas de alvos detectados no raio de {activeRadius} em {selectedCity}
         </span>
         <Link
           href="/login"
-          className="text-[#a78bfa] hover:text-white font-semibold transition-colors flex items-center gap-1"
+          className="text-violet-300 hover:text-white font-semibold transition-colors flex items-center gap-1"
         >
           Desbloquear varredura completa <ArrowRight className="w-3.5 h-3.5" />
         </Link>
@@ -249,7 +269,7 @@ function InteractivePlatformPreview() {
   );
 }
 
-/* ─── 3D BENTO CARD (CLEAN STARTUP STYLING) ─── */
+/* ─── 3D BENTO CARD (EXECUTIVE STARTUP STYLING) ─── */
 function BentoCard({
   children,
   className = "",
@@ -259,7 +279,7 @@ function BentoCard({
   className?: string;
   delay?: number;
 }) {
-  const { ref, rotateX, rotateY, scale, glare, handleMouseMove, handleMouseEnter, handleMouseLeave } = useTilt3D({ maxRotation: 4 });
+  const { ref, rotateX, rotateY, scale, glare, handleMouseMove, handleMouseEnter, handleMouseLeave } = useTilt3D({ maxRotation: 3 });
 
   return (
     <motion.div
@@ -268,21 +288,21 @@ function BentoCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ delay, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className={`relative rounded-2xl border border-white/[0.08] bg-[#0d0f18] hover:border-violet-500/40 transition-colors duration-300 overflow-hidden group ${className}`}
+      transition={{ delay, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className={`relative rounded-xl border border-white/[0.07] bg-[#0c0e17] hover:border-zinc-700/80 transition-all duration-200 overflow-hidden group shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] ${className}`}
     >
       <div
-        className="absolute inset-0 z-20 pointer-events-none rounded-2xl"
+        className="absolute inset-0 z-20 pointer-events-none rounded-xl"
         style={{
           opacity: glare.opacity,
-          background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,0.06) 0%, transparent 60%)`,
+          background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,0.04) 0%, transparent 60%)`,
         }}
       />
-      <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#7c3aed]/40 to-transparent" />
-      <div style={{ transform: "translateZ(12px)" }} className="h-full relative z-10">
+      <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div style={{ transform: "translateZ(10px)" }} className="h-full relative z-10">
         {children}
       </div>
     </motion.div>
@@ -292,35 +312,35 @@ function BentoCard({
 /* ─── MAIN LANDING PAGE ─── */
 export default function ProspectAILanding() {
   return (
-    <main className="relative min-h-screen text-white bg-[#06070b] overflow-x-hidden selection:bg-[#6d28d9] selection:text-white">
-      {/* ── 3D INTERACTIVE BACKGROUND CONSTELLATION & DEPTH GRID ── */}
+    <main className="relative min-h-screen text-white bg-[#08090e] overflow-x-hidden selection:bg-violet-700 selection:text-white">
+      {/* ── 3D AMBIENT DEPTH FIELD ── */}
       <Background3D />
 
-      {/* ── SUBTLE SOLID PURPLE VIGNETTE BACKDROP ── */}
+      {/* ── ARCHITECTURAL GRID AND SUBTLE VIGNETTE ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-[radial-gradient(ellipse_at_top,rgba(109,40,217,0.18)_0%,rgba(76,29,149,0.05)_50%,transparent_75%)] blur-2xl" />
-        <div className="absolute inset-0 bg-grid opacity-25" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-[radial-gradient(ellipse_at_top,rgba(91,33,182,0.12)_0%,rgba(15,23,42,0.02)_60%,transparent_75%)] blur-2xl" />
+        <div className="absolute inset-0 bg-grid opacity-20" />
       </div>
 
       {/* ── ENTERPRISE NAVIGATION BAR ── */}
       <motion.nav
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 inset-x-0 z-50 px-4 pt-3 sm:pt-4"
       >
-        <div className="mx-auto max-w-7xl rounded-xl border border-white/[0.08] bg-[#090b14]/90 backdrop-blur-xl shadow-lg">
-          <div className="px-5 sm:px-6 h-[60px] flex items-center justify-between">
+        <div className="mx-auto max-w-7xl rounded-xl border border-white/[0.08] bg-[#0c0e17]/90 backdrop-blur-xl shadow-lg">
+          <div className="px-5 sm:px-6 h-[58px] flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-[#6d28d9] flex items-center justify-center shadow-sm">
-                <Crosshair className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700/80 text-zinc-100 flex items-center justify-center shadow-sm">
+                <LogoMark className="w-4 h-4 text-violet-400" />
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-black tracking-tight text-base leading-tight text-white">
-                  Prospect<span className="text-[#a78bfa]">AI</span>
+                <span className="font-semibold tracking-tight text-base leading-tight text-white">
+                  ProspectAI
                 </span>
-                <span className="font-mono text-[8px] uppercase tracking-widest text-zinc-400 font-medium">B2B Lead Intelligence</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-zinc-400 font-medium">Radar Geoespacial B2B</span>
               </div>
             </Link>
 
@@ -348,6 +368,7 @@ export default function ProspectAILanding() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="font-mono text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">Rede Operacional</span>
               </div>
+
               <Link
                 href="/login"
                 className="btn-signal flex items-center gap-2 text-xs px-4 py-2 rounded-lg font-semibold"
@@ -359,25 +380,25 @@ export default function ProspectAILanding() {
         </div>
       </motion.nav>
 
-      {/* ── HERO SECTION: RESPONSIVE ALL-DEVICES (NEVER FADES ON SCROLL) ── */}
+      {/* ── HERO SECTION: RESPONSIVE ALL-DEVICES ── */}
       <section className="relative min-h-[92vh] flex items-center pt-24 pb-16 px-4 sm:px-6 z-10">
         <div className="mx-auto max-w-7xl w-full grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Column: Clear Value Proposition (6 cols) */}
           <div className="lg:col-span-6 flex flex-col items-start text-left pt-2 sm:pt-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#6d28d9]/15 border border-[#7c3aed]/30 mb-6">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#a78bfa]" />
-              <span className="font-mono text-[11px] font-semibold tracking-wider uppercase text-zinc-200">
-                Plataforma de Prospecção Geoespacial B2B
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-zinc-900/90 border border-zinc-800 mb-6">
+              <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="font-mono text-[11px] font-semibold tracking-wider uppercase text-zinc-300">
+                Inteligência Territorial & Prospecção B2B
               </span>
             </div>
 
-            <h1 className="font-display font-black text-3xl sm:text-5xl xl:text-6xl tracking-tight leading-[1.08] mb-6 text-white">
+            <h1 className="font-bold text-3xl sm:text-5xl xl:text-6xl tracking-[-0.025em] leading-[1.08] mb-6 text-white">
               Encontre empresas locais com déficit digital{" "}
-              <span className="text-[#a78bfa]">sem intermediários.</span>
+              <span className="text-zinc-300">sem intermediários.</span>
             </h1>
 
             <p className="text-zinc-400 text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed mb-8 font-normal">
-              Mapeie em minutos regiões metropolitanas de até 100km, identifique empresas sem site profissional ou com páginas obsoletas e acesse os contatos diretos de sócios e tomadores de decisão com WhatsApp verificado.
+              Mapeie em minutos regiões metropolitanas de até 100km, identifique empresas sem site profissional ou com páginas obsoletas e acesse os contatos diretos de tomadores de decisão com WhatsApp verificado.
             </p>
 
             {/* CTAs */}
@@ -399,15 +420,15 @@ export default function ProspectAILanding() {
             {/* Metrics Breakdown */}
             <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-white/[0.08] w-full max-w-lg">
               <div>
-                <p className="font-display text-xl sm:text-2xl font-black text-white">195+</p>
+                <p className="text-xl sm:text-2xl font-bold text-white">195+</p>
                 <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Países Mapeados</p>
               </div>
               <div>
-                <p className="font-display text-xl sm:text-2xl font-black text-[#a78bfa]">100km</p>
+                <p className="text-xl sm:text-2xl font-bold text-violet-300">100km</p>
                 <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Raio Metropolitano</p>
               </div>
               <div>
-                <p className="font-display text-xl sm:text-2xl font-black text-emerald-400">Zero</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-400">Zero</p>
                 <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Timeouts de Busca</p>
               </div>
             </div>
@@ -429,10 +450,10 @@ export default function ProspectAILanding() {
       <section id="console" className="relative z-10 py-24 px-4 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-12">
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a78bfa] mb-2 block">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-2 block">
               Demonstração Interativa da Ferramenta
             </span>
-            <h2 className="font-display text-2xl sm:text-4xl font-black text-white tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
               Veja a qualidade dos dados gerados em segundos.
             </h2>
             <p className="text-zinc-400 text-sm max-w-xl mx-auto mt-2">
@@ -447,14 +468,14 @@ export default function ProspectAILanding() {
       <section id="funcionalidades" className="relative z-10 py-24 px-4 sm:px-6 border-t border-white/[0.06]">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#6d28d9]/15 border border-[#7c3aed]/30 mb-3">
-              <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 mb-3">
+              <Layers className="w-3.5 h-3.5 text-zinc-400" />
               <span className="font-mono text-[10px] font-semibold tracking-wider uppercase text-zinc-300">
                 Arquitetura de Dados B2B Completa
               </span>
             </div>
 
-            <h2 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
               Engenharia de dados e automação para prospecção de alta escala.
             </h2>
             <p className="text-zinc-400 text-sm max-w-2xl mx-auto mt-3">
@@ -468,12 +489,14 @@ export default function ProspectAILanding() {
               <div className="flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#6d28d9]/25 text-[#a78bfa] font-bold border border-[#7c3aed]/30">
+                    <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-300 font-semibold border border-zinc-800">
                       MÓDULO 01 • MALHA GEOESPACIAL
                     </span>
-                    <GlobeIcon className="w-5 h-5 text-zinc-400" />
+                    <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center">
+                      <GlobeIcon className="w-4 h-4" />
+                    </div>
                   </div>
-                  <h3 className="font-display text-xl font-bold text-white mb-2">
+                  <h3 className="text-xl font-bold text-white mb-2 tracking-tight">
                     Mapeamento Territorial com Raio Expansível até 100km
                   </h3>
                   <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed mb-6">
@@ -487,7 +510,7 @@ export default function ProspectAILanding() {
                     ["195 Países", "Malha OpenStreetMap"],
                   ].map(([v, l]) => (
                     <div key={l} className="p-3 rounded-lg bg-[#070912] border border-white/[0.05]">
-                      <p className="font-display font-bold text-white text-sm">{v}</p>
+                      <p className="font-bold text-white text-sm">{v}</p>
                       <p className="font-mono text-[9px] uppercase tracking-wider text-zinc-500">{l}</p>
                     </div>
                   ))}
@@ -495,15 +518,17 @@ export default function ProspectAILanding() {
               </div>
             </BentoCard>
 
-            {/* Card 2: Disparo em Massa Automatizado (Requested by User) */}
+            {/* Card 2: Disparo em Massa Automatizado */}
             <BentoCard className="p-7" delay={0.06}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#6d28d9]/30 text-emerald-400 font-semibold border border-emerald-500/30">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-emerald-400 font-semibold border border-zinc-800">
                   MÓDULO 02 • DISPARO EM MASSA
                 </span>
-                <Send className="w-5 h-5 text-emerald-400" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center">
+                  <Send className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Disparo em Massa Automatizado</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Disparo em Massa Automatizado</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Envio multi-canal escalável com conexão direta de instâncias WhatsApp e SMTP corporativo. Rotação automática de canais, cadência inteligente anti-bloqueio e intervalos humanizados programáveis.
               </p>
@@ -513,15 +538,17 @@ export default function ProspectAILanding() {
               </div>
             </BentoCard>
 
-            {/* Card 3: Cartografia Mundial & Heatmap (Requested by User) */}
+            {/* Card 3: Cartografia Mundial & Heatmap */}
             <BentoCard className="p-7" delay={0.1}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-[#a78bfa] font-semibold border border-white/10">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-300 font-semibold border border-zinc-800">
                   MÓDULO 03 • CARTOGRAFIA MUNDIAL
                 </span>
-                <Flame className="w-5 h-5 text-[#a78bfa]" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center">
+                  <Activity className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Cartografia & Heatmap de Densidade</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Cartografia & Heatmap de Densidade</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Visualização cartográfica em camadas com mapa de calor mostrando a concentração de empresas sem site por bairro e setor econômico. Identifique polos comerciais com alta densidade para prospecção cirúrgica.
               </p>
@@ -534,12 +561,14 @@ export default function ProspectAILanding() {
             {/* Card 4: Auditoria Automatizada */}
             <BentoCard className="p-7" delay={0.14}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-300 font-semibold border border-zinc-800">
                   MÓDULO 04 • AUDITORIA WEB
                 </span>
-                <Search className="w-5 h-5 text-zinc-400" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center">
+                  <Search className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Detecção de Déficit Digital</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Detecção de Déficit Digital</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 O robô audita automaticamente cada empresa: checa a existência de website, validade de certificado SSL, conformidade com dispositivos móveis e tempo de carregamento para entregar o argumento de venda pronto.
               </p>
@@ -549,15 +578,17 @@ export default function ProspectAILanding() {
               </div>
             </BentoCard>
 
-            {/* Card 5: Auditor de Domínios & DNS em Tempo Real (Requested by User) */}
+            {/* Card 5: Auditor de Domínios & DNS em Tempo Real */}
             <BentoCard className="p-7" delay={0.18}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-amber-300 font-semibold border border-white/10">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-amber-300 font-semibold border border-zinc-800">
                   MÓDULO 05 • DOMÍNIOS & DNS
                 </span>
-                <Server className="w-5 h-5 text-amber-400" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-amber-400 flex items-center justify-center">
+                  <Server className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Auditor de Domínios & DNS</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Auditor de Domínios & DNS</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Varredura instantânea de status de registro (Whois), registros MX, SPF/DKIM e domínios congelados ou expirados. Encontre clientes que perderam o domínio e precisam de recuperação imediata.
               </p>
@@ -570,12 +601,14 @@ export default function ProspectAILanding() {
             {/* Card 6: Enriquecimento de Dados & WhatsApp */}
             <BentoCard className="p-7" delay={0.22}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-300 font-semibold border border-zinc-800">
                   MÓDULO 06 • DECISORES
                 </span>
-                <Phone className="w-5 h-5 text-zinc-400" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center">
+                  <Phone className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">WhatsApp Comercial Validado</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">WhatsApp Comercial Validado</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Elimine a barreira de secretárias ou números fixos inoperantes. A plataforma extrai números de WhatsApp ativos, páginas comerciais no Instagram e e-mails para abordagem direta com o decisor.
               </p>
@@ -588,12 +621,14 @@ export default function ProspectAILanding() {
             {/* Card 7: Roteiros Consultivos */}
             <BentoCard className="p-7" delay={0.26}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-300 font-semibold border border-zinc-800">
                   MÓDULO 07 • CONVERSÃO
                 </span>
-                <FileText className="w-5 h-5 text-zinc-400" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center">
+                  <FileText className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Roteiros Consultivos de Venda</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Roteiros Consultivos de Venda</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Gere abordagens consultivas sob medida com base nas deficiências detectadas na empresa alvo. Textos objetivos, persuasivos e prontos para envio sem parecer spam.
               </p>
@@ -606,12 +641,14 @@ export default function ProspectAILanding() {
             {/* Card 8: Pipeline CRM */}
             <BentoCard className="p-7" delay={0.3}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-300 font-semibold border border-zinc-800">
                   MÓDULO 08 • CRM KANBAN
                 </span>
-                <BarChart3 className="w-5 h-5 text-zinc-400" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Gestão de Funil & Contratos MRR</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Gestão de Funil & Contratos MRR</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Mova leads pelas etapas de Primeiro Contato, Proposta Enviada e Fechado. Acompanhe a receita mensal recorrente (MRR) de manutenção e criação de sites em um único painel.
               </p>
@@ -624,12 +661,14 @@ export default function ProspectAILanding() {
             {/* Card 9: Integrações & Exportação */}
             <BentoCard className="p-7" delay={0.34}>
               <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-white/[0.05] text-zinc-300 font-semibold border border-white/10">
+                <span className="font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-md bg-zinc-900 text-zinc-300 font-semibold border border-zinc-800">
                   MÓDULO 09 • INTEGRAÇÕES
                 </span>
-                <DownloadCloud className="w-5 h-5 text-zinc-400" />
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center">
+                  <DownloadCloud className="w-4 h-4" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-2">Exportação & Webhooks Imediatos</h3>
+              <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Exportação & Webhooks Imediatos</h3>
               <p className="text-zinc-400 text-xs leading-relaxed mb-4">
                 Exporte listas completas em formato CSV ou conecte via Webhooks ao seu CRM (HubSpot, RD Station, ActiveCampaign) para disparo e automação contínua.
               </p>
@@ -643,13 +682,13 @@ export default function ProspectAILanding() {
       </section>
 
       {/* ── COMO FUNCIONA (4 ETAPAS CLARAS) ── */}
-      <section id="como-funciona" className="relative z-10 py-24 px-4 sm:px-6 border-y border-white/[0.06] bg-[#070912]">
+      <section id="como-funciona" className="relative z-10 py-24 px-4 sm:px-6 border-y border-white/[0.06] bg-[#07080e]">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a78bfa] mb-2 block">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-2 block">
               Processo Operacional
             </span>
-            <h2 className="font-display text-3xl sm:text-4xl font-black text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
               Do mapeamento do território ao fechamento do contrato.
             </h2>
           </div>
@@ -682,11 +721,11 @@ export default function ProspectAILanding() {
               },
             ].map((step) => (
               <SpotlightCard key={step.num} className="p-6">
-                <div className="w-9 h-9 rounded-lg bg-[#6d28d9]/20 border border-[#7c3aed]/40 flex items-center justify-center mb-4 text-[#a78bfa]">
+                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 text-zinc-300">
                   <step.icon className="w-4 h-4" />
                 </div>
-                <span className="font-mono text-xl font-black text-[#a78bfa] mb-2 block">{step.num}</span>
-                <h4 className="font-display font-bold text-base text-white mb-1.5">{step.title}</h4>
+                <span className="font-mono text-xl font-bold text-zinc-500 mb-2 block">{step.num}</span>
+                <h4 className="font-semibold text-base text-white mb-1.5">{step.title}</h4>
                 <p className="text-zinc-400 text-xs leading-relaxed">{step.desc}</p>
               </SpotlightCard>
             ))}
@@ -698,10 +737,10 @@ export default function ProspectAILanding() {
       <section id="planos" className="relative z-10 py-24 px-4 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-16">
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a78bfa] mb-2 block">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-2 block">
               Planos Transparentes
             </span>
-            <h2 className="font-display text-3xl sm:text-4xl font-black text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
               Pronto para construir sua carteira de clientes recorrentes?
             </h2>
           </div>
@@ -711,7 +750,7 @@ export default function ProspectAILanding() {
             <SpotlightCard className="p-8 sm:p-10 flex flex-col justify-between">
               <div>
                 <span className="font-mono text-xs uppercase tracking-wider text-zinc-500 font-semibold block mb-2">Degustação</span>
-                <h3 className="font-display text-3xl font-black text-white mb-2">Acesso Gratuito</h3>
+                <h3 className="text-3xl font-bold text-white mb-2">Acesso Gratuito</h3>
                 <p className="text-zinc-400 text-sm mb-6">Experimente o motor geoespacial sem compromisso.</p>
 
                 <div className="space-y-3 mb-8">
@@ -737,16 +776,16 @@ export default function ProspectAILanding() {
               </Link>
             </SpotlightCard>
 
-            {/* Pro Tier (Solid Deep Purple) */}
-            <div className="relative rounded-xl border border-[#7c3aed]/50 bg-[#0c0e18] p-8 sm:p-10 flex flex-col justify-between shadow-xl">
+            {/* Pro Tier (Solid Executive Purple) */}
+            <div className="relative rounded-xl border border-violet-700/60 bg-[#0e101a] p-8 sm:p-10 flex flex-col justify-between shadow-xl ring-1 ring-violet-500/20">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-xs uppercase tracking-wider text-[#a78bfa] font-bold">Ilimitado</span>
-                  <span className="font-mono text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#6d28d9] text-white">
+                  <span className="font-mono text-xs uppercase tracking-wider text-violet-300 font-bold">Ilimitado</span>
+                  <span className="font-mono text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded bg-violet-700 text-white">
                     RECOMENDADO
                   </span>
                 </div>
-                <h3 className="font-display text-3xl font-black text-white mb-2">Plano Profissional</h3>
+                <h3 className="text-3xl font-bold text-white mb-2">Plano Profissional</h3>
                 <p className="text-zinc-400 text-sm mb-6">Capacidade máxima para agências e profissionais de vendas.</p>
 
                 <div className="space-y-3 mb-8">
@@ -771,7 +810,7 @@ export default function ProspectAILanding() {
 
               <Link
                 href="/login"
-                className="btn-signal w-full py-3.5 rounded-lg font-bold text-xs text-center block"
+                className="btn-signal w-full py-3.5 rounded-lg font-semibold text-xs text-center block"
               >
                 Acessar Versão Completa
               </Link>
@@ -781,14 +820,14 @@ export default function ProspectAILanding() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="relative z-10 border-t border-white/[0.06] py-10 px-4 sm:px-6 bg-[#05060a]">
+      <footer className="relative z-10 border-t border-white/[0.06] py-10 px-4 sm:px-6 bg-[#06070c]">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#6d28d9] flex items-center justify-center">
-              <Crosshair className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-700/80 text-zinc-100 flex items-center justify-center">
+              <LogoMark className="w-3.5 h-3.5 text-violet-400" />
             </div>
-            <span className="font-display text-sm font-bold tracking-tight text-white">
-              Prospect<span className="text-[#a78bfa]">AI</span>
+            <span className="text-sm font-semibold tracking-tight text-white">
+              ProspectAI
             </span>
           </div>
 
