@@ -50,25 +50,13 @@ export async function buscarEmpresas(
   const baseTags = tags.filter(t => !t.startsWith("AND:"));
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
-  let s = lat - 0.03;
-  let n = lat + 0.03;
-  let w = lng - 0.03;
-  let e = lng + 0.03;
+  // Sempre centraliza no epicentro comercial da cidade (lat, lng) para máxima densidade de negócios
+  const maxDelta = categoria === "todos" ? (0.035 * radiusMultiplier) : (0.07 * radiusMultiplier);
 
-  if (bbox && bbox.length === 4) {
-    s = bbox[0];
-    w = bbox[1];
-    n = bbox[2];
-    e = bbox[3];
-  }
-
-  // Delta calibrado para zero Timeouts (504) mesmo em capitais e metrópoles mundiais
-  const maxDelta = categoria === "todos" ? (0.028 * radiusMultiplier) : (0.07 * radiusMultiplier);
-  const latC = (s + n) / 2;
-  const lonC = (w + e) / 2;
-
-  if (n - s > maxDelta) { s = latC - maxDelta / 2; n = latC + maxDelta / 2; }
-  if (e - w > maxDelta) { w = lonC - maxDelta / 2; e = lonC + maxDelta / 2; }
+  let s = lat - maxDelta / 2;
+  let n = lat + maxDelta / 2;
+  let w = lng - maxDelta / 2;
+  let e = lng + maxDelta / 2;
 
   const midLat = (s + n) / 2;
   const midLon = (w + e) / 2;

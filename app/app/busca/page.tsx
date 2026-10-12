@@ -122,7 +122,7 @@ export default function BuscaPage() {
 
         const empresasRaw: any[] = [];
         let mult = 1;
-        const maxMult = limitFinal > 500 ? 5 : 3;
+        const maxMult = limitFinal > 1500 ? 2 : 1;
 
         const limiteMult = raioManual !== "auto" ? 1 : maxMult;
         while (mult <= limiteMult) {
