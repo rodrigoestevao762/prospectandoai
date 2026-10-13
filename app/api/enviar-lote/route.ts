@@ -223,8 +223,10 @@ export async function POST(req: Request) {
       resultados,
     });
   } catch (e: any) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg === "não autenticado") return NextResponse.json({ erro: msg }, { status: 401 });
     return NextResponse.json(
-      { erro: e.message || "Falha crítica no servidor SMTP" },
+      { erro: msg || "Falha crítica no servidor SMTP" },
       { status: 500 }
     );
   }
