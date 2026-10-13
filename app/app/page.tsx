@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { CATEGORIAS } from "@/lib/categorias";
+import { isEmailValidoParaB2B } from "@/lib/validar-email";
 
 type Lead = {
   id: string;
@@ -344,99 +345,98 @@ Tem certeza absoluta?`)) return;
     let enviadosHoje = parseInt(localStorage.getItem(storageKey) || '0', 10);
     
     if (enviadosHoje >= limit) {
-      return setAviso(`Limite atingido por hoje (${limit}). Troque a conta de e-mail nas configurações para enviar mais.`);
+      return setAviso(`Limite diário de envios atingido (${limit} e-mails hoje). Configure outra conta nas Configurações.`);
     }
+
     const paraEnviar = visiveis.filter(l => 
       l.email && 
-      !l.email.includes('duckduckgo.com') && 
+      isEmailValidoParaB2B(l.email) && 
       ['novo', 'mensagem_gerada'].includes(l.status)
     );
     
-    if (paraEnviar.length === 0) return setAviso('Nenhum lead com e-mail v�lido dispon�vel para envio.');
+    if (paraEnviar.length === 0) {
+      return setAviso('Nenhum lead com e-mail corporativo válido disponível para envio nesta lista.');
+    }
     
     const qtdPermitida = limit - enviadosHoje;
     const loteLimitado = paraEnviar.slice(0, qtdPermitida);
 
-    if (!confirm('Voc� j� enviou ' + enviadosHoje + ' e-mails hoje. Deseja disparar e-mails para mais ' + loteLimitado.length + ' leads simultaneamente (limite diário)?')) return;
+    if (!confirm(`Você já enviou ${enviadosHoje} e-mails hoje.\nDeseja iniciar o disparo para ${loteLimitado.length} leads selecionados?`)) return;
     
     let sucessos = 0;
     let ultErro = "";
-const BATCH_SIZE = 50; // Lotes maiores para mais velocidade
+    const BATCH_SIZE = 15;
     let pending = [...loteLimitado];
-    let attempts: Record<string, number> = {};
     
+    setOcupado("enviando_lote");
+    setAviso(`Iniciando motor de disparo para ${loteLimitado.length} leads...`);
+
     while (pending.length > 0) {
-        const batch = pending.slice(0, BATCH_SIZE);
-        const loteIds = batch.map(l => l.id);
+      const batch = pending.slice(0, BATCH_SIZE);
+      const loteIds = batch.map(l => l.id);
+      
+      setAviso(`Disparando lote (${loteIds.length} leads)... Progresso: ${sucessos} de ${loteLimitado.length} enviados`);
+      
+      let abortar = false;
+      try {
+        const res = await fetch('/api/enviar-lote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leadIds: loteIds }),
+        });
+        const json = await res.json();
         
-        setAviso(`Disparando ${sucessos} de ${loteLimitado.length}... (Enviando lote atual de ${loteIds.length})`);
-        setOcupado("enviando_lote");
-        
-        let batchSuccess = false;
-        let teveErroDeRateLimit = false;
-        try {
-            const res = await fetch('/api/enviar-lote', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadIds: loteIds }),
-            });
-            const json = await res.json();
-            
-            if (res.ok && json.resultados) {
-                batchSuccess = true;
-                let sucessosLote = 0;
-                
-                json.resultados.forEach((r: any) => {
-                    if (r.ok) {
-                        sucessosLote++;
-                        pending = pending.filter(p => p.id !== r.id);
-                        setLeads((ls) => ls.map(lead => lead.id === r.id ? { ...lead, status: 'enviado', canal: 'email' } : lead));
-                    } else {
-                        teveErroDeRateLimit = true;
-                        attempts[r.id] = (attempts[r.id] || 0) + 1;
-                        if (attempts[r.id] >= 4) {
-                            pending = pending.filter(p => p.id !== r.id); // Drop after 4 attempts
-                            ultErro = r.erro;
-                        }
-                    }
-                });
-                
-                sucessos += sucessosLote;
-                localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
+        if (res.ok && json.resultados) {
+          let sucessosLote = 0;
+          json.resultados.forEach((r) => {
+            if (r.ok) {
+              sucessosLote++;
+              setLeads((ls) => ls.map(lead => lead.id === r.id ? { ...lead, status: 'enviado', canal: 'email' } : lead));
             } else {
-                ultErro = json.erro || "Erro na resposta do servidor";
-                teveErroDeRateLimit = true;
+              ultErro = r.erro || "Falha de envio";
             }
-        } catch (err: any) {
-            ultErro = err.message || "Erro desconhecido";
-            teveErroDeRateLimit = true;
+          });
+          
+          sucessos += sucessosLote;
+          localStorage.setItem(storageKey, (enviadosHoje + sucessos).toString());
+        } else {
+          ultErro = json.erro || "Erro de resposta do servidor de e-mail";
+          if (
+            ultErro.includes("não configurados") ||
+            ultErro.includes("Invalid login") ||
+            ultErro.includes("535") ||
+            ultErro.includes("Senha de App")
+          ) {
+            abortar = true;
+          }
         }
-        
-        if (ultErro && (ultErro.includes('Too many login attempts') || ultErro.includes('Invalid login') || ultErro.includes('535'))) {
-            break; // Fatal SMTP error
-        }
-        
-        if (pending.length > 0) {
-            // Se houve erro (Rate Limit), espera 12s para esfriar. Se tudo deu certo, espera s 1s e continua super rpido!
-            const cooldown = teveErroDeRateLimit ? 12 : 1;
-            for (let s = cooldown; s > 0; s--) {
-                if (teveErroDeRateLimit) {
-                    setAviso(`Pausa de ${s}s devido a limite de envios da IA... (${sucessos}/${loteLimitado.length})`);
-                } else {
-                    setAviso(`Preparando prximo lote super rpido... (${sucessos}/${loteLimitado.length})`);
-                }
-                await new Promise(r => setTimeout(r, 1000));
-            }
-        }
+      } catch (err) {
+        ultErro = err.message || "Erro de conexão";
+      }
+      
+      // Remove do pending todos os leads tentados nesta rodada
+      pending = pending.filter(p => !loteIds.includes(p.id));
+
+      if (abortar) {
+        setAviso(`Disparo interrompido: ${ultErro}`);
+        break;
+      }
+
+      if (pending.length > 0) {
+        setAviso(`Lote processado! Enviando próximo lote... (${sucessos}/${loteLimitado.length} enviados)`);
+        await new Promise(r => setTimeout(r, 600));
+      }
     }
     
     setOcupado(null);
     if (sucessos > 0) {
-      setAviso(`Processamento turbo concluído! ${sucessos} e-mails disparados com sucesso.`);
+      setAviso(`Disparo finalizado com sucesso! ${sucessos} de ${loteLimitado.length} e-mails enviados.`);
     } else {
-        setAviso(ultErro ? `Falha no disparo! Erro: ${ultErro}` : `Nenhum e-mail foi enviado neste lote. Todos foram retidos pelo filtro Anti-Bounce (lixo).`);
+      setAviso(ultErro ? `Falha no disparo: ${ultErro}` : `Nenhum e-mail foi enviado. Os contatos foram retidos pelo filtro anti-bounce.`);
     }
   }
 
-  const contagem = {
+    const contagem = {
     quente: visiveis.filter((l) => l.nivel === "quente").length,
     morno: visiveis.filter((l) => l.nivel === "morno").length,
     frio: visiveis.filter((l) => l.nivel === "frio").length,
