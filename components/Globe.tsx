@@ -88,10 +88,15 @@ function latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector
   return new THREE.Vector3(x, y, z);
 }
 
-// Procedural high-resolution texture generator directly from bundled Natural Earth GeoJSON
+// Procedural texture generator directly from bundled Natural Earth GeoJSON with cache
+let cachedWorldTexture: THREE.CanvasTexture | null = null;
+
 function createWorldTexture(): THREE.CanvasTexture {
-  const width = 2048;
-  const height = 1024;
+  if (cachedWorldTexture) return cachedWorldTexture;
+
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const width = isMobile ? 1024 : 2048;
+  const height = isMobile ? 512 : 1024;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -104,16 +109,15 @@ function createWorldTexture(): THREE.CanvasTexture {
   // 2. Tactical Latitude & Longitude Coordinate Grid (Graticules in Violet)
   ctx.strokeStyle = "rgba(124, 58, 237, 0.12)";
   ctx.lineWidth = 1;
-  // Parallels (Latitude)
-  for (let lat = -75; lat <= 75; lat += 15) {
+  const step = isMobile ? 30 : 15;
+  for (let lat = -75; lat <= 75; lat += step) {
     const y = ((90 - lat) / 180) * height;
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(width, y);
     ctx.stroke();
   }
-  // Meridians (Longitude)
-  for (let lng = -180; lng <= 180; lng += 15) {
+  for (let lng = -180; lng <= 180; lng += step) {
     const x = ((lng + 180) / 360) * width;
     ctx.beginPath();
     ctx.moveTo(x, 0);
@@ -123,7 +127,6 @@ function createWorldTexture(): THREE.CanvasTexture {
 
   // 3. Render Continents from bundled GeoJSON
   if (WORLD_LAND_DATA && (WORLD_LAND_DATA as any).features) {
-    // Fill Pass: Deep Rich Royal Purple Continent Landmass Body
     ctx.fillStyle = "#1e0b3d";
 
     const drawPolygon = (coords: number[][]) => {
@@ -152,7 +155,7 @@ function createWorldTexture(): THREE.CanvasTexture {
 
     // Stroke Pass: Crisp Vivid Electric Violet Coastline Borders
     ctx.strokeStyle = "#7c3aed";
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = isMobile ? 1.2 : 1.8;
 
     const strokePolygon = (coords: number[][]) => {
       ctx.beginPath();
@@ -178,27 +181,28 @@ function createWorldTexture(): THREE.CanvasTexture {
       }
     });
 
-    // Clean Geographic Coordinate Mesh on Continents (Luminous Violet)
-    ctx.fillStyle = "rgba(167, 139, 250, 0.32)";
-    const imgData = ctx.getImageData(0, 0, width, height);
-    const data = imgData.data;
-    for (let y = 10; y < height - 10; y += 14) {
-      for (let x = 10; x < width - 10; x += 14) {
-        const idx = (y * width + x) * 4;
-        // If pixel is on continent landmass
-        if (data[idx] > 20) {
-          ctx.beginPath();
-          ctx.arc(x, y, 1.0, 0, Math.PI * 2);
-          ctx.fill();
+    // Clean Geographic Coordinate Mesh on Continents (Only on Desktop for extreme speed)
+    if (!isMobile) {
+      ctx.fillStyle = "rgba(167, 139, 250, 0.32)";
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const data = imgData.data;
+      for (let y = 10; y < height - 10; y += 18) {
+        for (let x = 10; x < width - 10; x += 18) {
+          const idx = (y * width + x) * 4;
+          if (data[idx] > 20) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1.0, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       }
     }
   }
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-  return texture;
+  cachedWorldTexture = new THREE.CanvasTexture(canvas);
+  cachedWorldTexture.wrapS = THREE.RepeatWrapping;
+  cachedWorldTexture.wrapT = THREE.ClampToEdgeWrapping;
+  return cachedWorldTexture;
 }
 
 interface GlobeProps {
@@ -264,20 +268,28 @@ export default function Globe({
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
     let worldTexture: THREE.CanvasTexture;
+    let observer: IntersectionObserver | null = null;
+    let isVisible = true;
 
     try {
       const container = mountRef.current;
       const width = container.clientWidth || 600;
       const height = container.clientHeight || 600;
+      const isMobile = window.innerWidth < 768;
 
       // 1. Three.js Scene & Camera Setup
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       camera.position.z = 2.85;
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      renderer = new THREE.WebGLRenderer({
+        antialias: !isMobile,
+        alpha: true,
+        powerPreference: isMobile ? "default" : "high-performance",
+      });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      // Trava em 1x no celular para eliminar qualquer travamento de GPU
+      renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 1.75));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.15;
 
@@ -285,6 +297,7 @@ export default function Globe({
       renderer.domElement.style.width = "100%";
       renderer.domElement.style.height = "100%";
       renderer.domElement.style.cursor = "grab";
+      renderer.domElement.style.touchAction = "pan-y";
 
       const globeGroup = new THREE.Group();
       globeGroupRef.current = globeGroup;
@@ -292,13 +305,14 @@ export default function Globe({
 
       // 2. Base Sphere Mesh with Instant Synchronous Continents Texture
       const globeRadius = 1.0;
-      const globeGeometry = new THREE.SphereGeometry(globeRadius, 64, 64);
+      const sphereSegs = isMobile ? 36 : 64;
+      const globeGeometry = new THREE.SphereGeometry(globeRadius, sphereSegs, sphereSegs);
 
       worldTexture = createWorldTexture();
       const globeMaterial = new THREE.MeshPhongMaterial({
         map: worldTexture,
         specular: new THREE.Color("#7c3aed"),
-        shininess: 22,
+        shininess: 20,
         emissive: new THREE.Color("#180630"),
         emissiveIntensity: 0.22,
       });
@@ -307,7 +321,8 @@ export default function Globe({
       globeGroup.add(globeMesh);
 
       // 3. Clean Atmospheric Limb Rim Shell (Deep Vivid Violet)
-      const atmosGeometry = new THREE.SphereGeometry(globeRadius * 1.14, 64, 64);
+      const atmosSegs = isMobile ? 28 : 48;
+      const atmosGeometry = new THREE.SphereGeometry(globeRadius * 1.14, atmosSegs, atmosSegs);
       const atmosMaterial = new THREE.ShaderMaterial({
         vertexShader: `
           varying vec3 vNormal;
@@ -348,7 +363,7 @@ export default function Globe({
 
         // Core Pin Dot
         const isSp = hub.name === "São Paulo";
-        const dotGeo = new THREE.SphereGeometry(isSp ? 0.022 : 0.016, 16, 16);
+        const dotGeo = new THREE.SphereGeometry(isSp ? 0.022 : 0.016, 12, 12);
         const dotMat = new THREE.MeshBasicMaterial({
           color: isSp ? 0x10b981 : 0xa78bfa,
         });
@@ -357,7 +372,7 @@ export default function Globe({
         globeGroup.add(dotMesh);
 
         // Subtly elevated marker stem
-        const stemGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.038, 8);
+        const stemGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.038, 6);
         const stemMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed });
         const stemMesh = new THREE.Mesh(stemGeo, stemMat);
         stemMesh.position.copy(pos.clone().multiplyScalar(1.015));
@@ -370,10 +385,25 @@ export default function Globe({
       globeGroup.rotation.y = 0.85;
       globeGroup.rotation.x = -0.28;
 
-      // 7. Animation Loop with Performance Timestamp
+      // 7. Intersection Observer: Pausa rendering quando o usuário rolar a página para baixo
+      if (typeof IntersectionObserver !== "undefined") {
+        observer = new IntersectionObserver(
+          ([entry]) => {
+            isVisible = entry.isIntersecting;
+          },
+          { threshold: 0.05 }
+        );
+        observer.observe(container);
+      }
+
+      // 8. Animation Loop com render condicional inteligente
       let lastTime = performance.now();
       const animate = (currentTime: number) => {
         animId = requestAnimationFrame(animate);
+
+        // Se estiver fora da tela, economiza 100% de CPU/GPU do celular
+        if (!isVisible) return;
+
         const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
         lastTime = currentTime;
 
@@ -425,9 +455,11 @@ export default function Globe({
       return () => {
         cancelAnimationFrame(animId);
         window.removeEventListener("resize", handleResize);
-        worldTexture.dispose();
+        if (observer) observer.disconnect();
         globeGeometry.dispose();
         globeMaterial.dispose();
+        atmosGeometry.dispose();
+        atmosMaterial.dispose();
         renderer.dispose();
         scene.clear();
       };
@@ -437,7 +469,7 @@ export default function Globe({
     }
   }, []);
 
-  // Pointer Drag Interaction
+  // Pointer Drag Interaction otimizada para toque fluido
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true;
     prevPointer.current = { x: e.clientX, y: e.clientY };
@@ -452,9 +484,15 @@ export default function Globe({
     const dx = e.clientX - prevPointer.current.x;
     const dy = e.clientY - prevPointer.current.y;
 
+    // Se o usuário estiver no celular e fizer gesto vertical de scroll, não bloqueia o scroll da página
+    if (e.pointerType === "touch" && Math.abs(dy) > Math.abs(dx) * 1.25) {
+      return;
+    }
+
+    const sens = e.pointerType === "touch" ? 0.003 : 0.004;
     velocity.current = {
-      x: dx * 0.004,
-      y: dy * 0.004,
+      x: dx * sens,
+      y: dy * sens,
     };
 
     globeGroupRef.current.rotation.y += velocity.current.x;

@@ -385,20 +385,22 @@ export default function ProspectAILanding() {
         <div className="mx-auto max-w-7xl w-full grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left Column: Clear Value Proposition (6 cols) */}
           <div className="lg:col-span-6 flex flex-col items-start text-left pt-2 sm:pt-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#6d28d9]/15 border border-[#7c3aed]/35 mb-6 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#a78bfa] animate-pulse" />
-              <span className="font-mono text-[11px] font-semibold tracking-wider uppercase text-[#c4b5fd]">
-                Inteligência Territorial & Prospecção B2B
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#6d28d9]/20 border border-[#8b5cf6]/40 mb-6 shadow-[0_0_20px_rgba(109,40,217,0.2)]">
+              <span className="w-2 h-2 rounded-full bg-[#a78bfa] animate-pulse" />
+              <span className="font-mono text-[11px] font-bold tracking-wider uppercase text-[#ddd6fe]">
+                Radar Tático B2B • Motor Geoespacial Ativo
               </span>
             </div>
 
-            <h1 className="font-bold text-3xl sm:text-5xl xl:text-6xl tracking-[-0.025em] leading-[1.08] mb-6 text-white">
-              Encontre empresas locais com déficit digital{" "}
-              <span className="text-[#a78bfa]">sem intermediários.</span>
+            <h1 className="font-bold text-3xl sm:text-5xl xl:text-6xl tracking-[-0.03em] leading-[1.08] mb-6 text-white">
+              Mapeie empresas sem presença digital e{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c084fc] via-[#a855f7] to-[#7c3aed]">
+                feche contratos direto com o dono.
+              </span>
             </h1>
 
             <p className="text-zinc-300 text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed mb-8 font-normal">
-              Mapeie em minutos regiões metropolitanas de até 100km, identifique empresas sem site profissional ou com páginas obsoletas e acesse os contatos diretos de tomadores de decisão com WhatsApp verificado.
+              Varra qualquer metrópole em segundos: nossa inteligência audita empresas sem site ou com páginas inoperantes, extrai o WhatsApp verificado dos decisores e gera roteiros consultivos prontos para abordagem comercial.
             </p>
 
             {/* CTAs */}
@@ -418,18 +420,18 @@ export default function ProspectAILanding() {
             </div>
 
             {/* Metrics Breakdown */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-white/[0.08] w-full max-w-lg">
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-white">195+</p>
-                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Países Mapeados</p>
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-white/[0.08] w-full max-w-xl">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm hover:border-[#7c3aed]/30 transition-all">
+                <p className="text-xl sm:text-2xl font-bold text-white tracking-tight">100 km</p>
+                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-400 mt-0.5">Raio Metropolitano</p>
               </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-[#a78bfa]">100km</p>
-                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Raio Metropolitano</p>
+              <div className="p-3 sm:p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm hover:border-[#7c3aed]/30 transition-all">
+                <p className="text-xl sm:text-2xl font-bold text-[#c084fc] tracking-tight">WhatsApp</p>
+                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-400 mt-0.5">Contato Validado</p>
               </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-emerald-400">Zero</p>
-                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500">Timeouts de Busca</p>
+              <div className="p-3 sm:p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm hover:border-[#7c3aed]/30 transition-all">
+                <p className="text-xl sm:text-2xl font-bold text-emerald-400 tracking-tight">195 Países</p>
+                <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-400 mt-0.5">Malha Global</p>
               </div>
             </div>
           </div>
