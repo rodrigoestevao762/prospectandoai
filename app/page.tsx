@@ -333,29 +333,31 @@ export default function ProspectAILanding() {
           <div className="px-5 sm:px-6 h-[58px] flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-[#6d28d9] flex items-center justify-center shadow-sm">
-                <LogoMark className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#6d28d9] to-[#4c1d95] border border-purple-400/30 flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.4)]">
+                <span className="font-mono font-black text-sm text-white">&lt;/&gt;</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold tracking-tight text-base leading-tight text-white">
-                  Prospect<span className="text-[#a78bfa]">AI</span>
+                <span className="font-bold tracking-tight text-base leading-tight text-white">
+                  CODE<span className="text-[#a855f7]">MAKERS</span>
                 </span>
-                <span className="font-mono text-[8px] uppercase tracking-widest text-zinc-400 font-medium">Radar Geoespacial B2B</span>
+                <span className="font-mono text-[8px] uppercase tracking-widest text-purple-300 font-medium">Plataforma Digital</span>
               </div>
             </Link>
 
             {/* Links */}
-            <div className="hidden md:flex items-center gap-1 bg-white/[0.02] border border-white/[0.04] rounded-lg p-1">
+            <div className="hidden md:flex items-center gap-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-1">
               {[
-                { name: "Console de Busca", href: "#console" },
-                { name: "Módulos & Arquitetura", href: "#funcionalidades" },
-                { name: "Como Funciona", href: "#como-funciona" },
-                { name: "Planos de Acesso", href: "#planos" },
+                { name: "A proposta", href: "#proposta" },
+                { name: "Recursos", href: "#recursos" },
+                { name: "Radar", href: "#console" },
+                { name: "Design", href: "#design" },
+                { name: "Planos", href: "#planos" },
+                { name: "Dúvidas", href: "#faq" },
               ].map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-[12px] font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all px-3 py-1.5 rounded-md"
+                  className="text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all px-3.5 py-1.5 rounded-lg"
                 >
                   {item.name}
                 </a>
@@ -364,14 +366,14 @@ export default function ProspectAILanding() {
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-mono text-[10px] text-emerald-400 uppercase tracking-wider font-semibold">Rede Operacional</span>
+              <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-600/20 border border-purple-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                <span className="font-mono text-[10px] text-purple-300 uppercase tracking-wider font-semibold">Rede Ativa</span>
               </div>
 
               <Link
                 href="/login"
-                className="btn-signal flex items-center gap-2 text-xs px-4 py-2 rounded-lg font-semibold"
+                className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl bg-gradient-to-r from-[#6d28d9] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#9333ea] text-white font-semibold shadow-[0_0_15px_rgba(124,58,237,0.35)] transition-all"
               >
                 Acessar Plataforma <ArrowRight className="w-3.5 h-3.5" />
               </Link>

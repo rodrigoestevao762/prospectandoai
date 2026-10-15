@@ -560,3 +560,37 @@ body {
   .aurora { display: none !important; }
   .bg-void { background: var(--void) !important; }
 }
+
+/* ============================================================
+   CODE MAKERS PURPLE THEME & UTILITIES
+   ============================================================ */
+.purple-tint {
+  filter: hue-rotate(270deg) saturate(1.2) brightness(1.05);
+}
+
+.purple-glow {
+  box-shadow: 0 0 35px -5px rgba(124, 58, 237, 0.4);
+}
+
+.purple-glow-sm {
+  box-shadow: 0 0 15px -2px rgba(124, 58, 237, 0.35);
+}
+
+.glass-dock {
+  background: rgba(12, 10, 22, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.glass-card-purple {
+  background: linear-gradient(180deg, rgba(20, 16, 38, 0.7) 0%, rgba(10, 8, 18, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+}
+
+.banner-purple-mesh {
+  background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 45%, #7c3aed 70%, #3b0764 100%);
+}
+

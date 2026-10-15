@@ -1,149 +1,179 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { supabaseBrowser } from "@/lib/supabase-browser";
-import Link from "next/link";
-import { Activity, Target, Zap } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Target, ArrowUpRight, DollarSign, TrendingUp, Sparkles } from "lucide-react";
+import ModalRegistrarVenda from "@/components/codemakers/ModalRegistrarVenda";
 
-type Lead = {
-  id: string;
-  nome: string;
-  cidade: string;
-  nivel: string;
-  status: string;
-  score: number;
-};
+export default function VendasPage() {
+  const [modalVendaOpen, setModalVendaOpen] = useState(false);
+  const [filterVendas, setFilterVendas] = useState("Todas");
+  const [vendas, setVendas] = useState<any[]>([]);
 
-const KANBAN_STAGES = [
-  { id: "novo", title: "Prospectos (Frio)", color: "var(--ink-dim)", accent: "rgba(139,163,154,0.1)" },
-  { id: "mensagem_gerada", title: "Payload Gerado", color: "var(--amber)", accent: "rgba(255,176,45,0.1)" },
-  { id: "enviado", title: "Interceptados", color: "var(--signal)", accent: "rgba(56,189,248,0.1)" },
-  { id: "respondido", title: "Em Negociação", color: "var(--alert)", accent: "rgba(255,93,93,0.1)" },
-  { id: "cliente", title: "Clientes Ativos", color: "#10b981", accent: "rgba(16,185,129,0.1)" },
-];
+  const filtros = [
+    { label: "Todas", count: vendas.length },
+    { label: "Melhor margem", count: 0 },
+    { label: "Entrega próxima", count: 0 },
+    { label: "Atrasadas", count: 0 },
+    { label: "Entregues", count: 0 },
+    { label: "Sem cliente", count: 0 },
+  ];
 
-export default function PipelineDeVendas() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      const { data } = await supabaseBrowser()
-        .from("leads")
-        .select("id, nome, cidade, nivel, status, score")
-        .order("score", { ascending: false });
-      if (data) setLeads(data as Lead[]);
-      setLoading(false);
-    }
-    load();
-  }, []);
-
-  async function updateLeadStatus(id: string, newStatus: string) {
-    // Optimistic update
-    setLeads(ls => ls.map(l => l.id === id ? { ...l, status: newStatus } : l));
-    // Backend update
-    await supabaseBrowser().from("leads").update({ status: newStatus }).eq("id", id);
-  }
+  const totalFaturamento = vendas.reduce((acc, v) => acc + (v.valorVendido || 0), 0);
+  const totalLucro = vendas.reduce((acc, v) => acc + (v.lucroEstimado || 0), 0);
+  const ticketMedio = vendas.length > 0 ? totalFaturamento / vendas.length : 0;
+  const margemMedia = totalFaturamento > 0 ? (totalLucro / totalFaturamento) * 100 : 0;
 
   return (
-    <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="shrink-0"
-      >
-        <p className="eyebrow flex items-center gap-2"><Activity className="w-4 h-4" /> Pipeline CRM</p>
-        <h1 className="headline mt-1 text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-[var(--amber)]">
-          Visão de Conversão
-        </h1>
-        <p className="text-[var(--ink-dim)] mt-2 text-sm">
-          Acompanhe o funil de infiltração. Altere o status dos leads para movê-los pelas esteiras.
-        </p>
-      </motion.div>
+    <div className="space-y-6">
+      {/* ── HERO BANNER: RESULT ROOM COM MASCOTE ROXO ── */}
+      <div className="relative rounded-3xl bg-gradient-to-r from-[#4c1d95] via-[#6d28d9] to-[#7c3aed] p-6 md:p-8 overflow-hidden shadow-[0_0_40px_rgba(109,40,217,0.35)] border border-purple-400/30">
+        {/* Background Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
-      {loading ? (
-        <div className="flex-1 flex justify-center items-center relative">
-          <div className="radar w-24 h-24 opacity-80" style={{ borderColor: 'var(--amber)' }}>
-            <div className="radar-sweep" style={{ background: 'linear-gradient(90deg, transparent 50%, rgba(255,176,45,0.5) 100%)' }} />
-          </div>
-          <p className="absolute mt-32 mono text-xs uppercase tracking-widest text-[var(--amber)] animate-pulse">Sincronizando pipeline...</p>
+        {/* 3D Mascot on Right */}
+        <div className="absolute right-4 md:right-10 -bottom-4 md:-bottom-8 w-44 md:w-64 h-44 md:h-64 pointer-events-none purple-tint opacity-90">
+          <img
+            src="/codemakers/codin-sales-header-v3.png"
+            alt="Mascote Codin Vendas"
+            className="w-full h-full object-contain"
+          />
         </div>
-      ) : (
-        <div className="flex-1 flex gap-4 overflow-x-auto pb-4 snap-x">
-          {KANBAN_STAGES.map((stage) => {
-            const stageLeads = leads.filter(l => l.status === stage.id);
-            return (
-              <div 
-                key={stage.id} 
-                className="shrink-0 w-80 flex flex-col snap-start rounded-3xl border border-white/10 bg-black/40 backdrop-blur-sm overflow-hidden relative group"
+
+        <div className="relative z-10 max-w-2xl">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-purple-200 font-bold">
+              / CODE MAKERS / RESULT ROOM
+            </span>
+            <button
+              onClick={() => setModalVendaOpen(true)}
+              className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-semibold flex items-center gap-1 transition-colors"
+            >
+              <Plus className="w-3 h-3" /> Nova venda
+            </button>
+          </div>
+
+          <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight mt-2">
+            Projetos que viraram resultado.
+          </h1>
+
+          {/* 4 Métricas Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+            <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+              <span className="text-[10px] text-purple-200 block font-mono">Faturamento</span>
+              <span className="text-xl font-bold font-mono text-white block mt-0.5">
+                R$ {totalFaturamento.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+              <span className="text-[10px] text-purple-200 block font-mono">Lucro líquido</span>
+              <span className="text-xl font-bold font-mono text-white block mt-0.5">
+                R$ {totalLucro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+              <span className="text-[10px] text-purple-200 block font-mono">Margem média</span>
+              <span className="text-xl font-bold font-mono text-white block mt-0.5">
+                {margemMedia.toFixed(0)}%
+              </span>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10">
+              <span className="text-[10px] text-purple-200 block font-mono">Ticket médio</span>
+              <span className="text-xl font-bold font-mono text-white block mt-0.5">
+                R$ {ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── SEÇÃO INFERIOR: FILTROS & PAINEL DE VENDAS ── */}
+      <div className="p-6 md:p-8 rounded-3xl bg-[#0c0a18] border border-purple-900/25 shadow-2xl space-y-6">
+        {/* Barra de Filtros */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+            <span className="text-xs text-zinc-500 font-mono mr-2">Organizar projetos:</span>
+            {filtros.map((f) => (
+              <button
+                key={f.label}
+                onClick={() => setFilterVendas(f.label)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                  filterVendas === f.label
+                    ? "bg-purple-600 text-white font-bold shadow-[0_0_12px_rgba(124,58,237,0.4)]"
+                    : "bg-[#140f28] text-zinc-400 hover:text-white border border-white/5"
+                }`}
               >
-                {/* Background ambient glow */}
-                <div className="absolute top-0 inset-x-0 h-32 blur-[50px] opacity-10 pointer-events-none" style={{ backgroundColor: stage.color }} />
+                <span>{f.label}</span>
+                <span className="text-[10px] font-mono opacity-80">{f.count}</span>
+              </button>
+            ))}
+          </div>
 
-                {/* Stage Header */}
-                <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/40 relative z-10">
-                  <h3 className="font-display font-bold text-sm tracking-wider uppercase" style={{ color: stage.color }}>{stage.title}</h3>
-                  <span className="mono text-[10px] px-2.5 py-1 rounded-lg border border-white/10 bg-white/5 font-bold">
-                    {stageLeads.length}
-                  </span>
+          <div className="text-[11px] text-zinc-500 font-mono whitespace-nowrap">
+            ● no recorte · 0 atrasadas
+          </div>
+        </div>
+
+        {/* Empty State com 3D Code Brackets */}
+        {vendas.length === 0 ? (
+          <div className="relative min-h-[360px] rounded-2xl bg-[#0e0b1f] border border-white/[0.04] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between overflow-hidden">
+            <div className="max-w-md space-y-4 text-center md:text-left z-10">
+              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 mx-auto md:mx-0 shadow-inner">
+                <Target className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">A primeira venda abre o painel.</h3>
+                <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                  Registre receita, custo e prazo. A análise financeira nasce automaticamente.
+                </p>
+              </div>
+              <button
+                onClick={() => setModalVendaOpen(true)}
+                className="px-6 py-3 rounded-xl bg-white text-purple-950 font-bold text-xs hover:bg-purple-100 transition-colors shadow-lg inline-flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Registrar primeira venda
+              </button>
+            </div>
+
+            {/* Decorative 3D Code Brackets </> Symbol Tinted Purple */}
+            <div className="w-64 md:w-80 h-64 md:h-80 opacity-70 pointer-events-none purple-tint mt-6 md:mt-0">
+              <img
+                src="/codemakers/codemakers-sales-symbol-v3.png"
+                alt="Símbolo 3D Code Makers"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.06]">
+            {vendas.map((v) => (
+              <div key={v.id} className="py-4 flex items-center justify-between text-xs">
+                <div>
+                  <h4 className="font-bold text-white text-sm">{v.projeto}</h4>
+                  <p className="text-zinc-500 mt-0.5">{v.cliente} · {v.tipoProjeto}</p>
                 </div>
-
-                {/* Cards Container */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-hide relative z-10">
-                  <AnimatePresence>
-                    {stageLeads.map((l) => (
-                      <motion.div
-                        layout
-                        key={l.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9, filter: "blur(5px)" }}
-                        whileHover={{ y: -2, scale: 1.02 }}
-                        className="p-4 rounded-2xl bg-[#05080c] border border-white/10 cursor-default shadow-lg hover:border-white/20 transition-all group/card"
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-display font-bold text-[14px] leading-tight text-white group-hover/card:text-[var(--signal)] transition-colors line-clamp-1">{l.nome}</h4>
-                          <span className="text-[12px] bg-black/50 px-1.5 py-0.5 rounded">{l.nivel === 'quente' ? '🔥' : l.nivel === 'morno' ? '💡' : '❄️'}</span>
-                        </div>
-                        <div className="flex justify-between items-center mb-4">
-                          <p className="mono text-[9px] uppercase tracking-widest text-[var(--ink-faint)]">📍 {l.cidade}</p>
-                          <span className="mono text-[9px] uppercase text-[var(--signal)] font-bold">{l.score} PTS</span>
-                        </div>
-                        
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <select 
-                            value={l.status}
-                            onChange={(e) => updateLeadStatus(l.id, e.target.value)}
-                            className="flex-1 bg-black/60 border border-white/10 rounded-lg px-2 py-2 text-[9px] font-bold mono uppercase text-white outline-none focus:border-[var(--signal)] transition-colors cursor-pointer"
-                          >
-                            {KANBAN_STAGES.map(s => (
-                              <option key={s.id} value={s.id}>{s.title}</option>
-                            ))}
-                          </select>
-                          <Link href={`/app/editor/${l.id}`} className="shrink-0 bg-[var(--amber)]/10 hover:bg-[var(--amber)]/20 text-[var(--amber)] border border-[var(--amber)]/30 rounded-lg px-3 py-2 flex items-center justify-center transition-colors text-[10px] font-bold">
-                            ✦ SITE
-                          </Link>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                  
-                  {stageLeads.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center opacity-50 pb-10">
-                      <Target className="w-8 h-8 text-white/20 mb-2" />
-                      <p className="text-[10px] mono uppercase tracking-widest text-[var(--ink-faint)]">
-                        Sem Alvos
-                      </p>
-                    </div>
-                  )}
+                <div className="text-right">
+                  <span className="text-sm font-mono font-bold text-white">
+                    R$ {v.valorVendido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                  <p className="text-purple-400 text-[11px] font-mono">
+                    Lucro: R$ {v.lucroEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
                 </div>
               </div>
-            )
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal */}
+      <ModalRegistrarVenda
+        isOpen={modalVendaOpen}
+        onClose={() => setModalVendaOpen(false)}
+        onSuccess={(v) => setVendas((prev) => [v, ...prev])}
+      />
     </div>
   );
 }
-

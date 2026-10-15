@@ -365,32 +365,36 @@ export default function BuscaPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      {/* ── HEADER ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-4"
-      >
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#a855f7]/15 border border-[#a855f7]/30 text-[#c084fc] mono text-[10px] font-bold uppercase tracking-wider mb-2">
-            <Radio className="w-3.5 h-3.5 animate-pulse" /> Motor de Varredura Multidimensional
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-black text-white tracking-tight">
-            Radar OSINT <span className="grad-text">Unificado</span>
-          </h1>
-          <p className="text-[#94a3b8] text-sm mt-1 max-w-2xl">
-            Descubra milhares de empresas ativas sem presença digital. Escolha o motor tático, amplie o raio geográfico e capture dados enriquecidos.
-          </p>
-        </div>
+      {/* ── HEADER CODE HUNTER ── */}
+      <div className="relative rounded-3xl bg-gradient-to-r from-[#4c1d95] via-[#6d28d9] to-[#7c3aed] p-6 md:p-8 overflow-hidden shadow-[0_0_40px_rgba(109,40,217,0.35)] border border-purple-400/30">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
-        <div className="flex items-center gap-2">
-          <div className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-            <span className="mono text-[11px] text-white/70 font-semibold">Overpass Cluster Ativo</span>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-purple-200 font-bold">
+                / CODE MAKERS / RADAR OSINT & PROSPECÇÃO
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white text-[10px] font-mono font-bold">
+                7.000 CRÉDITOS / MÊS
+              </span>
+            </div>
+            <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">
+              Code Hunter.
+            </h1>
+            <p className="text-xs md:text-sm text-purple-100/90 mt-1.5 max-w-2xl">
+              Descubra milhares de empresas ativas sem presença digital. Escolha o motor tático, amplie o raio geográfico e capture dados enriquecidos.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="px-3.5 py-2 rounded-2xl bg-black/30 backdrop-blur-md border border-white/10 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse shadow-[0_0_8px_#c084fc]" />
+              <span className="mono text-[11px] text-white font-semibold">Satélites Ativos</span>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ── SELETOR DE MOTORES (TABS MODERNAS) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

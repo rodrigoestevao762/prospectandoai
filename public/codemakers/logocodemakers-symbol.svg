@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title">
+  <title id="title">Símbolo Code Makers</title>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.32" stop-color="#d9d9dc"/>
+      <stop offset="0.58" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#8d8d92"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#606066"/>
+      <stop offset="1" stop-color="#242429"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M34 23 14 50l20 27M60 15 40 85M66 23l20 27-20 27" stroke="url(#edge)" stroke-width="12" transform="translate(2 2)"/>
+    <path d="M34 23 14 50l20 27M60 15 40 85M66 23l20 27-20 27" stroke="#16161a" stroke-width="11"/>
+    <path d="M34 23 14 50l20 27M60 15 40 85M66 23l20 27-20 27" stroke="url(#silver)" stroke-width="8.5"/>
+    <path d="M33.4 24.2 16 50l17.4 25.8M59.1 17.2 40.7 82.8M66.6 24.2 84 50 66.6 75.8" stroke="#ffffff" stroke-opacity=".68" stroke-width="1.25"/>
+  </g>
+</svg>
