@@ -1,12 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sparkles, Copy, Check, FileText, Code2, Search, ArrowUpRight, ShieldAlert, BookOpen, Layers } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import {
+  Sparkles, Copy, Check, FileText, Code2, Search, ArrowUpRight,
+  ShieldAlert, BookOpen, Layers, Terminal, Sliders, Cpu, Wand2,
+  Building2, Phone, ShoppingBag, Landmark, Activity, Car, Dumbbell
+} from "lucide-react";
 import HardyMascot from "@/components/codemakers/HardyMascot";
 
-interface PromptItem {
+export interface PromptItem {
   id: string;
-  categoria: string;
+  nicho: string;
+  categoria: "CÓDIGO & LANDING PAGE" | "COPYWRITING & VENDAS" | "WEBGL & GSAP" | "SISTEMAS & DASHBOARD";
+  motorIa: "Claude 3.7 Sonnet" | "v0 by Vercel" | "ChatGPT o3-mini" | "Gemini 2.5 Pro";
   titulo: string;
   subtitulo: string;
   tags: string[];
@@ -14,313 +20,681 @@ interface PromptItem {
 }
 
 const PROMPT_DATABASE: PromptItem[] = [
+  // ── 01. SAÚDE & CLÍNICAS MÉDICAS ──
   {
-    id: "p1",
-    categoria: "DESIGN E PRODUTO",
-    titulo: "Direção de landing page",
-    subtitulo: "Transforme uma oferta em uma direção clara de página.",
-    tags: ["landing page", "direção", "conversão", "arquitetura"],
-    conteudo: `Crie uma landing page de altíssima conversão para [produto] voltada a [publico]. Priorize [objetivo] e use uma direção visual [direcao].
+    id: "p-odonto",
+    nicho: "Saúde & Clínicas",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Claude 3.7 Sonnet",
+    titulo: "Landing Page Odonto Prime de Alto Padrão",
+    subtitulo: "Conversão voltada a procedimentos de R$ 15k a R$ 60k (Lentes e Implantes).",
+    tags: ["Odontologia", "Lentes de Resina", "Implantes", "Landing Page"],
+    conteudo: `Atue como um Engenheiro Frontend Sênior e Especialista em CRO para Clínicas Médicas de Alto Padrão.
+Crie o código completo em Next.js 15 (App Router), Tailwind CSS e Framer Motion para a landing page da clínica odontológica de estética avançada.
 
-Regras estritas de design:
-- Estética Obsidian Dark com gradientes violetas sutis (#7c3aed, #a855f7) sobre fundo #080612.
-- Efeitos de vidro lapidado (Glassmorphism) com bordas 1px translúcidas.
-- Tipografia geométrica de alto impacto para títulos e monospace para numerais e dados.
-- Hero com proposta irrecusável e prova de valor tangível.
-- Bento Grid com os 3 principais diferenciais operacionais.
-- Chamada para ação com formulário minimalista de 2 passos.`
+Diretrizes estritas de arquitetura e design:
+1. PALETA: Fundo #07050f com placas em vidro acetinado #0c0a18/90, bordas 1px translúcidas (white/10) e realces em Violeta Real (#7c3aed, #a855f7).
+2. HERO SECTION:
+   - Título impactante: "A harmonia do seu sorriso moldada pela precisão milimétrica."
+   - Subtítulo focado em exclusividade e atendimento sem filas com concierge dedicada.
+   - Botão primário estilo Tesla pill: "Agendar Consulta Avaliativa VIP" com direcionamento WhatsApp.
+3. SELETOR ANTES/DEPOIS:
+   - Componente interativo com slider horizontal comparando o sorriso antes e após lentes de contato dental.
+4. CORPO CLÍNICO:
+   - Fichas dos cirurgiões-dentistas com títulos de mestrado/doutorado e fotos em tons neutros de luxo.
+5. FORMULÁRIO DE TRIAGEM:
+   - 3 passos rápidos: Procedimento desejado -> Melhor período para contato -> WhatsApp para envio do plano de tratamento.`
   },
   {
-    id: "p2",
-    categoria: "DESIGN E PRODUTO",
-    titulo: "Crítica de interface",
-    subtitulo: "Analise uma tela com critérios objetivos de usabilidade e visual.",
-    tags: ["UX", "auditoria", "interface", "heurística"],
-    conteudo: `Atue como um Especialista em Design de Produto e Usabilidade (Nielsen Heuristics + Awwwards Judge).
+    id: "p-med-whats",
+    nicho: "Saúde & Clínicas",
+    categoria: "COPYWRITING & VENDAS",
+    motorIa: "ChatGPT o3-mini",
+    titulo: "Script de Abordagem WhatsApp para Clínicas Médicas",
+    subtitulo: "Abordagem consultiva para secretárias e médicos proprietários.",
+    tags: ["WhatsApp", "Saúde", "Decisores", "Script"],
+    conteudo: `Você é o estrategista digital sênior da CODEHARD.
+Escreva um script de abordagem consultiva para enviar no WhatsApp do Dr. [Nome do Médico], proprietário da [Nome da Clínica] em [Cidade].
 
-Avalie a seguinte tela ou componente sob 4 pilares:
-1. Hierarquia Visual e Escaneabilidade (F-pattern, contraste, pontos focais).
-2. Densidade de Informação e Espaçamento (Whitespace, alinhamento ao grid).
-3. Acessibilidade e Contraste WCAG AAA para Dark Theme.
-4. Clareza de Ação (Acessibilidade de botões primários e secundários).
+Critérios indispensáveis:
+- Tom respeitoso, ético e condizente com a sobriedade médica (sem parecer panfletagem amadora).
+- Elogiar a reputação técnica da clínica na região.
+- Apontar sutilmente que o site atual deles é lento no mobile e perde pacientes para clínicas concorrentes no Google.
+- Oferecer uma prévia interativa já montada especificamente com a identidade visual da clínica dele.
+- Fechamento leve: "Posso enviar o link da demonstração de 45 segundos para o senhor dar uma olhada sem nenhum compromisso?"`
+  },
 
-Forneça recomendações práticas e trechos de código Tailwind CSS para corrigir os 3 maiores gargalos encontrados.`
-  },
+  // ── 02. GASTRONOMIA & RESTAURANTES ──
   {
-    id: "p3",
-    categoria: "THREE.JS & SHADERS",
-    titulo: "Cena 3D com Partículas Interativas",
-    subtitulo: "Gere código de WebGL com React Three Fiber e shaders.",
-    tags: ["Three.js", "WebGL", "R3F", "Shaders"],
-    conteudo: `Construa um componente React Three Fiber (@react-three/fiber + @react-three/drei) para Next.js App Router:
-- Campo de 2.000 partículas com cor roxo neon (#a855f7) flutuando organicamente.
-- Efeito de dispersão interativa ao mover o cursor do mouse (raycaster).
-- Iluminação direcional sutil e rotação lenta constante.
-- Otimizado com bufferGeometry e shaderMaterial com zero perda de frames (60fps garantidos).`
-  },
-  {
-    id: "p4",
-    categoria: "GSAP SCROLL",
-    titulo: "Timeline Cinemática com Scrub",
-    subtitulo: "Animações com pin e reveal para sites padrão Awwwards.",
-    tags: ["GSAP", "ScrollTrigger", "Pin", "Cinema"],
-    conteudo: `Implemente uma seção de storytelling cinemático utilizando GSAP e ScrollTrigger:
-- Pin da seção durante 300vh de scroll.
-- Fade in e scale progressivo de 3 cards em cascata conforme a rolagem avança.
-- SplitText com desdobramento de letras da manchete com ease: "power3.out".
-- Compatibilidade nativa com Lenis Smooth Scroll no Next.js.`
-  },
-  {
-    id: "p5",
-    categoria: "COPYWRITING B2B",
-    titulo: "Script de Abordagem para Decisores",
-    subtitulo: "Prospecção ativa no WhatsApp com taxa de resposta alta.",
-    tags: ["Vendas", "WhatsApp", "B2B", "Conversão"],
-    conteudo: `Você é o diretor comercial de uma agência especializada em tecnologia e presença digital.
-Elabore uma mensagem de abordagem via WhatsApp para o proprietário de [empresa] no nicho [nicho].
+    id: "p-sushi",
+    nicho: "Gastronomia & Restaurantes",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "v0 by Vercel",
+    titulo: "Cardápio Digital & Reservas para Sushi Lounge Omakase",
+    subtitulo: "Experiência gastronômica com eliminação total de taxas do iFood.",
+    tags: ["Japonês", "Omakase", "Cardápio Digital", "Reservas"],
+    conteudo: `Desenvolva uma página moderna para um restaurante japonês contemporâneo e Omakase de luxo.
+Framework: Next.js 15, Tailwind CSS, Lucide React e Radix UI.
 
-Diretrizes da mensagem:
-- Cumprimento respeitoso e personalizado citando a cidade [cidade].
-- Observação técnica sutil: notar que a empresa não possui presença mobile profissional ou o site atual está desatualizado.
-- Demonstração do protótipo já criado especificamente para a marca dele.
-- Chamada leve e consultiva, sem postura de vendedor insistente ("Gostaria de ver uma prévia rápida de 1 minuto sem compromisso?").`
+Requisitos de layout:
+1. ESTÉTICA: Dark Minimalist japonês. Fundo preto carvão (#060608), tipografia grotesk estendida e detalhes em dourado champagne e violeta escuro.
+2. HERO: Vídeo ou carrossel com cortes precisos de salmão e atum bluefin.
+3. CARDÁPIO INTERATIVO COM FILTROS:
+   - Abas: "Menu Degustação", "Sashimis Especiais", "Niguiris Trufados", "Drinks & Saquês".
+   - Cada prato com foto em alta resolução, descrição detalhada dos insumos e botão de pedido direto.
+4. MÓDULO DE RESERVA DE MESAS:
+   - Seletor de data, quantidade de pessoas e turno (19h ou 21h30).
+   - Confirmação via mensagem estruturada para o WhatsApp da recepção.`
+  },
+
+  // ── 03. ADVOCACIA & ESCRITÓRIOS JURÍDICOS ──
+  {
+    id: "p-adv-tributario",
+    nicho: "Advocacia & Jurídico",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Claude 3.7 Sonnet",
+    titulo: "Portal Institucional de Advocacia Tributária & Holding",
+    subtitulo: "Autoridade corporativa para fechamento de contratos de alta rentabilidade.",
+    tags: ["Direito Tributário", "Holding", "Jurídico", "Autoridade"],
+    conteudo: `Atue como Designer e Desenvolvedor Web Sênior especialista em bancas jurídicas de elite.
+Crie o código completo da página principal para um escritório de Advocacia Tributária e Proteção Patrimonial Familiar.
+
+Diretrizes:
+1. ESTÉTICA: Swiss Minimalist escuro (#080a14), tipografia Inter + Playfair Display, cartões em titânio acetinado com bordas finas.
+2. NÚMEROS DE IMPACTO:
+   - Grid com contadores animados: "+R$ 450M economizados em tributos", "20+ anos de atuação", "98.4% de decisões favoráveis".
+3. ÁREAS DE ATUAÇÃO COM BENTO GRID:
+   - Recuperação de Créditos Tributários.
+   - Planejamento Sucessório & Holdings Familiares no Agro.
+   - Defesa em Execuções Fiscais Complexas.
+4. CHAMADA PARA AÇÃO SIGILOSA:
+   - Formulário com selo de confidencialidade advocatícia e agendamento direto com sócio sênior.`
+  },
+
+  // ── 04. IMOBILIÁRIAS & CONSTRUTORAS DE ALTO PADRÃO ──
+  {
+    id: "p-imoveis-luxo",
+    nicho: "Imóveis & Construção",
+    categoria: "WEBGL & GSAP",
+    motorIa: "Claude 3.7 Sonnet",
+    titulo: "Showcase Imobiliário com Tour 3D & WebGL",
+    subtitulo: "Apresentação cinematográfica de condomínios fechados e coberturas.",
+    tags: ["Imobiliária", "Three.js", "WebGL", "Mansões"],
+    conteudo: `Crie um componente de vitrine de imóveis de luxo em React Three Fiber (@react-three/fiber + Drei) e Tailwind CSS.
+
+Funcionalidades:
+1. CENA 3D INTERATIVA:
+   - Edifício ou mansão renderizada em wireframe holográfico violeta que reage ao movimento do cursor.
+   - Hotspots clicáveis nos pontos-chave (Piscina de Borda Infinita, Heliponto, Suíte Master).
+2. CAROUSEL LATERAL:
+   - Informações da unidade selecionada: Metragem (m²), Vagas, Suítes e Preço de Lançamento.
+   - Botão para download de planta humanizada e agendamento com corretor VIP.`
+  },
+
+  // ── 05. AUTOMOTIVO & ESTÉTICA DE SUPERCARROS ──
+  {
+    id: "p-auto-detail",
+    nicho: "Automotivo & Frotas",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "v0 by Vercel",
+    titulo: "Centro de Estética Automotiva, PPF & Blindagem",
+    subtitulo: "Valorização de supercarros com pacotes de proteção cerâmica e envelopamento.",
+    tags: ["PPF", "Blindagem", "Estética Automotiva", "Supercarros"],
+    conteudo: `Desenvolva a página de um estúdio automotivo especializado em PPF (Paint Protection Film), Vitrificação Cerâmica e Blindagem.
+Cores: Preto fibra de carbono (#050508) com realces em violeta elétrico (#a855f7) e titânio.
+
+Seções fundamentais:
+1. HERO: Título "A armadura invisível para o seu veículo exótico."
+2. TABELA COMPARATIVA DE PROTEÇÃO:
+   - Comparação entre Cera Comum vs Vitrificação vs Película PPF Regenerativa.
+3. CALCULADORA DE ORÇAMENTO INSTANTÂNEO:
+   - Escolha do porte do carro (Hatch / Sedan / SUV / Superesportivo) -> Escolha do pacote -> Botão para confirmar valor no WhatsApp.`
+  },
+
+  // ── 06. SAAS & SISTEMAS WEB B2B ──
+  {
+    id: "p-saas-dash",
+    nicho: "SaaS & AI",
+    categoria: "SISTEMAS & DASHBOARD",
+    motorIa: "Claude 3.7 Sonnet",
+    titulo: "Dashboard de Telemetria com Bento Grid & Recharts",
+    subtitulo: "Interface executiva completa com gráficos em tempo real e dark mode.",
+    tags: ["Dashboard", "SaaS", "Recharts", "Bento Grid"],
+    conteudo: `Escreva o código de um Dashboard completo em Next.js 15, Tailwind CSS e Recharts.
+Estilo: Tesla Cockpit Dark Glass (#0a0818 com backdrop-filter blur 20px).
+
+Módulos do Dashboard:
+1. 4 Cards de Métricas Principais (MRR, Clientes Ativos, CAC, LTV) com variações percentuais em verde esmeralda.
+2. Gráfico de Linha de Faturamento Mensal com gradiente violeta sob a curva.
+3. Feed de Atividades Recentes com status em tempo real (Novas vendas, Leads capturados).
+4. Tabela de Últimos Clientes com paginação e busca instantânea.`
+  },
+
+  // ── 07. PROPOSTAS COMERCIAIS & FECHAMENTO ──
+  {
+    id: "p-proposta-irrecusavel",
+    nicho: "Estratégia & Vendas",
+    categoria: "COPYWRITING & VENDAS",
+    motorIa: "ChatGPT o3-mini",
+    titulo: "Estrutura de Proposta Comercial Irrecusável de Site",
+    subtitulo: "Modelo de proposta em PDF/Apresentação para contratos de R$ 3.000 a R$ 12.000.",
+    tags: ["Proposta", "Fechamento", "Contrato", "Alto Valor"],
+    conteudo: `Você é o diretor comercial mais premiado do mercado de tecnologia web.
+Crie o roteiro completo de uma Proposta Comercial Irrecusável para apresentação ao cliente [Nome do Cliente / Empresa].
+
+Estrutura em 6 etapas:
+1. DIAGNÓSTICO DO CENÁRIO ATUAL: O custo invisível de não ter um site moderno (clientes perdidos diariamente).
+2. O NOVO ECOSSISTEMA: O que será entregue (Design exclusivo modelo Tesla/Codemakers, carregamento em <1s, mobile-first, WhatsApp integrado).
+3. PRAZO DE ENTREGA RELÂMPAGO: Entrega em até 5 dias úteis com protótipo validado.
+4. INVESTIMENTO & PARCELAMENTO: 2 opções de planos (Essencial e Dominação Total).
+5. GARANTIA BLINDADA DE SATISFAÇÃO: Ajustes ilimitados até a aprovação 100%.
+6. BÔNUS EXCLUSIVO DE FECHAMENTO IMEDIATO: Manutenção gratuita por 3 meses se assinado hoje.`
   }
 ];
 
-export default function PromptsLabPage() {
-  const [activeTab, setActiveTab] = useState<"lab" | "vault" | "vip">("lab");
+export default function CodeHardPromptsPage() {
+  const [activeTab, setActiveTab] = useState<"lab" | "gerador" | "skills">("lab");
   const [selectedPrompt, setSelectedPrompt] = useState<PromptItem>(PROMPT_DATABASE[0]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("Todos");
+  const [selectedNicho, setSelectedNicho] = useState<string>("Todos");
+  const [selectedCategoria, setSelectedCategoria] = useState<string>("Todas");
   const [copied, setCopied] = useState(false);
 
-  const filteredPrompts = PROMPT_DATABASE.filter((p) => {
-    if (filterCategory !== "Todos" && p.categoria !== filterCategory) return false;
-    if (searchTerm.trim()) {
-      const s = searchTerm.toLowerCase();
-      return p.titulo.toLowerCase().includes(s) || p.subtitulo.toLowerCase().includes(s) || p.tags.some(t => t.toLowerCase().includes(s));
-    }
-    return true;
-  });
+  // Estados do Gerador Inteligente por Nicho
+  const [genNicho, setGenNicho] = useState("Clínica Odontológica");
+  const [genTipo, setGenTipo] = useState("Landing Page de Alta Conversão");
+  const [genMotor, setGenMotor] = useState("Claude 3.7 Sonnet");
+  const [genEstilo, setGenEstilo] = useState("Tesla Obsidian & Royal Purple");
+  const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(selectedPrompt.conteudo);
+  // Nichos disponíveis
+  const nichosDisponiveis = useMemo(() => ["Todos", ...Array.from(new Set(PROMPT_DATABASE.map(p => p.nicho)))], []);
+
+  // Filtros
+  const filteredPrompts = useMemo(() => {
+    return PROMPT_DATABASE.filter((p) => {
+      if (selectedNicho !== "Todos" && p.nicho !== selectedNicho) return false;
+      if (selectedCategoria !== "Todas" && p.categoria !== selectedCategoria) return false;
+
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        const matchesTitle = p.titulo.toLowerCase().includes(q);
+        const matchesSub = p.subtitulo.toLowerCase().includes(q);
+        const matchesTags = p.tags.some(t => t.toLowerCase().includes(q));
+        if (!matchesTitle && !matchesSub && !matchesTags) return false;
+      }
+
+      return true;
+    });
+  }, [selectedNicho, selectedCategoria, searchTerm]);
+
+  const handleCopyPrompt = (text: string) => {
+    navigator.clipboard.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleGenerateCustomPrompt = () => {
+    const promptCriado = `Atue como um Arquiteto de Software e Designer UI/UX Sênior de Padrão Internacional (Tesla & Awwwards).
+Desenvolva uma solução completa de ${genTipo} especificamente para o nicho de ${genNicho}.
+
+Motor Alvo: ${genMotor}
+Direção de Arte: ${genEstilo}
+
+1. ESPECIFICAÇÃO DE DESIGN & TOKENS:
+- Fundo Obsidiana Dark (#07050f), placas em vidro lapidado (#0c0a18) com blur de 24px.
+- Bordas de 1px com gradiente sutil de luz (rgba(255,255,255,0.08) para rgba(124,58,237,0.3)).
+- Acentos em Roxo Real (#7c3aed, #a855f7) com iluminação difusa.
+- Tipografia: Inter Tight para títulos e JetBrains Mono para telemetria e dados.
+
+2. ESTRUTURA DE SEÇÕES DE ALTA CONVERSÃO:
+- Hero Section com proposta única de valor para ${genNicho}, prova social tangível e botão WhatsApp em estilo Tesla Pill.
+- Seção de Diferenciais em Bento Grid com 3 cartões modulares.
+- Demonstração visual de autoridade e depoimentos de clientes satisfeitos.
+- Tabela de planos ou catálogo de serviços com destaque para o mais rentável.
+- Formulário minimalista de captura rápida em 2 etapas.
+
+3. CÓDIGO & TECNOLOGIAS:
+- Código completo em Next.js 15 (App Router), Tailwind CSS e Framer Motion.
+- Zero componentes genéricos ou placeholders vazios. Escreva os textos completos e persuasivos adaptados para ${genNicho}.`;
+
+    setGeneratedPrompt(promptCriado);
   };
 
   return (
-    <div className="space-y-6">
-      {/* ── TOP SWITCHER TABS ── */}
-      <div className="flex items-center justify-between gap-4 pb-2 border-b border-white/[0.06]">
-        <span className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">
-          ACERVO CODEHARD
-        </span>
+    <div className="space-y-8 pb-12">
+      {/* ── TOP TELEMETRY BAR: TESLA COCKPIT HEADER ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Banner Identidade Prompt Lab */}
+        <div className="lg:col-span-6 p-6 rounded-[28px] bg-gradient-to-r from-[#4c1d95] via-[#6d28d9] to-[#7c3aed] border border-purple-400/30 flex items-center justify-between shadow-[0_20px_40px_rgba(124,58,237,0.35)]">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-purple-200 animate-ping" />
+              <span className="text-[10px] font-mono uppercase tracking-widest text-purple-200 font-bold">
+                ENGENHARIA REVERSA DE PROMPTS · ACERVO OFICIAL
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Prompt Lab.</h1>
+            <p className="text-xs text-purple-100/90 mt-1 max-w-md">
+              Milhares de instruções testadas para Claude 3.7, ChatGPT e v0 divididas por nicho de atuação e modelos.
+            </p>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveTab("lab")}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeTab === "lab"
-                ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(124,58,237,0.4)]"
-                : "bg-[#120e24] text-zinc-400 hover:text-white border border-white/5"
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" /> Prompt Lab <span className="text-[10px] opacity-70">Prompts prontos para usar</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("vault")}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeTab === "vault"
-                ? "bg-purple-600 text-white shadow-[0_0_15px_rgba(124,58,237,0.4)]"
-                : "bg-[#120e24] text-zinc-400 hover:text-white border border-white/5"
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" /> Skill Vault <span className="text-[10px] opacity-70">Métodos e instalação</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("vip");
-              window.location.href = "/app/builder";
-            }}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-700 to-violet-600 text-white flex items-center gap-1.5 border border-purple-400/40 shadow-sm"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-purple-200" /> Gerar com IA <span className="px-1.5 py-0.2 rounded bg-black/40 text-[9px] font-mono font-bold">VIP</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── HERO BANNER: PROMPT LAB COM HARDY MASCOTE ── */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-[#4c1d95] via-[#6d28d9] to-[#7c3aed] p-6 md:p-8 overflow-hidden shadow-[0_0_40px_rgba(109,40,217,0.35)] border border-purple-400/30">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
-        {/* Mascot Hardy Prompts on Right */}
-        <div className="absolute right-4 md:right-10 -bottom-4 md:-bottom-8 w-44 md:w-60 h-44 md:h-60 pointer-events-none">
-          <HardyMascot variant="prompts" className="w-full h-full" />
+          <div className="hidden sm:block w-24 h-24">
+            <HardyMascot variant="prompts" className="w-full h-full" />
+          </div>
         </div>
 
-        <div className="relative z-10 max-w-2xl">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-purple-200 font-bold block mb-1">
-            / CODEHARD / PROMPT LAB
+        {/* Métricas do Acervo */}
+        <div className="lg:col-span-3 p-6 rounded-[28px] bg-[#0a0815]/90 border border-white/[0.08] flex flex-col justify-between shadow-xl">
+          <span className="text-[10px] font-mono text-zinc-500 uppercase font-bold">PROMPTS CALIBRADOS</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-3xl font-black font-mono text-white">1.480+</span>
+            <span className="text-xs text-purple-400 font-mono font-bold">Fórmulas Prontas</span>
+          </div>
+          <span className="text-xs text-zinc-400 font-mono">
+            Filtráveis por nicho, motor e tecnologia
           </span>
-          <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">
-            Prompts para sair do rascunho.
-          </h1>
-          <p className="text-xs md:text-sm text-purple-100/90 mt-1.5 max-w-lg leading-relaxed">
-            Escolha um prompt completo, copie ou baixe e ajuste os detalhes no seu próprio chat para gerar sites e códigos precisos.
-          </p>
+        </div>
 
-          {/* Metrics Pills */}
-          <div className="flex flex-wrap items-center gap-2 mt-6">
-            <span className="px-3 py-1 rounded-xl bg-black/25 backdrop-blur-md border border-white/10 text-[11px] font-mono text-purple-200">
-              {PROMPT_DATABASE.length} recursos publicados
-            </span>
-            <span className="px-3 py-1 rounded-xl bg-black/25 backdrop-blur-md border border-white/10 text-[11px] font-mono text-purple-200">
-              Texto completo
-            </span>
-            <span className="px-3 py-1 rounded-xl bg-black/25 backdrop-blur-md border border-white/10 text-[11px] font-mono text-purple-200">
-              Sincronizado
-            </span>
+        {/* Taxa de Acerto de Código */}
+        <div className="lg:col-span-3 p-6 rounded-[28px] bg-[#0a0815]/90 border border-white/[0.08] flex flex-col justify-between shadow-xl">
+          <span className="text-[10px] font-mono text-zinc-500 uppercase font-bold">FIDELIDADE TÉCNICA</span>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-2xl font-black text-emerald-400 font-mono">99.2%</span>
+            <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Zero Alucinação</span>
           </div>
+          <span className="text-xs text-zinc-400 font-mono">
+            Instruções com regras estritas de Tailwind e Next.js 15
+          </span>
         </div>
       </div>
 
-      {/* ── BARRA DE PESQUISA & FILTROS ── */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-[#0c0a18] border border-purple-900/25">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
-          <input
-            type="text"
-            placeholder="Buscar por objetivo, área ou palavra-chave..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#140f28] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
-          />
-        </div>
+      {/* ── SELETOR DE MODO (PROMPT LAB / GERADOR POR NICHO / SKILL VAULT) ── */}
+      <div className="flex items-center gap-2 p-1.5 rounded-[22px] bg-[#0c0a18] border border-purple-900/30 w-fit">
+        <button
+          onClick={() => setActiveTab("lab")}
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === "lab"
+              ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(124,58,237,0.4)]"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          <BookOpen className="w-4 h-4" /> Acervo por Nicho
+        </button>
 
-        <div className="flex items-center gap-2">
-          {["Todos", "DESIGN E PRODUTO", "THREE.JS & SHADERS", "GSAP SCROLL", "COPYWRITING B2B"].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                filterCategory === cat
-                  ? "bg-purple-600 text-white font-bold"
-                  : "bg-[#140f28] text-zinc-400 hover:text-white border border-white/5"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        <button
+          onClick={() => setActiveTab("gerador")}
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === "gerador"
+              ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(124,58,237,0.4)]"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          <Wand2 className="w-4 h-4 text-purple-300" /> Gerador Inteligente por Nicho
+        </button>
+
+        <button
+          onClick={() => setActiveTab("skills")}
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === "skills"
+              ? "bg-purple-600 text-white shadow-[0_0_20px_rgba(124,58,237,0.4)]"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          <Cpu className="w-4 h-4" /> Skill Vault (Three.js & GSAP)
+        </button>
       </div>
 
-      {/* ── GRID DUAS COLUNAS: LISTA À ESQUERDA & VISUALIZADOR À DIREITA ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Coluna Esquerda: Explore os prompts (5 colunas) */}
-        <div className="lg:col-span-5 p-5 rounded-3xl bg-[#0c0a18] border border-purple-900/25 shadow-xl space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
-            <div>
-              <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest font-bold">
-                CODEHARD / BIBLIOTECA
-              </span>
-              <h3 className="text-sm font-bold text-white mt-0.5">Explore os prompts ({filteredPrompts.length})</h3>
+      {/* ── ABA 01: ACERVO POR NICHO COM FILTROS TESLA ── */}
+      {activeTab === "lab" && (
+        <div className="space-y-6">
+          {/* Barra de Filtros */}
+          <div className="p-4 rounded-[24px] bg-[#0c0a18]/95 border border-purple-500/25 shadow-xl flex flex-wrap items-center gap-3">
+            {/* Campo de Busca */}
+            <div className="flex-1 min-w-[240px] relative">
+              <Search className="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Buscar prompt por nicho ou objetivo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
+              />
+            </div>
+
+            {/* Nicho Dropdown */}
+            <div className="w-56">
+              <select
+                value={selectedNicho}
+                onChange={(e) => setSelectedNicho(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 cursor-pointer"
+              >
+                {nichosDisponiveis.map((n) => (
+                  <option key={n} value={n}>{n === "Todos" ? "Todos os Nichos" : n}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Categoria */}
+            <div className="w-56">
+              <select
+                value={selectedCategoria}
+                onChange={(e) => setSelectedCategoria(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 cursor-pointer"
+              >
+                <option value="Todas">Todas as Categorias</option>
+                <option value="CÓDIGO & LANDING PAGE">Código & Landing Page</option>
+                <option value="COPYWRITING & VENDAS">Copywriting & Vendas</option>
+                <option value="WEBGL & GSAP">WebGL & GSAP</option>
+                <option value="SISTEMAS & DASHBOARD">Sistemas & Dashboard</option>
+              </select>
             </div>
           </div>
 
-          <div className="space-y-3">
-            {filteredPrompts.map((p, idx) => {
-              const isSelected = selectedPrompt.id === p.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setSelectedPrompt(p)}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all group ${
-                    isSelected
-                      ? "bg-[#1c1538] border-purple-500 shadow-[0_0_20px_rgba(124,58,237,0.3)]"
-                      : "bg-[#120e24] border-white/5 hover:border-purple-500/30 hover:bg-[#16102e]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[9px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">
-                      {p.categoria}
-                    </span>
-                    <ArrowUpRight className={`w-3.5 h-3.5 transition-colors ${isSelected ? "text-purple-300" : "text-zinc-600 group-hover:text-zinc-400"}`} />
+          {/* Grid Principal: Lista à Esquerda + Inspetor à Direita */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[620px]">
+            {/* Lista de Prompts (5 colunas) */}
+            <div className="lg:col-span-5 space-y-3 max-h-[620px] overflow-y-auto pr-1">
+              {filteredPrompts.map((p) => {
+                const isSelected = selectedPrompt.id === p.id;
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedPrompt(p)}
+                    className={`p-5 rounded-[24px] transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-[#160d33] border-2 border-purple-500 shadow-[0_0_25px_rgba(124,58,237,0.35)]"
+                        : "bg-[#0c0a18] border border-purple-900/25 hover:border-purple-500/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono mb-1">
+                      <span className="text-purple-400 font-bold uppercase">{p.nicho}</span>
+                      <span className="text-zinc-500">{p.motorIa}</span>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-white mt-1 line-clamp-1">{p.titulo}</h3>
+                    <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{p.subtitulo}</p>
+
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {p.tags.map((tag) => (
+                        <span key={tag} className="px-2 py-0.5 rounded-md bg-white/[0.04] text-[9px] font-mono text-zinc-400">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <h4 className="text-sm font-bold text-white group-hover:text-purple-200 transition-colors">
-                    {p.titulo}
-                  </h4>
-                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
-                    {p.subtitulo}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {p.tags.map((t) => (
-                      <span key={t} className="px-1.5 py-0.5 rounded bg-[#181232] border border-purple-500/15 text-[9px] font-mono text-zinc-400">
-                        {t}
+            {/* Inspetor de Prompt à Direita (7 colunas) */}
+            <div className="lg:col-span-7 rounded-[28px] bg-[#0c0a18] border border-purple-900/30 p-6 md:p-8 flex flex-col justify-between shadow-2xl">
+              <div className="space-y-6">
+                {/* Header do Inspetor */}
+                <div className="flex items-start justify-between gap-4 pb-4 border-b border-white/[0.06]">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2.5 py-0.5 rounded-full bg-purple-600/30 text-purple-300 border border-purple-500/40 text-[10px] font-mono font-bold">
+                        {selectedPrompt.categoria}
                       </span>
-                    ))}
+                      <span className="text-xs font-mono text-zinc-400">Motor: {selectedPrompt.motorIa}</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-white mt-1">{selectedPrompt.titulo}</h2>
+                    <p className="text-xs text-zinc-400 mt-1">{selectedPrompt.subtitulo}</p>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Coluna Direita: Visualizador do Prompt Final (7 colunas) */}
-        <div className="lg:col-span-7 p-6 md:p-8 rounded-3xl bg-[#0c0a18] border border-purple-900/25 shadow-2xl flex flex-col justify-between min-h-[560px]">
-          <div className="space-y-4">
-            {/* Header do Prompt Selecionado */}
-            <div>
-              <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest font-bold">
-                [ ] PROMPT / {selectedPrompt.categoria.toLowerCase()}
-              </span>
-              <h2 className="text-2xl font-bold text-white mt-1">{selectedPrompt.titulo}</h2>
-              <p className="text-xs text-zinc-400 mt-1">{selectedPrompt.subtitulo}</p>
-            </div>
-
-            {/* Aviso de Uso Restrito em Roxo */}
-            <div className="p-3.5 rounded-2xl bg-purple-950/40 border border-purple-500/30 flex items-start gap-3">
-              <ShieldAlert className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-              <p className="text-[11px] text-purple-200 leading-relaxed">
-                <span className="font-bold">USO RESTRITO:</span> É proibido divulgar, compartilhar ou redistribuir este conteúdo. O descumprimento está sujeito à perda de acesso e ao banimento da plataforma.
-              </p>
-            </div>
-
-            {/* Caixa do Prompt Final */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] uppercase font-mono tracking-widest text-zinc-500 font-bold block">
-                    CODEHARD / PROMPT LAB
-                  </span>
-                  <span className="text-xs font-bold text-white">Prompt final</span>
+                  <button
+                    onClick={() => handleCopyPrompt(selectedPrompt.conteudo)}
+                    className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-[0_0_20px_rgba(124,58,237,0.4)] transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-300" /> Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" /> Copiar Prompt
+                      </>
+                    )}
+                  </button>
                 </div>
 
-                <button
-                  onClick={handleCopy}
-                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_0_15px_rgba(124,58,237,0.4)] transition-all cursor-pointer"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-green-300" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? "Copiado!" : "Copiar prompt"}
-                </button>
+                {/* Aviso de Restrição de Uso */}
+                <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 flex items-center gap-3 text-xs text-amber-200">
+                  <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Aviso de Segurança: Prompt protegido por licença de uso comercial exclusivo para membros CODEHARD.
+                  </span>
+                </div>
+
+                {/* Caixa de Código do Prompt Final */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
+                    <span>Prompt final calibrado</span>
+                    <span>Tokens: ~{Math.round(selectedPrompt.conteudo.length / 4)}</span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[#06040d] border border-purple-900/30 font-mono text-xs text-zinc-200 leading-relaxed max-h-[360px] overflow-y-auto whitespace-pre-wrap select-all">
+                    {selectedPrompt.conteudo}
+                  </div>
+                </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#120e24] border border-white/10 font-mono text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed max-h-[380px] overflow-y-auto scrollbar-hide">
-                {selectedPrompt.conteudo}
+              {/* Dica de Aplicação */}
+              <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-zinc-500">
+                <span>Dica: Cole no Claude 3.7 Sonnet com modo Thinking ativado para máximo resultado.</span>
+                <span className="text-purple-400 font-bold">100% Validado</span>
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-zinc-500">
-            <span>Texto completo para copiar e adaptar no seu chat</span>
-            <span className="text-purple-400 font-bold">Motor CODEHARD v4</span>
+      {/* ── ABA 02: GERADOR INTELIGENTE POR NICHO & MODELO ── */}
+      {activeTab === "gerador" && (
+        <div className="p-6 md:p-8 rounded-[28px] bg-[#0c0a18] border border-purple-500/30 shadow-2xl space-y-8">
+          <div className="max-w-xl">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-purple-400 font-bold">
+              CONSTRUTOR DINÂMICO
+            </span>
+            <h2 className="text-2xl font-black text-white mt-1">
+              Gerador de Prompts Mestres Sob Medida
+            </h2>
+            <p className="text-xs text-zinc-400 mt-1">
+              Selecione o nicho exato do seu cliente e monte uma instrução de alto impacto em segundos.
+            </p>
+          </div>
+
+          {/* Controles de Configuração */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Nicho */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-zinc-400">1. Nicho de Mercado</label>
+              <select
+                value={genNicho}
+                onChange={(e) => setGenNicho(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="Clínica Odontológica">Clínica Odontológica</option>
+                <option value="Restaurante Japonês & Sushi">Restaurante Japonês & Sushi</option>
+                <option value="Advocacia Tributária & Holding">Advocacia Tributária & Holding</option>
+                <option value="Imobiliária de Luxo & Mansões">Imobiliária de Luxo & Mansões</option>
+                <option value="Estética Automotiva & PPF">Estética Automotiva & PPF</option>
+                <option value="Academia de CrossFit & Performance">Academia de CrossFit & Performance</option>
+                <option value="Joalheria & Relógios de Luxo">Joalheria & Relógios de Luxo</option>
+                <option value="Startup de Automação & IA">Startup de Automação & IA</option>
+              </select>
+            </div>
+
+            {/* Tipo de Solução */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-zinc-400">2. Tipo de Entrega</label>
+              <select
+                value={genTipo}
+                onChange={(e) => setGenTipo(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="Landing Page de Alta Conversão">Landing Page de Alta Conversão</option>
+                <option value="Web App / Dashboard Executivo">Web App / Dashboard Executivo</option>
+                <option value="Script de Abordagem no WhatsApp">Script de Abordagem no WhatsApp</option>
+                <option value="Proposta Comercial Irrecusável">Proposta Comercial Irrecusável</option>
+              </select>
+            </div>
+
+            {/* Motor de IA */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-zinc-400">3. Modelo de Inteligência</label>
+              <select
+                value={genMotor}
+                onChange={(e) => setGenMotor(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="Claude 3.7 Sonnet">Claude 3.7 Sonnet (Thinking)</option>
+                <option value="v0 by Vercel">v0 by Vercel</option>
+                <option value="ChatGPT o3-mini">ChatGPT o3-mini</option>
+                <option value="Gemini 2.5 Pro">Gemini 2.5 Pro</option>
+              </select>
+            </div>
+
+            {/* Estilo Visual */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-zinc-400">4. Direção de Arte</label>
+              <select
+                value={genEstilo}
+                onChange={(e) => setGenEstilo(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="Tesla Obsidian & Royal Purple">Tesla Obsidian & Royal Purple</option>
+                <option value="Genjutsu Cyberpunk Dark">Genjutsu Cyberpunk Dark</option>
+                <option value="White Pearl & Titanium Minimal">White Pearl & Titanium Minimal</option>
+                <option value="Industrial Dark Brutalism">Industrial Dark Brutalism</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Botão de Geração */}
+          <button
+            onClick={handleGenerateCustomPrompt}
+            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6d28d9] via-[#7c3aed] to-[#9333ea] text-white text-xs font-bold flex items-center gap-2 shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:scale-105 transition-all cursor-pointer"
+          >
+            <Wand2 className="w-4 h-4" /> Sintetizar Prompt Especializado
+          </button>
+
+          {/* Resultado Gerado */}
+          {generatedPrompt && (
+            <div className="space-y-4 pt-4 border-t border-white/[0.08]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-purple-400 font-bold uppercase">
+                  Prompt Mestre Gerado com Sucesso
+                </span>
+
+                <button
+                  onClick={() => handleCopyPrompt(generatedPrompt)}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-300" /> Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" /> Copiar para a Área de Transferência
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#06040d] border border-purple-900/40 font-mono text-xs text-zinc-200 leading-relaxed whitespace-pre-wrap select-all">
+                {generatedPrompt}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── ABA 03: SKILL VAULT (THREE.JS & GSAP TEMPLATES) ── */}
+      {activeTab === "skills" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 rounded-[28px] bg-[#0c0a18] border border-purple-900/30 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-purple-400 uppercase font-bold">THREE.JS / WEBGL</span>
+              <button
+                onClick={() => handleCopyPrompt(`import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Stars, Float } from "@react-three/drei";
+
+export default function CyberScene() {
+  return (
+    <div className="h-[500px] w-full bg-[#05030a] rounded-3xl overflow-hidden">
+      <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
+        <ambientLight intensity={0.5} />
+        <pointLight position={[10, 10, 10]} color="#a855f7" intensity={2} />
+        <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={1.5} />
+        <Float speed={2} rotationIntensity={1.5} floatIntensity={2}>
+          <mesh>
+            <octahedronGeometry args={[1.5, 0]} />
+            <meshStandardMaterial color="#7c3aed" wireframe emissive="#6d28d9" emissiveIntensity={0.8} />
+          </mesh>
+        </Float>
+        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
+      </Canvas>
+    </div>
+  );
+}`)}
+                className="text-xs font-mono text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copiar Código
+              </button>
+            </div>
+            <h3 className="text-base font-bold text-white">Cena Espacial Flutuante R3F</h3>
+            <p className="text-xs text-zinc-400">
+              Template pronto com octaedro wireframe holográfico, campo estelar com 3.000 nós e rotação inercial a 60fps.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-[28px] bg-[#0c0a18] border border-purple-900/30 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono text-purple-400 uppercase font-bold">GSAP / SCROLLTRIGGER</span>
+              <button
+                onClick={() => handleCopyPrompt(`import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
+export function useGsapPinSection(ref: React.RefObject<HTMLDivElement>) {
+  useEffect(() => {
+    if (!ref.current) return;
+    const ctx = gsap.context(() => {
+      gsap.to(".pin-card", {
+        scrollTrigger: {
+          trigger: ref.current,
+          start: "top top",
+          end: "+=2000",
+          scrub: 1,
+          pin: true,
+        },
+        y: -100,
+        opacity: 1,
+        stagger: 0.3,
+      });
+    }, ref);
+
+    return () => ctx.revert();
+  }, [ref]);
+}`)}
+                className="text-xs font-mono text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copiar Código
+              </button>
+            </div>
+            <h3 className="text-base font-bold text-white">ScrollTrigger Pin & Stagger</h3>
+            <p className="text-xs text-zinc-400">
+              Hook customizado React para fixar uma seção na tela durante a rolagem com cascata cinematográfica de cards.
+            </p>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

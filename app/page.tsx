@@ -368,40 +368,46 @@ export default function CodeHardLandingPage() {
             href="/app/design"
             className="px-4 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600 border border-purple-400/40 text-white text-xs font-bold transition-colors"
           >
-            Ver galeria de 24 referências ➔
+            Ver acervo de referências curadas ➔
           </Link>
         </div>
 
-        {/* 3 Reference Cards Preview */}
+        {/* 3 Reference Cards Preview com Fotos Reais */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
-              title: "Aether Void — Three.js & Spatial",
+              title: "Aether Void — Neural Cloud & Spatial",
               platform: "Awwwards",
               img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
-              category: "Tree.js Skills"
+              category: "Tree.js Skills",
+              nicho: "SaaS & AI"
             },
             {
-              title: "Genjutsu Minimal — Dark Bento",
-              platform: "Dribbble",
-              img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
-              category: "Genjutsu"
-            },
-            {
-              title: "Kinetic Scroll — GSAP Timeline",
+              title: "Aura Dental — Odontologia Estética VIP",
               platform: "Land-Book",
-              img: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80",
-              category: "Gsap Skill"
+              img: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80",
+              category: "Design DNA",
+              nicho: "Saúde & Clínicas"
+            },
+            {
+              title: "Kuro Omakase — Gastronomia Contemporânea",
+              platform: "Awwwards",
+              img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=800&q=80",
+              category: "Gsap Skill",
+              nicho: "Alta Cozinha"
             }
           ].map((item) => (
             <div
               key={item.title}
-              className="rounded-3xl bg-[#0c0a18] border border-purple-900/25 overflow-hidden shadow-xl group hover:border-purple-500/40 transition-all flex flex-col justify-between"
+              className="rounded-[28px] bg-[#0c0a18] border border-purple-900/30 overflow-hidden shadow-xl group hover:border-purple-500/50 transition-all flex flex-col justify-between"
             >
-              <div className="h-44 w-full relative overflow-hidden bg-[#150f28]">
+              <div className="h-48 w-full relative overflow-hidden bg-[#150f28]">
                 <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[9px] font-mono font-bold text-white border border-white/10">
+                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md text-[9px] font-mono font-bold text-white border border-white/10">
                   {item.platform}
+                </span>
+                <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-purple-600/80 backdrop-blur-md text-[9px] font-mono font-bold text-white">
+                  {item.nicho}
                 </span>
               </div>
               <div className="p-5 space-y-2">

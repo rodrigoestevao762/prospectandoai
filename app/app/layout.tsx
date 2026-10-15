@@ -23,7 +23,8 @@ import {
   Eye,
   RotateCw,
   Zap,
-  Plus
+  Plus,
+  Compass
 } from "lucide-react";
 import ModalRegistrarVenda from "@/components/codemakers/ModalRegistrarVenda";
 import ModalRegistrarCliente from "@/components/codemakers/ModalRegistrarCliente";
@@ -46,6 +47,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/app/crm", label: "CRM Kanban", icon: <Kanban className="w-5 h-5" /> },
   { href: "/app/builder", label: "Site Builder IA", icon: <Sparkles className="w-5 h-5" /> },
   { href: "/app/busca", label: "Code Hunter", icon: <Zap className="w-5 h-5" />, badge: "7k" },
+  { href: "/app/mapa", label: "Cartografia Noturna", icon: <Compass className="w-5 h-5" />, badge: "FSD" },
   { href: "/app/design", label: "Code Design", icon: <Palette className="w-5 h-5" /> },
   { href: "/app/prompts", label: "Gerador de Prompts", icon: <Sparkles className="w-5 h-5" /> },
   { href: "/app/play", label: "Code Play", icon: <PlayCircle className="w-5 h-5" /> },
