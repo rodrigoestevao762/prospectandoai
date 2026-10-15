@@ -28,6 +28,7 @@ import {
 import ModalRegistrarVenda from "@/components/codemakers/ModalRegistrarVenda";
 import ModalRegistrarCliente from "@/components/codemakers/ModalRegistrarCliente";
 import ModalConfiguracoes from "@/components/codemakers/ModalConfiguracoes";
+import CodeHardLogo from "@/components/codemakers/CodeHardLogo";
 
 interface NavItem {
   href: string;
@@ -80,12 +81,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col items-center gap-4">
           <Link
             href="/app"
-            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#6d28d9] to-[#4c1d95] border border-purple-400/30 flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.4)] group transition-all"
-            title="Code Makers — Início"
+            className="group transition-transform hover:scale-105"
+            title="CODEHARD — Início"
           >
-            <span className="font-mono font-black text-xl text-white tracking-tighter group-hover:scale-110 transition-transform">
-              &lt;/&gt;
-            </span>
+            <CodeHardLogo showWordmark={false} size="lg" />
           </Link>
 
           <div className="w-8 h-px bg-white/[0.08]" />

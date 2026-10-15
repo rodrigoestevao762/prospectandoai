@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ModalRegistrarVenda from "@/components/codemakers/ModalRegistrarVenda";
 import ModalRegistrarCliente from "@/components/codemakers/ModalRegistrarCliente";
+import CodeHardLogo from "@/components/codemakers/CodeHardLogo";
 
 export default function DashboardPage() {
   const [periodo, setPeriodo] = useState("6 meses");
@@ -217,15 +218,13 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* 3D Metallic Code Makers Card */}
+            {/* 3D Metallic CODEHARD Card */}
             <div className="relative rounded-2xl bg-gradient-to-br from-[#1a1433] via-[#0d091e] to-[#080512] border border-purple-500/30 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden">
               {/* Decorative radial overlay */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl pointer-events-none" />
 
               <div className="flex items-center justify-between">
-                <span className="font-mono font-black text-2xl text-purple-400 tracking-tighter">
-                  &lt;/&gt;
-                </span>
+                <CodeHardLogo showWordmark={false} size="sm" />
                 {/* Metallic Gold Chip */}
                 <div className="w-9 h-7 rounded-md bg-gradient-to-br from-[#fbbf24] via-[#d97706] to-[#b45309] border border-yellow-200/40 p-1 flex items-center justify-center opacity-90 shadow">
                   <div className="w-full h-full border border-black/30 rounded-sm" />

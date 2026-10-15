@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Plus, Globe, ExternalLink, Code2, Sparkles, CheckCircle2, Clock, ArrowUpRight } from "lucide-react";
+import HardyMascot from "@/components/codemakers/HardyMascot";
 
 interface SiteItem {
   id: string;
@@ -51,19 +52,15 @@ export default function SitesPage() {
       <div className="relative rounded-3xl bg-gradient-to-r from-[#4c1d95] via-[#6d28d9] to-[#7c3aed] p-6 md:p-8 overflow-hidden shadow-[0_0_40px_rgba(109,40,217,0.35)] border border-purple-400/30">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
-        {/* Mascot on Right */}
-        <div className="absolute right-4 md:right-10 -bottom-4 md:-bottom-8 w-44 md:w-64 h-44 md:h-64 pointer-events-none purple-tint opacity-90">
-          <img
-            src="/codemakers/codin-sites-header-v2.png"
-            alt="Mascote Codin Sites"
-            className="w-full h-full object-contain"
-          />
+        {/* Mascot Hardy on Right */}
+        <div className="absolute right-4 md:right-10 -bottom-4 md:-bottom-8 w-44 md:w-60 h-44 md:h-60 pointer-events-none">
+          <HardyMascot variant="design" className="w-full h-full" />
         </div>
 
         <div className="relative z-10 max-w-2xl">
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-mono uppercase tracking-widest text-purple-200 font-bold">
-              / CODE MAKERS / SHOWCASE
+              / CODEHARD / SHOWCASE
             </span>
             <Link
               href="/app/builder"
