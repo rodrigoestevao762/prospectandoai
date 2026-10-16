@@ -55,7 +55,7 @@ export default function ModalRegistrarCliente({ isOpen, onClose, onSuccess }: Mo
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-purple-200">
-                      CODE MAKERS / NOVO CONTATO
+                      / CODEHARD / NOVO CONTATO
                     </span>
                     <h2 className="text-xl font-bold tracking-tight">Registrar cliente.</h2>
                   </div>

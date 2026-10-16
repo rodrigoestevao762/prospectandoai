@@ -145,7 +145,7 @@ export default function DashboardPage() {
               <div className="absolute right-0 bottom-0 w-44 h-44 opacity-80 pointer-events-none purple-tint">
                 <img
                   src="/codemakers/codemakers-code-laptop-v3.png"
-                  alt="Laptop 3D Code Makers"
+                  alt="Laptop 3D CODEHARD"
                   className="w-full h-full object-contain"
                 />
               </div>

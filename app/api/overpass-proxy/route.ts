@@ -3,6 +3,7 @@ export const maxDuration = 60;
 import { NextResponse } from "next/server";
 
 const ENDPOINTS = [
+  "https://overpass.openstreetmap.fr/api/interpreter",
   "https://lz4.overpass-api.de/api/interpreter",
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter"
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ erro: "Query ausente" }, { status: 400 });
     }
 
-    const UA = "ProspectAI/2.0 (B2B Lead Discovery; Contact: dev@prospectando.ai)";
+    const UA = "Overpass Turbo/1.0 (https://overpass-turbo.eu)";
 
     for (let i = 0; i < ENDPOINTS.length; i++) {
       const ep = ENDPOINTS[(attemptIndex + i) % ENDPOINTS.length];

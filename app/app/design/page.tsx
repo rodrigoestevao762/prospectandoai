@@ -88,13 +88,13 @@ export default function CodeHardDesignPage() {
 
         {/* Status de Integração IA */}
         <div className="lg:col-span-3 p-6 rounded-[28px] bg-[#0a0815]/90 border border-white/[0.08] flex flex-col justify-between shadow-xl">
-          <span className="text-[10px] font-mono text-zinc-500 uppercase font-bold">EXPORTAÇÃO IMEDIATA</span>
+          <span className="text-[10px] font-mono text-zinc-500 uppercase font-bold">MOTORES SUPORTADOS</span>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xl font-bold text-white">Claude 3.7 / v0</span>
-            <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">100% Compatível</span>
+            <span className="text-sm font-bold text-white">Syre, Formoda, Titan, Nova & Gemini</span>
+            <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Nativo</span>
           </div>
           <span className="text-xs text-zinc-400 font-mono">
-            Cole direto nas IAs para gerar interfaces idênticas
+            Execute diretamente no Site Builder IA da CODEHARD
           </span>
         </div>
       </div>
@@ -342,7 +342,7 @@ export default function CodeHardDesignPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="text-zinc-400">Conteúdo do arquivo DESIGN.md</span>
-                  <span className="text-purple-400">Pronto para Claude 3.7 / v0 / ChatGPT</span>
+                  <span className="text-purple-400">Pronto para Syre, Formoda, Titan, Nova & Gemini</span>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-[#06040d] border border-purple-900/30 font-mono text-xs text-zinc-200 overflow-x-auto leading-relaxed">

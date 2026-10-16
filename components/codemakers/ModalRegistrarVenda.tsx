@@ -61,7 +61,7 @@ export default function ModalRegistrarVenda({ isOpen, onClose, onSuccess }: Moda
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-purple-200">
-                      CODE MAKERS / NOVA OPERAÇÃO
+                      / CODEHARD / NOVA OPERAÇÃO
                     </span>
                     <h2 className="text-xl font-bold tracking-tight">Registrar venda.</h2>
                   </div>

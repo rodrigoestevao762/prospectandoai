@@ -12,7 +12,7 @@ export interface PromptItem {
   id: string;
   nicho: string;
   categoria: "CÓDIGO & LANDING PAGE" | "COPYWRITING & VENDAS" | "WEBGL & GSAP" | "SISTEMAS & DASHBOARD";
-  motorIa: "Claude 3.7 Sonnet" | "v0 by Vercel" | "ChatGPT o3-mini" | "Gemini 2.5 Pro";
+  motorIa: "Syre v2.5" | "Formoda Ultra" | "Titan AI" | "Nova Lux" | "Google Gemini";
   titulo: string;
   subtitulo: string;
   tags: string[];
@@ -25,11 +25,11 @@ const PROMPT_DATABASE: PromptItem[] = [
     id: "p-odonto",
     nicho: "Saúde & Clínicas",
     categoria: "CÓDIGO & LANDING PAGE",
-    motorIa: "Claude 3.7 Sonnet",
+    motorIa: "Syre v2.5",
     titulo: "Landing Page Odonto Prime de Alto Padrão",
     subtitulo: "Conversão voltada a procedimentos de R$ 15k a R$ 60k (Lentes e Implantes).",
-    tags: ["Odontologia", "Lentes de Resina", "Implantes", "Landing Page"],
-    conteudo: `Atue como um Engenheiro Frontend Sênior e Especialista em CRO para Clínicas Médicas de Alto Padrão.
+    tags: ["Odontologia", "Lentes de Resina", "Implantes", "Landing Page", "Syre"],
+    conteudo: `Atue como o motor Syre v2.5 especializado em Landing Pages de Luxo & Alta Conversão.
 Crie o código completo em Next.js 15 (App Router), Tailwind CSS e Framer Motion para a landing page da clínica odontológica de estética avançada.
 
 Diretrizes estritas de arquitetura e design:
@@ -49,11 +49,11 @@ Diretrizes estritas de arquitetura e design:
     id: "p-med-whats",
     nicho: "Saúde & Clínicas",
     categoria: "COPYWRITING & VENDAS",
-    motorIa: "ChatGPT o3-mini",
+    motorIa: "Google Gemini",
     titulo: "Script de Abordagem WhatsApp para Clínicas Médicas",
     subtitulo: "Abordagem consultiva para secretárias e médicos proprietários.",
-    tags: ["WhatsApp", "Saúde", "Decisores", "Script"],
-    conteudo: `Você é o estrategista digital sênior da CODEHARD.
+    tags: ["WhatsApp", "Saúde", "Decisores", "Script", "Gemini"],
+    conteudo: `Você é o estrategista digital sênior da CODEHARD operando no motor Google Gemini.
 Escreva um script de abordagem consultiva para enviar no WhatsApp do Dr. [Nome do Médico], proprietário da [Nome da Clínica] em [Cidade].
 
 Critérios indispensáveis:
@@ -63,17 +63,35 @@ Critérios indispensáveis:
 - Oferecer uma prévia interativa já montada especificamente com a identidade visual da clínica dele.
 - Fechamento leve: "Posso enviar o link da demonstração de 45 segundos para o senhor dar uma olhada sem nenhum compromisso?"`
   },
+  {
+    id: "p-clinica-dermatologia",
+    nicho: "Saúde & Clínicas",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Syre v2.5",
+    titulo: "Dermatologia Estética & Protocolos Rejuvenescedores",
+    subtitulo: "Experiência estética sofisticada com foco em protocolos de harmonização e laser.",
+    tags: ["Dermatologia", "Harmonização", "Laser", "Syre"],
+    conteudo: `Desenvolva a landing page para um Instituto de Dermatologia & Laser de luxo.
+Motor Alvo: Syre v2.5 (Landing Pages de Luxo & Alta Conversão).
+
+Requisitos essenciais:
+- Fundo dark obsidian com vidro fumê e detalhes em lavanda metálico (#a855f7).
+- Grade de tratamentos: Ultraformer MPT, Bioestimuladores de Colágeno, Laser Lavieen e Harmonização Facial Sutil.
+- Depoimentos em carrossel elegante com avaliação 5.0 estrelas Google.
+- Chamada direta para recepção VIP via WhatsApp com concierge de agendamento.`
+  },
 
   // ── 02. GASTRONOMIA & RESTAURANTES ──
   {
     id: "p-sushi",
     nicho: "Gastronomia & Restaurantes",
     categoria: "CÓDIGO & LANDING PAGE",
-    motorIa: "v0 by Vercel",
+    motorIa: "Titan AI",
     titulo: "Cardápio Digital & Reservas para Sushi Lounge Omakase",
     subtitulo: "Experiência gastronômica com eliminação total de taxas do iFood.",
-    tags: ["Japonês", "Omakase", "Cardápio Digital", "Reservas"],
+    tags: ["Japonês", "Omakase", "Cardápio Digital", "Reservas", "Titan AI"],
     conteudo: `Desenvolva uma página moderna para um restaurante japonês contemporâneo e Omakase de luxo.
+Motor: Titan AI (E-commerce & Cardápios Interativos).
 Framework: Next.js 15, Tailwind CSS, Lucide React e Radix UI.
 
 Requisitos de layout:
@@ -86,17 +104,34 @@ Requisitos de layout:
    - Seletor de data, quantidade de pessoas e turno (19h ou 21h30).
    - Confirmação via mensagem estruturada para o WhatsApp da recepção.`
   },
+  {
+    id: "p-pizzaria-napolitana",
+    nicho: "Gastronomia & Restaurantes",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Titan AI",
+    titulo: "Cardápio Interativo & Checkout WhatsApp para Pizzaria Napolitana",
+    subtitulo: "Fluxo de pedido ágil com cálculo de carrinho e envio em 1 clique para o WhatsApp da pizzaria.",
+    tags: ["Pizzaria", "Delivery", "Carrinho WhatsApp", "Titan AI"],
+    conteudo: `Crie a aplicação de cardápio digital e pedidos diretos para uma Pizzaria Artesanal Napolitana de fermentação lenta.
+Motor: Titan AI (E-commerce & Cardápios Interativos).
+
+Funcionalidades obrigatórias:
+- Catálogo visual de pizzas clássicas, especiais e doces com tags de insumos italianos (Fior di Latte, Pomodoro San Marzano).
+- Seletor de massa (Tradicional ou Integral) e borda recheada.
+- Mini-carrinho flutuante com cálculo automático de subtotal e taxa de entrega por bairro.
+- Botão "Finalizar Pedido via WhatsApp" que formata a mensagem com endereço e forma de pagamento.`
+  },
 
   // ── 03. ADVOCACIA & ESCRITÓRIOS JURÍDICOS ──
   {
     id: "p-adv-tributario",
     nicho: "Advocacia & Jurídico",
     categoria: "CÓDIGO & LANDING PAGE",
-    motorIa: "Claude 3.7 Sonnet",
+    motorIa: "Nova Lux",
     titulo: "Portal Institucional de Advocacia Tributária & Holding",
     subtitulo: "Autoridade corporativa para fechamento de contratos de alta rentabilidade.",
-    tags: ["Direito Tributário", "Holding", "Jurídico", "Autoridade"],
-    conteudo: `Atue como Designer e Desenvolvedor Web Sênior especialista em bancas jurídicas de elite.
+    tags: ["Direito Tributário", "Holding", "Jurídico", "Autoridade", "Nova Lux"],
+    conteudo: `Atue como o motor Nova Lux especialista em Design Editorial & Estúdios Criativos.
 Crie o código completo da página principal para um escritório de Advocacia Tributária e Proteção Patrimonial Familiar.
 
 Diretrizes:
@@ -110,17 +145,35 @@ Diretrizes:
 4. CHAMADA PARA AÇÃO SIGILOSA:
    - Formulário com selo de confidencialidade advocatícia e agendamento direto com sócio sênior.`
   },
+  {
+    id: "p-family-office",
+    nicho: "Finanças & Investimentos",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Nova Lux",
+    titulo: "Portal Institucional para Gestão de Patrimônio & Family Office",
+    subtitulo: "Visual sóbrio, editorial e discreto para atendimento a famílias de alto patrimônio líquido.",
+    tags: ["Family Office", "Wealth", "Editorial", "Nova Lux"],
+    conteudo: `Desenvolva a presença digital de uma gestora de patrimônio familiar (Multi-Family Office).
+Motor: Nova Lux (Design Editorial & Estúdios Criativos).
+
+Especificações:
+- Paleta monocromática com toques de grafite e violeta imperial (#581c87).
+- Tipografia serifada clássica combinada com numerais modernos monoespaçados.
+- Seções de Governança, Sucessão Patrimonial e Alocação Global de Ativos.
+- Canal seguro e encriptado para solicitação de reunião confidencial.`
+  },
 
   // ── 04. IMOBILIÁRIAS & CONSTRUTORAS DE ALTO PADRÃO ──
   {
     id: "p-imoveis-luxo",
     nicho: "Imóveis & Construção",
     categoria: "WEBGL & GSAP",
-    motorIa: "Claude 3.7 Sonnet",
+    motorIa: "Syre v2.5",
     titulo: "Showcase Imobiliário com Tour 3D & WebGL",
     subtitulo: "Apresentação cinematográfica de condomínios fechados e coberturas.",
-    tags: ["Imobiliária", "Three.js", "WebGL", "Mansões"],
+    tags: ["Imobiliária", "Three.js", "WebGL", "Mansões", "Syre"],
     conteudo: `Crie um componente de vitrine de imóveis de luxo em React Three Fiber (@react-three/fiber + Drei) e Tailwind CSS.
+Motor: Syre v2.5 (Landing Pages de Luxo & Alta Conversão).
 
 Funcionalidades:
 1. CENA 3D INTERATIVA:
@@ -136,11 +189,12 @@ Funcionalidades:
     id: "p-auto-detail",
     nicho: "Automotivo & Frotas",
     categoria: "CÓDIGO & LANDING PAGE",
-    motorIa: "v0 by Vercel",
+    motorIa: "Syre v2.5",
     titulo: "Centro de Estética Automotiva, PPF & Blindagem",
     subtitulo: "Valorização de supercarros com pacotes de proteção cerâmica e envelopamento.",
-    tags: ["PPF", "Blindagem", "Estética Automotiva", "Supercarros"],
+    tags: ["PPF", "Blindagem", "Estética Automotiva", "Supercarros", "Syre"],
     conteudo: `Desenvolva a página de um estúdio automotivo especializado em PPF (Paint Protection Film), Vitrificação Cerâmica e Blindagem.
+Motor: Syre v2.5 (Luxo & Conversão).
 Cores: Preto fibra de carbono (#050508) com realces em violeta elétrico (#a855f7) e titânio.
 
 Seções fundamentais:
@@ -156,11 +210,12 @@ Seções fundamentais:
     id: "p-saas-dash",
     nicho: "SaaS & AI",
     categoria: "SISTEMAS & DASHBOARD",
-    motorIa: "Claude 3.7 Sonnet",
+    motorIa: "Formoda Ultra",
     titulo: "Dashboard de Telemetria com Bento Grid & Recharts",
     subtitulo: "Interface executiva completa com gráficos em tempo real e dark mode.",
-    tags: ["Dashboard", "SaaS", "Recharts", "Bento Grid"],
+    tags: ["Dashboard", "SaaS", "Recharts", "Bento Grid", "Formoda"],
     conteudo: `Escreva o código de um Dashboard completo em Next.js 15, Tailwind CSS e Recharts.
+Motor: Formoda Ultra (Dark Bento Grid & SaaS Moderno).
 Estilo: Tesla Cockpit Dark Glass (#0a0818 com backdrop-filter blur 20px).
 
 Módulos do Dashboard:
@@ -169,26 +224,111 @@ Módulos do Dashboard:
 3. Feed de Atividades Recentes com status em tempo real (Novas vendas, Leads capturados).
 4. Tabela de Últimos Clientes com paginação e busca instantânea.`
   },
+  {
+    id: "p-barbearia-vip",
+    nicho: "Estética & Beleza",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Formoda Ultra",
+    titulo: "Landing Page & Agendamento para Barbearia Premium",
+    subtitulo: "Layout moderno estilo Bento Grid com escolha de profissional e horário.",
+    tags: ["Barbearia", "Agendamento", "Bento Grid", "Formoda"],
+    conteudo: `Desenvolva uma landing page impactante para uma barbearia premium e club masculino.
+Motor: Formoda Ultra (Dark Bento Grid & SaaS Moderno).
 
-  // ── 07. PROPOSTAS COMERCIAIS & FECHAMENTO ──
+Requisitos:
+- Bento Grid com serviços: Corte Degrade, Barboterapia, Pigmentação e Day Grooming.
+- Seletor visual de barbeiro com foto, especialidade e calendário de horários livres.
+- Integração de agendamento automático com confirmação direta via WhatsApp.`
+  },
+  {
+    id: "p-crossfit-performance",
+    nicho: "Fitness & Performance",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Formoda Ultra",
+    titulo: "Centro de Treinamento, CrossFit & Alta Performance",
+    subtitulo: "Página eletrizante com grade horária de treinos, tabela de planos e aula experimental.",
+    tags: ["CrossFit", "Academia", "Planos", "Formoda"],
+    conteudo: `Construa a landing page para um Centro de Alta Performance Física e Box de CrossFit.
+Motor: Formoda Ultra (Dark Bento Grid & SaaS Moderno).
+
+Elementos:
+- Tabela de Horários interativa dividida por modalidades (WOD, Levantamento Olímpico, Ginástica e Endurance).
+- Comparativo de planos com badge de recomendação para o plano Anual VIP.
+- Formulário rápido para agendamento de Aula Experimental Gratuita.`
+  },
+
+  // ── 07. E-COMMERCE & LUXURY DROPS ──
+  {
+    id: "p-ecommerce-streetwear",
+    nicho: "E-commerce & Moda",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Titan AI",
+    titulo: "E-commerce Drop System & Catálogo Dinâmico para Streetwear",
+    subtitulo: "Vitrine estilo Balenciaga/Kith com contador regressivo de drop e checkout rápido.",
+    tags: ["E-commerce", "Moda", "Drop", "Titan AI"],
+    conteudo: `Desenvolva a vitrine virtual para uma marca de moda streetwear de edição limitada.
+Motor: Titan AI (E-commerce & Cardápios Interativos).
+
+Recursos fundamentais:
+- Contador regressivo para o próximo Drop de coleções limitadas.
+- Grade de produtos com efeito hover de visualização de modelo vestindo a peça.
+- Seletor de tamanhos (P, M, G, GG) com indicação de estoque em tempo real.
+- Gaveta lateral de carrinho com checkout integrado e cálculo de frete.`
+  },
+  {
+    id: "p-joalheria-suica",
+    nicho: "Joalherias & Luxo",
+    categoria: "CÓDIGO & LANDING PAGE",
+    motorIa: "Nova Lux",
+    titulo: "Vitrine Imersiva para Joalheria & Alta Relojoaria",
+    subtitulo: "Tipografia monumental, detalhes em ouro branco e fotografia de joias de alta precisão.",
+    tags: ["Joalheria", "Relógios", "Luxo", "Nova Lux"],
+    conteudo: `Crie a landing page para uma joalheria contemporânea e revendedora de relógios suíços.
+Motor: Nova Lux (Design Editorial & Estúdios Criativos).
+
+Especificações:
+- Fotografia em primeiro plano com zoom tátil suave nos diamantes e caixas de safira.
+- Certificação de procedência e garantia vitalícia de autenticidade.
+- Botão discreto para atendimento privativo com joalheiro especialista.`
+  },
+
+  // ── 08. ESTRATÉGIA COMERCIAL & SCRIPTS DE VENDAS ──
   {
     id: "p-proposta-irrecusavel",
     nicho: "Estratégia & Vendas",
     categoria: "COPYWRITING & VENDAS",
-    motorIa: "ChatGPT o3-mini",
+    motorIa: "Google Gemini",
     titulo: "Estrutura de Proposta Comercial Irrecusável de Site",
     subtitulo: "Modelo de proposta em PDF/Apresentação para contratos de R$ 3.000 a R$ 12.000.",
-    tags: ["Proposta", "Fechamento", "Contrato", "Alto Valor"],
-    conteudo: `Você é o diretor comercial mais premiado do mercado de tecnologia web.
+    tags: ["Proposta", "Fechamento", "Contrato", "Alto Valor", "Gemini"],
+    conteudo: `Você é o diretor comercial mais premiado do mercado de tecnologia web operando no motor Google Gemini.
 Crie o roteiro completo de uma Proposta Comercial Irrecusável para apresentação ao cliente [Nome do Cliente / Empresa].
 
 Estrutura em 6 etapas:
 1. DIAGNÓSTICO DO CENÁRIO ATUAL: O custo invisível de não ter um site moderno (clientes perdidos diariamente).
-2. O NOVO ECOSSISTEMA: O que será entregue (Design exclusivo modelo Tesla/Codemakers, carregamento em <1s, mobile-first, WhatsApp integrado).
+2. O NOVO ECOSSISTEMA: O que será entregue (Design exclusivo modelo Tesla/CODEHARD, carregamento em <1s, mobile-first, WhatsApp integrado).
 3. PRAZO DE ENTREGA RELÂMPAGO: Entrega em até 5 dias úteis com protótipo validado.
 4. INVESTIMENTO & PARCELAMENTO: 2 opções de planos (Essencial e Dominação Total).
 5. GARANTIA BLINDADA DE SATISFAÇÃO: Ajustes ilimitados até a aprovação 100%.
 6. BÔNUS EXCLUSIVO DE FECHAMENTO IMEDIATO: Manutenção gratuita por 3 meses se assinado hoje.`
+  },
+  {
+    id: "p-script-objecoes",
+    nicho: "Estratégia & Vendas",
+    categoria: "COPYWRITING & VENDAS",
+    motorIa: "Google Gemini",
+    titulo: "Matriz de Quebra de Objeções para Fechamento de Sites no WhatsApp",
+    subtitulo: "Respostas cirúrgicas para 'Está caro', 'Já tenho Instagram' e 'Vou pensar'.",
+    tags: ["Objeções", "WhatsApp", "Fechamento", "Gemini"],
+    conteudo: `Você é o especialista em fechamento de vendas de tecnologia B2B no Google Gemini da CODEHARD.
+Forneça a matriz de respostas prontas para as 3 maiores objeções de donos de negócios:
+
+1. "Está muito caro":
+Como ancorar valor demonstrando que 1 único novo cliente do procedimento/produto dele já paga o site inteiro.
+2. "Meu Instagram já é suficiente":
+Como demonstrar com dados que quem busca no Google tem intenção de compra imediata, enquanto no Instagram a conversão de novos clientes é passiva.
+3. "Vou pensar e te retorno":
+Como criar urgência com elegância, oferecendo garantia de bônus de hospedagem ou protótipo gratuito somente até o fim do dia.`
   }
 ];
 
@@ -198,12 +338,13 @@ export default function CodeHardPromptsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedNicho, setSelectedNicho] = useState<string>("Todos");
   const [selectedCategoria, setSelectedCategoria] = useState<string>("Todas");
+  const [selectedMotor, setSelectedMotor] = useState<string>("Todos");
   const [copied, setCopied] = useState(false);
 
   // Estados do Gerador Inteligente por Nicho
   const [genNicho, setGenNicho] = useState("Clínica Odontológica");
   const [genTipo, setGenTipo] = useState("Landing Page de Alta Conversão");
-  const [genMotor, setGenMotor] = useState("Claude 3.7 Sonnet");
+  const [genMotor, setGenMotor] = useState("Syre v2.5");
   const [genEstilo, setGenEstilo] = useState("Tesla Obsidian & Royal Purple");
   const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
 
@@ -215,6 +356,7 @@ export default function CodeHardPromptsPage() {
     return PROMPT_DATABASE.filter((p) => {
       if (selectedNicho !== "Todos" && p.nicho !== selectedNicho) return false;
       if (selectedCategoria !== "Todas" && p.categoria !== selectedCategoria) return false;
+      if (selectedMotor !== "Todos" && p.motorIa !== selectedMotor) return false;
 
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
@@ -226,7 +368,7 @@ export default function CodeHardPromptsPage() {
 
       return true;
     });
-  }, [selectedNicho, selectedCategoria, searchTerm]);
+  }, [selectedNicho, selectedCategoria, selectedMotor, searchTerm]);
 
   const handleCopyPrompt = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -235,10 +377,10 @@ export default function CodeHardPromptsPage() {
   };
 
   const handleGenerateCustomPrompt = () => {
-    const promptCriado = `Atue como um Arquiteto de Software e Designer UI/UX Sênior de Padrão Internacional (Tesla & Awwwards).
-Desenvolva uma solução completa de ${genTipo} especificamente para o nicho de ${genNicho}.
+    const promptCriado = `Atue como o motor ${genMotor} da CODEHARD especializado em ${genTipo}.
+Desenvolva uma solução de nível internacional especificamente para o nicho de ${genNicho}.
 
-Motor Alvo: ${genMotor}
+Motor Ativo: ${genMotor}
 Direção de Arte: ${genEstilo}
 
 1. ESPECIFICAÇÃO DE DESIGN & TOKENS:
@@ -276,7 +418,7 @@ Direção de Arte: ${genEstilo}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Prompt Lab.</h1>
             <p className="text-xs text-purple-100/90 mt-1 max-w-md">
-              Milhares de instruções testadas para Claude 3.7, ChatGPT e v0 divididas por nicho de atuação e modelos.
+              Milhares de instruções testadas para Syre v2.5, Formoda Ultra, Titan AI, Nova Lux e Google Gemini divididas por nicho de atuação e modelos.
             </p>
           </div>
 
@@ -289,8 +431,8 @@ Direção de Arte: ${genEstilo}
         <div className="lg:col-span-3 p-6 rounded-[28px] bg-[#0a0815]/90 border border-white/[0.08] flex flex-col justify-between shadow-xl">
           <span className="text-[10px] font-mono text-zinc-500 uppercase font-bold">PROMPTS CALIBRADOS</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-black font-mono text-white">1.480+</span>
-            <span className="text-xs text-purple-400 font-mono font-bold">Fórmulas Prontas</span>
+            <span className="text-3xl font-black font-mono text-white">{PROMPT_DATABASE.length}</span>
+            <span className="text-xs text-purple-400 font-mono font-bold">Modelos Prontos</span>
           </div>
           <span className="text-xs text-zinc-400 font-mono">
             Filtráveis por nicho, motor e tecnologia
@@ -301,11 +443,11 @@ Direção de Arte: ${genEstilo}
         <div className="lg:col-span-3 p-6 rounded-[28px] bg-[#0a0815]/90 border border-white/[0.08] flex flex-col justify-between shadow-xl">
           <span className="text-[10px] font-mono text-zinc-500 uppercase font-bold">FIDELIDADE TÉCNICA</span>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-2xl font-black text-emerald-400 font-mono">99.2%</span>
+            <span className="text-2xl font-black text-emerald-400 font-mono">99.8%</span>
             <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Zero Alucinação</span>
           </div>
           <span className="text-xs text-zinc-400 font-mono">
-            Instruções com regras estritas de Tailwind e Next.js 15
+            Instruções calibradas para os 5 motores nativos CODEHARD
           </span>
         </div>
       </div>
@@ -352,7 +494,7 @@ Direção de Arte: ${genEstilo}
           {/* Barra de Filtros */}
           <div className="p-4 rounded-[24px] bg-[#0c0a18]/95 border border-purple-500/25 shadow-xl flex flex-wrap items-center gap-3">
             {/* Campo de Busca */}
-            <div className="flex-1 min-w-[240px] relative">
+            <div className="flex-1 min-w-[200px] relative">
               <Search className="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
@@ -364,7 +506,7 @@ Direção de Arte: ${genEstilo}
             </div>
 
             {/* Nicho Dropdown */}
-            <div className="w-56">
+            <div className="w-48">
               <select
                 value={selectedNicho}
                 onChange={(e) => setSelectedNicho(e.target.value)}
@@ -376,8 +518,24 @@ Direção de Arte: ${genEstilo}
               </select>
             </div>
 
+            {/* Motor Dropdown */}
+            <div className="w-48">
+              <select
+                value={selectedMotor}
+                onChange={(e) => setSelectedMotor(e.target.value)}
+                className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500 cursor-pointer"
+              >
+                <option value="Todos">Todos os Motores</option>
+                <option value="Syre v2.5">Syre v2.5 (Luxo)</option>
+                <option value="Formoda Ultra">Formoda Ultra (SaaS)</option>
+                <option value="Titan AI">Titan AI (E-commerce)</option>
+                <option value="Nova Lux">Nova Lux (Editorial)</option>
+                <option value="Google Gemini">Google Gemini (Neural)</option>
+              </select>
+            </div>
+
             {/* Categoria */}
-            <div className="w-56">
+            <div className="w-48">
               <select
                 value={selectedCategoria}
                 onChange={(e) => setSelectedCategoria(e.target.value)}
@@ -410,7 +568,9 @@ Direção de Arte: ${genEstilo}
                   >
                     <div className="flex items-center justify-between text-[10px] font-mono mb-1">
                       <span className="text-purple-400 font-bold uppercase">{p.nicho}</span>
-                      <span className="text-zinc-500">{p.motorIa}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-purple-600/20 text-purple-300 font-mono font-bold">
+                        {p.motorIa}
+                      </span>
                     </div>
 
                     <h3 className="text-sm font-bold text-white mt-1 line-clamp-1">{p.titulo}</h3>
@@ -438,7 +598,7 @@ Direção de Arte: ${genEstilo}
                       <span className="px-2.5 py-0.5 rounded-full bg-purple-600/30 text-purple-300 border border-purple-500/40 text-[10px] font-mono font-bold">
                         {selectedPrompt.categoria}
                       </span>
-                      <span className="text-xs font-mono text-zinc-400">Motor: {selectedPrompt.motorIa}</span>
+                      <span className="text-xs font-mono text-zinc-400">Motor Nativo: {selectedPrompt.motorIa}</span>
                     </div>
                     <h2 className="text-xl font-bold text-white mt-1">{selectedPrompt.titulo}</h2>
                     <p className="text-xs text-zinc-400 mt-1">{selectedPrompt.subtitulo}</p>
@@ -471,7 +631,7 @@ Direção de Arte: ${genEstilo}
                 {/* Caixa de Código do Prompt Final */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
-                    <span>Prompt final calibrado</span>
+                    <span>Instrução calibrada para {selectedPrompt.motorIa}</span>
                     <span>Tokens: ~{Math.round(selectedPrompt.conteudo.length / 4)}</span>
                   </div>
 
@@ -483,7 +643,7 @@ Direção de Arte: ${genEstilo}
 
               {/* Dica de Aplicação */}
               <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-zinc-500">
-                <span>Dica: Cole no Claude 3.7 Sonnet com modo Thinking ativado para máximo resultado.</span>
+                <span>Dica: Execute diretamente no Site Builder IA da CODEHARD ou no motor nativo Google Gemini.</span>
                 <span className="text-purple-400 font-bold">100% Validado</span>
               </div>
             </div>
@@ -550,10 +710,11 @@ Direção de Arte: ${genEstilo}
                 onChange={(e) => setGenMotor(e.target.value)}
                 className="w-full bg-[#140f28] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
               >
-                <option value="Claude 3.7 Sonnet">Claude 3.7 Sonnet (Thinking)</option>
-                <option value="v0 by Vercel">v0 by Vercel</option>
-                <option value="ChatGPT o3-mini">ChatGPT o3-mini</option>
-                <option value="Gemini 2.5 Pro">Gemini 2.5 Pro</option>
+                <option value="Syre v2.5">Syre v2.5 (Luxo & Conversão)</option>
+                <option value="Formoda Ultra">Formoda Ultra (Dark Bento & SaaS)</option>
+                <option value="Titan AI">Titan AI (E-commerce & Catálogo)</option>
+                <option value="Nova Lux">Nova Lux (Design Editorial & Estúdios)</option>
+                <option value="Google Gemini">Google Gemini (Motor Neural & Código Rápido)</option>
               </select>
             </div>
 

@@ -28,7 +28,7 @@ const TRILHAS: Trilha[] = [
     nivel: "Iniciante ao Avançado",
     aulas: [
       { id: "c1", titulo: "Fundamentos de interfaces Dark Glass e Design System", duracao: "14 min", concluida: true },
-      { id: "c2", titulo: "Estruturando o briefing perfeito para o v0 e Claude", duracao: "18 min", concluida: true },
+      { id: "c2", titulo: "Estruturando o briefing perfeito para Syre, Formoda e Gemini", duracao: "18 min", concluida: true },
       { id: "c3", titulo: "Otimização de imagens, copy e micro-interações", duracao: "22 min", concluida: false },
       { id: "c4", titulo: "Publicação instantânea na Vercel com domínio próprio", duracao: "11 min", concluida: false },
       { id: "c5", titulo: "Projeto Prático: Landing Page de R$ 4.500 do zero", duracao: "35 min", concluida: false },
@@ -204,7 +204,7 @@ export default function PlayPage() {
                 <PlayCircle className="w-8 h-8 text-white fill-white" />
               </div>
               <span className="absolute bottom-4 left-4 text-xs font-mono text-zinc-400">
-                Code Makers Play · Alta Fidelidade HD
+                CODEHARD Play · Alta Fidelidade HD
               </span>
             </div>
 

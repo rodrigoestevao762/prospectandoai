@@ -8,6 +8,7 @@ const MODELS = [
   { id: "formoda", nome: "Formoda Ultra", nicho: "Dark Bento Grid & SaaS Moderno", desc: "Ideal para plataformas digitais, dashboards e produtos com visual Linear/Vercel." },
   { id: "titan", nome: "Titan AI", nicho: "E-commerce & Cardápios Interativos", desc: "Modelagem focada em catálogo, cálculo de carrinho e finalização via WhatsApp." },
   { id: "nova", nome: "Nova Lux", nicho: "Design Editorial & Estúdios Criativos", desc: "Tipografia monumental, layout de revista digital e transições cinemáticas." },
+  { id: "gemini", nome: "Google Gemini", nicho: "Motor Neural & Código Rápido", desc: "Motor multiraciocínio oficial para estruturação lógica, enriquecimento e geração instantânea." },
 ];
 
 export default function SiteBuilderPage() {
@@ -36,7 +37,7 @@ export default function SiteBuilderPage() {
         <div className="relative z-10 max-w-2xl">
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-mono uppercase tracking-widest text-purple-200 font-bold">
-              / CODE MAKERS / BUILDER IA
+              / CODEHARD / BUILDER IA
             </span>
             <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white text-[10px] font-mono font-bold">
               GERAÇÃO VISUAL EM TEMPO REAL
@@ -53,7 +54,7 @@ export default function SiteBuilderPage() {
       </div>
 
       {/* ── SELETOR DE MODELOS IA ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
         {MODELS.map((m) => (
           <button
             key={m.id}

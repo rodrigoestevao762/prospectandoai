@@ -34,7 +34,7 @@ export default function ModalConfiguracoes({ isOpen, onClose }: ModalConfiguraco
             <div className="relative p-7 bg-gradient-to-r from-[#4c1d95] via-[#6d28d9] to-[#7c3aed] text-white flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-purple-200">
-                  / CODE MAKERS / CENTRAL DA CONTA
+                  / CODEHARD / CENTRAL DA CONTA
                 </span>
                 <h2 className="text-2xl font-bold tracking-tight mt-0.5">Configurações.</h2>
                 <p className="text-xs text-purple-200/90 mt-1">
@@ -44,7 +44,7 @@ export default function ModalConfiguracoes({ isOpen, onClose }: ModalConfiguraco
 
               <div className="flex items-center gap-4">
                 <div className="hidden sm:flex flex-col items-end border-r border-white/20 pr-4">
-                  <span className="text-2xl font-black tracking-tighter text-white font-mono">CM/</span>
+                  <span className="text-2xl font-black tracking-tighter text-white font-mono">CH/</span>
                   <span className="text-[9px] uppercase tracking-widest text-purple-200 font-mono">
                     SEU SISTEMA SOB CONTROLE
                   </span>
@@ -211,7 +211,7 @@ export default function ModalConfiguracoes({ isOpen, onClose }: ModalConfiguraco
                       </span>
                       <h3 className="text-xl font-bold text-white mt-1">Como podemos ajudar?</h3>
                       <p className="text-xs text-zinc-400 mt-1">
-                        Dúvidas, problemas e relatos de bugs chegam direto à equipe da Code Makers.
+                        Dúvidas, problemas e relatos de bugs chegam direto à equipe da CODEHARD.
                       </p>
                     </div>
 
@@ -236,11 +236,11 @@ export default function ModalConfiguracoes({ isOpen, onClose }: ModalConfiguraco
                                 E-MAIL DE SUPORTE
                               </span>
                               <span className="text-sm font-semibold text-white font-mono">
-                                suporte@codemakers.com.br
+                                suporte@codehard.com.br
                               </span>
                             </div>
                             <a
-                              href="mailto:suporte@codemakers.com.br"
+                              href="mailto:suporte@codehard.com.br"
                               className="w-8 h-8 rounded-lg bg-purple-600/30 hover:bg-purple-600 border border-purple-400/40 flex items-center justify-center text-white transition-colors"
                             >
                               <ArrowUpRight className="w-4 h-4" />
@@ -264,7 +264,7 @@ export default function ModalConfiguracoes({ isOpen, onClose }: ModalConfiguraco
                         </div>
                       </div>
                       <a
-                        href="mailto:suporte@codemakers.com.br?subject=Relato%20de%20Bug"
+                        href="mailto:suporte@codehard.com.br?subject=Relato%20de%20Bug"
                         className="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 text-white border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap"
                       >
                         Relatar um bug <ArrowUpRight className="w-3.5 h-3.5" />

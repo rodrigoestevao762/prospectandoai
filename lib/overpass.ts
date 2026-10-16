@@ -55,11 +55,11 @@ export async function buscarEmpresas(
   if (radiusM && radiusM > 0) {
     const degreeDiameter = (radiusM * 2) / 111000;
     if (categoria === "todos") {
-      // Para 'todos os comércios', o teto para máxima densidade sem timeout 504 é 0.065 graus
-      baseDelta = Math.max(0.025, Math.min(degreeDiameter, 0.065));
+      // Para 'todos os comércios', escala até 100km mantendo alta velocidade e zero timeouts
+      baseDelta = Math.max(0.025, Math.min(degreeDiameter, 0.65));
     } else {
-      // Para nichos específicos, permite expansão em larga escala
-      baseDelta = Math.max(0.035, Math.min(degreeDiameter, 0.35));
+      // Para nichos específicos, permite expansão em larga escala até 100km
+      baseDelta = Math.max(0.035, Math.min(degreeDiameter, 1.2));
     }
   }
   const maxDelta = baseDelta * radiusMultiplier;
@@ -126,8 +126,9 @@ export async function buscarEmpresas(
     });
   }
 
-  const UA = typeof window === "undefined" ? { "User-Agent": "ProspectAI/2.0 (B2B Lead Discovery)" } : {};
+  const UA = { "User-Agent": "Overpass Turbo/1.0 (https://overpass-turbo.eu)" };
   const ENDPOINTS = [
+    "https://overpass.openstreetmap.fr/api/interpreter",
     "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter"
@@ -256,6 +257,8 @@ export async function buscarEmpresas(
     categoria,
     cidade: e.tags?.["addr:city"] || cidade,
     pais: pais,
+    lat: e.lat != null ? Number(e.lat) : (e.center?.lat != null ? Number(e.center.lat) : lat),
+    lng: e.lon != null ? Number(e.lon) : (e.center?.lon != null ? Number(e.center.lon) : lng),
     endereco: [e.tags?.["addr:street"], e.tags?.["addr:housenumber"]].filter(Boolean).join(", ") || "",
     telefone: e.tags?.phone || e.tags?.["contact:phone"] || e.tags?.whatsapp || e.tags?.["contact:whatsapp"] || null,
     website: e.tags?.website || e.tags?.["contact:website"] || null,

@@ -138,7 +138,7 @@ export default function PlanosPage() {
               </div>
               <div className="flex items-center gap-2 text-zinc-300">
                 <Check className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                <span>Code Makers Play (Todas as aulas e métodos)</span>
+                <span>CODEHARD Play (Todas as aulas e métodos)</span>
               </div>
               <div className="flex items-center gap-2 text-zinc-300">
                 <Check className="w-4 h-4 text-purple-400 flex-shrink-0" />

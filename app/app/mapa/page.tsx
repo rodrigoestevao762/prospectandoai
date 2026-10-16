@@ -95,7 +95,7 @@ export default function MapaPage() {
 
       // Clique no mapa dispara varredura local no ponto
       map.on("click", (e: LeafletMouseEvent) => {
-        buscar({ lat: e.latlng.lat, lng: e.latlng.lng });
+        buscar({ lat: e.latlng.lat, lng: e.latlng.lng, raioKm });
       });
 
       mapRef.current = map;
@@ -125,12 +125,14 @@ export default function MapaPage() {
   }, []);
 
   // ── MOTOR DE BUSCA VIA OVERPASS / SATÉLITE ──
-  async function buscar(p: { cidade?: string; lat?: number; lng?: number; limit?: number }) {
+  async function buscar(p: { cidade?: string; lat?: number; lng?: number; limit?: number; raioKm?: number }) {
     if (ocupadoRef.current) return;
     ocupadoRef.current = true;
     setCarregando(true);
     setErro(null);
     setSelecionado(null);
+
+    const effectiveRaio = p.raioKm || raioKm;
 
     try {
       const res = await fetch("/api/buscar-mapa", {
@@ -139,7 +141,8 @@ export default function MapaPage() {
         body: JSON.stringify({
           ...p,
           categoriaId: catRef.current,
-          limit: p.limit || parseInt(limite) || 300
+          limit: p.limit || parseInt(limite) || 500,
+          raioKm: effectiveRaio,
         }),
       });
 
@@ -157,7 +160,8 @@ export default function MapaPage() {
       const map = mapRef.current;
 
       if (map && camadaRef.current) {
-        map.flyTo([json.lat, json.lng], p.cidade ? 13 : 14, {
+        const zoomLevel = effectiveRaio >= 100 ? 9 : effectiveRaio >= 50 ? 10 : effectiveRaio >= 25 ? 11 : p.cidade ? 13 : 14;
+        map.flyTo([json.lat, json.lng], zoomLevel, {
           duration: 1.5,
           easeLinearity: 0.25
         });
@@ -169,8 +173,9 @@ export default function MapaPage() {
           raioCirculoRef.current.remove();
         }
 
+        const effectiveR = effectiveRaio * 1000;
         raioCirculoRef.current = L.circle([json.lat, json.lng], {
-          radius: raioKm * 1000,
+          radius: effectiveR,
           color: "#7c3aed",
           weight: 1.5,
           fillColor: "#7c3aed",
@@ -192,7 +197,7 @@ export default function MapaPage() {
         });
 
         L.marker([json.lat, json.lng], { icon: p1Icon })
-          .bindPopup(`<b>Ponto Central de Varredura</b><br>${json.cidade}`)
+          .bindPopup(`<b>Ponto Central de Varredura</b><br>${json.cidade}<br><small>Raio Ativo: ${effectiveRaio}km</small>`)
           .addTo(camadaRef.current);
 
         // Plotagem de cada empresa encontrada
@@ -342,9 +347,10 @@ export default function MapaPage() {
             {["São Paulo", "Rio", "Lisboa", "Curitiba"].map((city) => (
               <button
                 key={city}
+                type="button"
                 onClick={() => {
                   setCidade(city);
-                  buscar({ cidade: city });
+                  buscar({ cidade: city, raioKm });
                 }}
                 className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-purple-600/30 border border-white/10 text-white text-[11px] font-semibold transition-all cursor-pointer"
               >
@@ -359,7 +365,7 @@ export default function MapaPage() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (cidade.trim()) buscar({ cidade: cidade.trim() });
+          if (cidade.trim()) buscar({ cidade: cidade.trim(), raioKm });
         }}
         className="p-3.5 rounded-[24px] bg-[#0c0a18]/95 backdrop-blur-2xl border border-purple-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex flex-wrap items-center gap-3"
       >
@@ -391,18 +397,25 @@ export default function MapaPage() {
         </div>
 
         {/* Raio Selector */}
-        <div className="w-28 flex items-center gap-1.5 bg-[#140f28] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white">
+        <div className="w-36 flex items-center gap-1.5 bg-[#140f28] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white">
           <span className="text-[10px] text-zinc-400 font-mono">Raio:</span>
           <select
             value={raioKm}
-            onChange={(e) => setRaioKm(Number(e.target.value))}
-            className="bg-transparent text-xs text-purple-300 font-bold focus:outline-none cursor-pointer"
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              setRaioKm(val);
+              if (centro) {
+                buscar({ lat: centro.lat, lng: centro.lng, raioKm: val });
+              }
+            }}
+            className="bg-transparent text-xs text-purple-300 font-bold focus:outline-none cursor-pointer flex-1"
           >
             <option value={5} className="bg-[#140f28]">5 km</option>
             <option value={10} className="bg-[#140f28]">10 km</option>
             <option value={15} className="bg-[#140f28]">15 km</option>
             <option value={25} className="bg-[#140f28]">25 km</option>
             <option value={50} className="bg-[#140f28]">50 km</option>
+            <option value={100} className="bg-[#140f28]">100 km</option>
           </select>
         </div>
 
@@ -412,7 +425,7 @@ export default function MapaPage() {
             type="number"
             value={limite}
             onChange={(e) => setLimite(e.target.value)}
-            placeholder="300"
+            placeholder="500"
             className="w-full bg-transparent text-center font-mono focus:outline-none"
             title="Máx Leads"
           />

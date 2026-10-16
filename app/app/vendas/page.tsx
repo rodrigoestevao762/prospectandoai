@@ -138,7 +138,7 @@ export default function VendasPage() {
             <div className="w-64 md:w-80 h-64 md:h-80 opacity-70 pointer-events-none purple-tint mt-6 md:mt-0">
               <img
                 src="/codemakers/codemakers-sales-symbol-v3.png"
-                alt="Símbolo 3D Code Makers"
+                alt="Símbolo 3D CODEHARD"
                 className="w-full h-full object-contain"
               />
             </div>
