@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus, Kanban, DollarSign, MoveRight, User, MoreHorizontal,
   ArrowUpRight, Lock, Search, Filter, Download, ChevronUp, ChevronDown
 } from "lucide-react";
 import HardyMascot from "@/components/codemakers/HardyMascot";
+import { supabaseBrowser } from "@/lib/supabase-browser";
 
 interface KanbanCard {
   id: string;
@@ -54,6 +55,56 @@ export default function CRMKanbanPage() {
   const [novoValor, setNovoValor] = useState("3500");
   const [novoEstagio, setNovoEstagio] = useState("novos");
 
+  // Carregar leads reais do Supabase e LocalStorage
+  useEffect(() => {
+    async function carregarLeadsCRM() {
+      let leadsCarregados: KanbanCard[] = [];
+
+      try {
+        const sb = supabaseBrowser();
+        const { data: { user } } = await sb.auth.getUser();
+        if (user) {
+          const { data } = await sb.from("leads").select("*").eq("user_id", user.id);
+          if (data && data.length > 0) {
+            leadsCarregados = data.map((l: any) => ({
+              id: l.id,
+              empresa: l.nome,
+              contato: l.telefone || l.email || "Decisor Comercial",
+              valor: l.status === "cliente" ? 5000 : l.status === "negociacao" ? 3500 : 2500,
+              estagio: l.status === "cliente" ? "conquistados" : l.status === "negociacao" ? "negociacao" : l.status === "enviado" ? "proposta" : l.status === "mensagem_gerada" ? "qualificados" : "novos",
+              nicho: l.categoria || "Comércio Local"
+            }));
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const locaisRaw = localStorage.getItem("prospectai_saved_leads");
+        if (locaisRaw) {
+          const locais = JSON.parse(locaisRaw);
+          locais.forEach((l: any) => {
+            if (!leadsCarregados.some(c => c.id === l.id || c.empresa === l.nome)) {
+              leadsCarregados.push({
+                id: l.id,
+                empresa: l.nome,
+                contato: l.telefone || l.email || "Decisor Comercial",
+                valor: 3000,
+                estagio: l.status === "cliente" ? "conquistados" : l.status === "negociacao" ? "negociacao" : "novos",
+                nicho: l.categoria || "Comércio Local"
+              });
+            }
+          });
+        }
+      } catch (e) {}
+
+      if (leadsCarregados.length > 0) {
+        setCards(leadsCarregados);
+      }
+    }
+
+    carregarLeadsCRM();
+  }, []);
+
   const totalPipeline = cards.reduce((acc, c) => acc + c.valor, 0);
 
   const handleAddCard = (e: React.FormEvent) => {
@@ -73,18 +124,38 @@ export default function CRMKanbanPage() {
     setNovoModalOpen(false);
   };
 
-  const moverCard = (cardId: string, direcao: "next" | "prev") => {
+  const moverCard = async (cardId: string, direcao: "next" | "prev") => {
     const colIds = COLUNAS.map(c => c.id);
+    let novoEst: string = "novos";
+
     setCards(cards.map(c => {
       if (c.id === cardId) {
         const curIdx = colIds.indexOf(c.estagio);
         const nextIdx = direcao === "next"
           ? Math.min(colIds.length - 1, curIdx + 1)
           : Math.max(0, curIdx - 1);
-        return { ...c, estagio: colIds[nextIdx] };
+        novoEst = colIds[nextIdx];
+        return { ...c, estagio: novoEst };
       }
       return c;
     }));
+
+    // Sincronizar status no Supabase
+    try {
+      const statusMap: Record<string, string> = {
+        novos: "novo",
+        qualificados: "mensagem_gerada",
+        proposta: "enviado",
+        negociacao: "negociacao",
+        conquistados: "cliente",
+        encerrados: "respondido"
+      };
+      const sb = supabaseBrowser();
+      const { data: { user } } = await sb.auth.getUser();
+      if (user && statusMap[novoEst]) {
+        await sb.from("leads").update({ status: statusMap[novoEst] }).eq("id", cardId).eq("user_id", user.id);
+      }
+    } catch (e) {}
   };
 
   return (

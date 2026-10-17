@@ -355,12 +355,36 @@ export default function CodeHunterRadarPage() {
 
   // ── SALVAR INDIVIDUAL NO BANCO ──
   async function salvar(emp: Empresa) {
+    // Sincronizar sempre no localStorage para exibição na aba Clientes
+    try {
+      const locaisRaw = localStorage.getItem("prospectai_saved_leads");
+      const locais = locaisRaw ? JSON.parse(locaisRaw) : [];
+      if (!locais.some((l: any) => l.osm_id === emp.osmId || l.id === emp.osmId)) {
+        locais.unshift({
+          id: emp.osmId,
+          osm_id: emp.osmId,
+          nome: emp.nome,
+          categoria: emp.categoria,
+          cidade: emp.cidade,
+          pais: emp.pais,
+          telefone: emp.telefone,
+          website: emp.website,
+          instagram: emp.instagram,
+          email: emp.email && emp.email.includes("duckduckgo.com") ? null : emp.email,
+          score: emp.score,
+          nivel: emp.nivel,
+          status: "novo",
+          created_at: new Date().toISOString()
+        });
+        localStorage.setItem("prospectai_saved_leads", JSON.stringify(locais));
+      }
+    } catch (e) {}
+
     const sb = supabaseBrowser();
     const {
       data: { user },
     } = await sb.auth.getUser();
     if (!user) {
-      alert("Lead adicionado à carteira local.");
       setSalvos((s) => new Set(s).add(emp.osmId));
       return;
     }
@@ -399,6 +423,33 @@ export default function CodeHunterRadarPage() {
     if (nivel) lista = lista.filter((e) => e.nivel === nivel);
     const naoSalvos = lista.filter((e) => !salvos.has(e.osmId));
     if (naoSalvos.length === 0) return;
+
+    // Sincronizar no localStorage
+    try {
+      const locaisRaw = localStorage.getItem("prospectai_saved_leads");
+      const locais = locaisRaw ? JSON.parse(locaisRaw) : [];
+      naoSalvos.forEach((emp) => {
+        if (!locais.some((l: any) => l.osm_id === emp.osmId || l.id === emp.osmId)) {
+          locais.unshift({
+            id: emp.osmId,
+            osm_id: emp.osmId,
+            nome: emp.nome,
+            categoria: emp.categoria,
+            cidade: emp.cidade,
+            pais: emp.pais,
+            telefone: emp.telefone,
+            website: emp.website,
+            instagram: emp.instagram,
+            email: emp.email && emp.email.includes("duckduckgo.com") ? null : emp.email,
+            score: emp.score,
+            nivel: emp.nivel,
+            status: "novo",
+            created_at: new Date().toISOString()
+          });
+        }
+      });
+      localStorage.setItem("prospectai_saved_leads", JSON.stringify(locais));
+    } catch (e) {}
 
     setCarregando(true);
     const sb = supabaseBrowser();

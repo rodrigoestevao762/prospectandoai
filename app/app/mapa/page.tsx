@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import type { Map as LeafletMap, LayerGroup, LeafletMouseEvent, Circle } from "leaflet";
 import { supabaseBrowser } from "@/lib/supabase-browser";
@@ -247,33 +248,58 @@ export default function MapaPage() {
   }
 
   async function salvar(emp: Resultado) {
-    const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
-
-    if (!user) {
-      alert("Alvo salvo na carteira local temporária.");
-      setSalvos((s) => new Set(s).add(emp.osmId));
-      return;
+    // 1. Armazenar no LocalStorage para sincronização instantânea com a aba Clientes
+    try {
+      const locaisRaw = localStorage.getItem("prospectai_saved_leads");
+      const locais = locaisRaw ? JSON.parse(locaisRaw) : [];
+      if (!locais.some((l: any) => l.osm_id === emp.osmId || l.id === emp.osmId)) {
+        locais.unshift({
+          id: emp.osmId,
+          osm_id: emp.osmId,
+          nome: emp.nome,
+          categoria: emp.categoria,
+          cidade: emp.cidade,
+          pais: emp.pais,
+          telefone: emp.telefone,
+          website: emp.website,
+          instagram: emp.instagram,
+          email: emp.email,
+          score: emp.score,
+          nivel: emp.nivel,
+          status: "novo",
+          created_at: new Date().toISOString()
+        });
+        localStorage.setItem("prospectai_saved_leads", JSON.stringify(locais));
+      }
+    } catch (e) {
+      console.error(e);
     }
 
-    const { error } = await sb.from("leads").upsert({
-      user_id: user.id,
-      nome: emp.nome,
-      categoria: emp.categoria,
-      cidade: emp.cidade,
-      pais: emp.pais,
-      telefone: emp.telefone,
-      website: emp.website,
-      instagram: emp.instagram,
-      email: emp.email,
-      fonte: "osm_dark",
-      osm_id: emp.osmId,
-      score: emp.score,
-      nivel: emp.nivel,
-    }, { onConflict: "user_id,osm_id", ignoreDuplicates: true });
+    setSalvos((s) => new Set(s).add(emp.osmId));
 
-    if (!error) {
-      setSalvos((s) => new Set(s).add(emp.osmId));
+    // 2. Persistir no banco de dados Supabase
+    try {
+      const sb = supabaseBrowser();
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        await sb.from("leads").upsert({
+          user_id: user.id,
+          nome: emp.nome,
+          categoria: emp.categoria,
+          cidade: emp.cidade,
+          pais: emp.pais,
+          telefone: emp.telefone,
+          website: emp.website,
+          instagram: emp.instagram,
+          email: emp.email,
+          fonte: "osm_dark",
+          osm_id: emp.osmId,
+          score: emp.score,
+          nivel: emp.nivel,
+        }, { onConflict: "user_id,osm_id", ignoreDuplicates: true });
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -500,15 +526,27 @@ export default function MapaPage() {
               </h3>
             </div>
 
-            {resultados && resultados.length > 0 && (
-              <button
-                onClick={salvarTodos}
-                disabled={carregando || resultados.every((e) => salvos.has(e.osmId))}
-                className="px-3.5 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600 border border-purple-400/40 text-white text-xs font-bold transition-all disabled:opacity-40 cursor-pointer"
-              >
-                Salvar Todos
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {salvos.size > 0 && (
+                <Link
+                  href="/app/clientes"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all flex items-center gap-1"
+                  title="Acessar carteira de leads salvos"
+                >
+                  <span>Ver Salvos ({salvos.size}) ↗</span>
+                </Link>
+              )}
+
+              {resultados && resultados.length > 0 && (
+                <button
+                  onClick={salvarTodos}
+                  disabled={carregando || resultados.every((e) => salvos.has(e.osmId))}
+                  className="px-3.5 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600 border border-purple-400/40 text-white text-xs font-bold transition-all disabled:opacity-40 cursor-pointer"
+                >
+                  Salvar Todos
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Filter Tabs */}
@@ -602,6 +640,17 @@ export default function MapaPage() {
                     >
                       {isSalvo ? "✓ Salvo no CRM" : "+ Adicionar ao CRM"}
                     </button>
+
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors"
+                      title="Ver no Google Maps"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
+                    </a>
 
                     {emp.telefone && (
                       <a

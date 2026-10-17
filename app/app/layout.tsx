@@ -41,7 +41,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/app", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { href: "/app/clientes", label: "Clientes", icon: <Users className="w-5 h-5" /> },
+  { href: "/app/clientes", label: "Clientes & Leads Salvos", icon: <Users className="w-5 h-5" /> },
   { href: "/app/vendas", label: "Vendas", icon: <Briefcase className="w-5 h-5" /> },
   { href: "/app/sites", label: "Sites", icon: <Globe className="w-5 h-5" /> },
   { href: "/app/crm", label: "CRM Kanban", icon: <Kanban className="w-5 h-5" /> },
