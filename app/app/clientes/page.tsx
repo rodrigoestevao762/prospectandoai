@@ -248,8 +248,23 @@ export default function ClientesLeadsPage() {
 
     let texto = msgAberta[lead.id];
     if (!texto) {
-      texto = `Olá, falo com o responsável pela ${lead.nome}? Identificamos uma oportunidade para colocar sua empresa no topo do Google em ${lead.cidade}. Podemos conversar 2 minutos?`;
-      setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
+      setOcupado(lead.id + ":whats");
+      try {
+        const res = await fetch("/api/gerar-mensagem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leadId: lead.id, canal: "whatsapp", leadData: lead }),
+        });
+        const data = await res.json();
+        texto = data.texto || `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
+        setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
+        await atualizarLead(lead.id, { status: "mensagem_gerada" });
+      } catch {
+        texto = `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
+        setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
+      } finally {
+        setOcupado(null);
+      }
     }
 
     navigator.clipboard.writeText(texto);
@@ -430,6 +445,86 @@ export default function ClientesLeadsPage() {
     } finally {
       setOcupado(null);
     }
+  };
+
+  // ── OPÇÃO 7: GERAR DM INSTAGRAM EM LOTE COM IA ──
+  const handleGerarDMInstagramLote = async () => {
+    const comInsta = leadsFiltrados.filter((l) => l.instagram);
+    if (comInsta.length === 0) {
+      setAviso({ tipo: "erro", msg: "Nenhum lead com Instagram encontrado nos filtros atuais." });
+      return;
+    }
+
+    if (!confirm(`Deseja gerar DMs personalizadas com IA para ${comInsta.length} empresas com Instagram?`)) {
+      return;
+    }
+
+    setOcupado("bulk:dm_instagram");
+    setAviso({ tipo: "ok", msg: `Gerando DMs com IA para ${comInsta.length} empresas com Instagram...` });
+
+    let geradas = 0;
+    for (const lead of comInsta) {
+      try {
+        const res = await fetch("/api/gerar-mensagem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leadId: lead.id, canal: "instagram", leadData: lead }),
+        });
+        const data = await res.json();
+        const texto = data.texto || `Olá ${lead.nome}! Notamos o trabalho incrível da sua empresa em ${lead.cidade}, mas identificamos que vocês estão sem um site profissional no Google. Criamos uma proposta rápida sem compromisso, podemos conversar?`;
+        setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
+        await atualizarLead(lead.id, { status: "mensagem_gerada" });
+        geradas++;
+      } catch {
+        const fallback = `Olá ${lead.nome}! Notamos o trabalho incrível da sua empresa em ${lead.cidade}, mas identificamos que vocês estão sem um site profissional no Google. Criamos uma proposta rápida sem compromisso, podemos conversar?`;
+        setMsgAberta((prev) => ({ ...prev, [lead.id]: fallback }));
+        await atualizarLead(lead.id, { status: "mensagem_gerada" });
+        geradas++;
+      }
+    }
+
+    setOcupado(null);
+    setAviso({ tipo: "ok", msg: `Sucesso! DMs geradas para ${geradas} empresas com Instagram.` });
+  };
+
+  // ── OPÇÃO 8: GERAR MENSAGEM WHATSAPP EM LOTE COM IA ──
+  const handleGerarWhatsAppLote = async () => {
+    const comWhats = leadsFiltrados.filter((l) => l.telefone);
+    if (comWhats.length === 0) {
+      setAviso({ tipo: "erro", msg: "Nenhum lead com telefone/WhatsApp encontrado nos filtros atuais." });
+      return;
+    }
+
+    if (!confirm(`Deseja gerar mensagens de abordagem WhatsApp com IA para ${comWhats.length} empresas com telefone?`)) {
+      return;
+    }
+
+    setOcupado("bulk:dm_whatsapp");
+    setAviso({ tipo: "ok", msg: `Gerando mensagens de WhatsApp com IA para ${comWhats.length} empresas...` });
+
+    let geradas = 0;
+    for (const lead of comWhats) {
+      try {
+        const res = await fetch("/api/gerar-mensagem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leadId: lead.id, canal: "whatsapp", leadData: lead }),
+        });
+        const data = await res.json();
+        const texto = data.texto || `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
+        setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
+        await atualizarLead(lead.id, { status: "mensagem_gerada" });
+        geradas++;
+      } catch {
+        const fallback = `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
+        setMsgAberta((prev) => ({ ...prev, [lead.id]: fallback }));
+        await atualizarLead(lead.id, { status: "mensagem_gerada" });
+        geradas++;
+      }
+    }
+
+    setOcupado(null);
+    setAviso({ tipo: "ok", msg: `Sucesso! Mensagens de WhatsApp geradas para ${geradas} empresas.` });
   };
 
   // ── FILTRAGEM DINÂMICA DE LEADS ──
@@ -665,14 +760,46 @@ export default function ClientesLeadsPage() {
               )}
             </div>
 
+            {/* Botão: Gerar DMs Instagram em Lote */}
+            <button
+              onClick={handleGerarDMInstagramLote}
+              disabled={ocupado === "bulk:dm_instagram" || leadsFiltrados.filter(l => l.instagram).length === 0}
+              className="px-3.5 py-2 rounded-xl bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/30 text-pink-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 cursor-pointer"
+              title="Gerar DMs de abordagem no Instagram com IA para todos os leads com Instagram"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-pink-400" />
+              <span>{ocupado === "bulk:dm_instagram" ? "Gerando..." : "Gerar DMs Insta"}</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-pink-950/60 border border-pink-500/40 text-pink-200">
+                {leadsFiltrados.filter(l => l.instagram).length}
+              </span>
+            </button>
+
+            {/* Botão: Gerar Mensagens WhatsApp em Lote */}
+            <button
+              onClick={handleGerarWhatsAppLote}
+              disabled={ocupado === "bulk:dm_whatsapp" || leadsFiltrados.filter(l => l.telefone).length === 0}
+              className="px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 cursor-pointer"
+              title="Gerar mensagens de abordagem WhatsApp com IA para todos os leads com telefone"
+            >
+              <Phone className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{ocupado === "bulk:dm_whatsapp" ? "Gerando..." : "Gerar WhatsApp"}</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-200">
+                {leadsFiltrados.filter(l => l.telefone).length}
+              </span>
+            </button>
+
+            {/* Botão: Disparo em Lote de E-mails */}
             <button
               onClick={handleDisparoEmLote}
-              disabled={ocupado === "bulk:email"}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg transition-all"
+              disabled={ocupado === "bulk:email" || leadsFiltrados.filter(l => l.email).length === 0}
+              className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg transition-all disabled:opacity-40 cursor-pointer"
               title="Disparar e-mail para todos os leads da lista com e-mail"
             >
               <Send className="w-3.5 h-3.5" />
-              {ocupado === "bulk:email" ? "Disparando..." : "Disparo em Lote"}
+              <span>{ocupado === "bulk:email" ? "Disparando..." : "Disparo E-mails"}</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/30 text-purple-200">
+                {leadsFiltrados.filter(l => l.email).length}
+              </span>
             </button>
 
             <button
