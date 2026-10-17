@@ -71,7 +71,7 @@ export async function enrichLeadData(
 
   const searchesResult = await Promise.allSettled([
     searchDuckDuckGo(`"${safeNome}" ${cidade} contato email`),
-    searchBing(`"${safeNome}" ${cidade} @gmail.com`),
+    searchBing(`"${safeNome}" ${cidade} contato email`),
     searchYahoo(`site:instagram.com "${safeNome}" ${cidade}`),
     searchQwant(`site:facebook.com "${safeNome}" ${cidade}`),
     searchBrave(`"${safeNome}" ${cidade} email contato`),
@@ -82,10 +82,17 @@ export async function enrichLeadData(
     r.status === "fulfilled" ? r.value : "",
   );
 
-  const htmlUnificado = searches.join(" ");
+  // Decodifica resquícios de URL e remove tags HTML para evitar falsos e-mails com %20
+  const htmlLimpo = searches.join(" ")
+    .replace(/%20/gi, " ")
+    .replace(/%22/gi, "")
+    .replace(/%25/gi, "")
+    .replace(/&amp;/gi, "&")
+    .replace(/href=["'][^"']*["']/gi, "");
 
-  const emails =
-    htmlUnificado.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/g) || [];
+  const emails = (
+    htmlLimpo.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/g) || []
+  ).filter((e) => isEmailValidoParaB2B(e));
   const instas = (
     htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
   ).filter((u) => {

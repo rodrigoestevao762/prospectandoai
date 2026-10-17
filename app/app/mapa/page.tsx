@@ -9,7 +9,8 @@ import { CATEGORIAS } from "@/lib/categorias";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Compass, Search, Target, Radio, Layers, Phone, Globe, ExternalLink,
-  Shield, Check, Crosshair, MapPin, Zap, RefreshCw, Filter, Sparkles, Building2
+  Shield, Check, Crosshair, MapPin, Zap, RefreshCw, Filter, Sparkles, Building2,
+  Mail, MessageSquare, Trash2
 } from "lucide-react";
 import CodeHardLogo from "@/components/codemakers/CodeHardLogo";
 import HardyMascot from "@/components/codemakers/HardyMascot";
@@ -124,6 +125,14 @@ export default function MapaPage() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Varredura automática inicial ao carregar o mapa para nunca exibir tela vazia de 0 leads
+  useEffect(() => {
+    if (pronto && !resultados && !carregando) {
+      buscar({ cidade: "São Paulo, SP", raioKm: 15 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pronto]);
 
   // ── MOTOR DE BUSCA VIA OVERPASS / SATÉLITE ──
   async function buscar(p: { cidade?: string; lat?: number; lng?: number; limit?: number; raioKm?: number }) {
@@ -351,10 +360,14 @@ export default function MapaPage() {
           <div>
             <span className="text-[10px] font-mono text-zinc-500 uppercase font-bold block">TERRITÓRIO ATIVO</span>
             <span className="text-base font-bold text-white mt-0.5 block truncate">
-              {centro ? `${centro.cidade}, ${centro.pais}` : "Selecione uma coordenada"}
+              {centro ? `${centro.cidade}, ${centro.pais}` : (cidade || "São Paulo, SP")}
             </span>
             <span className="text-xs text-zinc-400 font-mono">
-              {resultados ? `${resultados.length} alvos mapeados no raio` : "Pronto para varredura"}
+              {carregando
+                ? "Sincronizando satélite..."
+                : resultados
+                  ? `${resultados.length} alvos mapeados no raio`
+                  : "Pronto para varredura"}
             </span>
           </div>
 
@@ -538,13 +551,30 @@ export default function MapaPage() {
               )}
 
               {resultados && resultados.length > 0 && (
-                <button
-                  onClick={salvarTodos}
-                  disabled={carregando || resultados.every((e) => salvos.has(e.osmId))}
-                  className="px-3.5 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600 border border-purple-400/40 text-white text-xs font-bold transition-all disabled:opacity-40 cursor-pointer"
-                >
-                  Salvar Todos
-                </button>
+                <>
+                  <button
+                    onClick={salvarTodos}
+                    disabled={carregando || resultados.every((e) => salvos.has(e.osmId))}
+                    className="px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600 border border-purple-400/40 text-white text-xs font-bold transition-all disabled:opacity-40 cursor-pointer"
+                  >
+                    Salvar Todos
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setResultados(null);
+                      camadaRef.current?.clearLayers();
+                      if (raioCirculoRef.current) {
+                        raioCirculoRef.current.remove();
+                        raioCirculoRef.current = null;
+                      }
+                    }}
+                    className="p-1.5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-zinc-400 hover:text-red-300 transition-colors cursor-pointer"
+                    title="Limpar radar e marcadores do mapa"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -625,7 +655,7 @@ export default function MapaPage() {
                     )}
                   </div>
 
-                  <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex items-center gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -662,6 +692,17 @@ export default function MapaPage() {
                         title="Abrir WhatsApp"
                       >
                         <Phone className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+
+                    {emp.email && (
+                      <a
+                        href={`mailto:${emp.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/40 text-purple-300 transition-colors"
+                        title="Enviar E-mail Direto"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
                       </a>
                     )}
                   </div>

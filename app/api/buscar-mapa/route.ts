@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       paisNome,
       ponto.bbox || null,
       limit || 500,
-      Math.max(1, effectiveRadiusM / 15000)
+      1
     );
 
     const resultados = emp
@@ -95,7 +95,12 @@ export async function POST(req: Request) {
           nivel: q.nivel,
         };
       })
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => {
+        // Prioriza empresas com déficit digital (sem website) para prospecção máxima
+        if (!a.website && b.website) return -1;
+        if (a.website && !b.website) return 1;
+        return b.score - a.score;
+      })
       .slice(0, limit || 500);
 
     return NextResponse.json({

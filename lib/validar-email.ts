@@ -32,6 +32,16 @@ export function isEmailValidoParaB2B(email: string | null | undefined): boolean 
   if (domain.startsWith("ac-") && domain.endsWith(".fr")) return false;
   if (domain.endsWith(".gov.br") || domain.endsWith(".edu.br")) return false;
 
+  // Bloquear resquícios de URL encoding (ex: %20 -> 20@gmail.com, %25 -> 25@gmail.com, %2f -> 2f@...)
+  if (['20', '25', '2f', '3d', '2b', '26', '23', '21', '22', '3a', '3f', '40'].includes(user)) return false;
+  if (/^[0-9a-f]{2}$/i.test(user)) return false;
+
+  // Usernames legítimos precisam ter pelo menos 3 caracteres
+  if (user.length < 3) return false;
+
+  // Bloquear usuários compostos exclusivamente por poucos números (ex: 20@gmail.com, 123@...)
+  if (/^\d+$/.test(user) && user.length < 7) return false;
+
   // Bloquear usernames lixo (apenas match exato ou startsWith estrito para não bloquear e-mails reais)
   const usernamesLixoExato = [
     "seuemail", "seunome", "teste", "test", "noreply", "no-reply", "naoresponda", "nao-responda",
@@ -41,8 +51,6 @@ export function isEmailValidoParaB2B(email: string | null | undefined): boolean 
   if (user.startsWith("noreply") || user.startsWith("no-reply") || user.startsWith("naoresponda")) return false;
   
   // Anti-Padrões de username
-  // Se tem mais de 8 números seguidos no user (relaxado, pois muitos usam telefone no e-mail)
-  // if (/\d{9,}/.test(user)) return false; 
   if (user.startsWith("-") || user.startsWith(".")) return false;
   if (user.includes("+or+")) return false;
   

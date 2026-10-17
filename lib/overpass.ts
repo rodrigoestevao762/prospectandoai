@@ -51,15 +51,15 @@ export async function buscarEmpresas(
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
   // Centraliza no epicentro comercial da cidade (lat, lng) e calibra a malha conforme o raio solicitado
-  let baseDelta = 0.035;
+  let baseDelta = 0.04;
   if (radiusM && radiusM > 0) {
-    const degreeDiameter = (radiusM * 2) / 111000;
+    const degreeRadius = radiusM / 111000;
     if (categoria === "todos") {
-      // Para 'todos os comércios', escala até 100km mantendo alta velocidade e zero timeouts
-      baseDelta = Math.max(0.025, Math.min(degreeDiameter, 0.65));
+      // Para 'todos os comércios', escala proporcionalmente ao raio (5km a 100km) garantindo tempo de resposta de 2s
+      baseDelta = Math.max(0.04, Math.min(degreeRadius * 1.6, 0.35));
     } else {
-      // Para nichos específicos, permite expansão em larga escala até 100km
-      baseDelta = Math.max(0.035, Math.min(degreeDiameter, 1.2));
+      // Para nichos específicos, permite expansão mais ampla
+      baseDelta = Math.max(0.05, Math.min(degreeRadius * 1.8, 0.60));
     }
   }
   const maxDelta = baseDelta * radiusMultiplier;
@@ -101,9 +101,9 @@ export async function buscarEmpresas(
   let selectors: string[] = [];
   if (categoria === "todos") {
     selectors = [
-      `nw[name]["amenity"];`,
       `nw[name]["shop"];`,
       `nw[name]["craft"];`,
+      `nw[name]["amenity"];`,
       `nw[name]["office"];`
     ];
   } else {
@@ -239,15 +239,63 @@ export async function buscarEmpresas(
     }
   }
 
-  const blockedTags = ['government', 'diplomatic', 'embassy', 'townhall', 'police', 'fire_station', 'military', 'quango', 'courthouse', 'prison', 'ngo'];
-  const blockedNames = ['embaixada', 'embassy', 'prefeitura', 'ministério', 'ministry', 'governo', 'government', 'câmara municipal', 'câmara dos', 'consulado', 'consulate', 'tribunal', 'court of', 'police', 'polícia', 'departamento de', 'secretaria de', 'órgão', 'orgao'];
+  const blockedTags = [
+    'government', 'diplomatic', 'embassy', 'townhall', 'police', 'fire_station',
+    'military', 'quango', 'courthouse', 'prison', 'ngo',
+    'bank', 'atm', 'bureau_de_change', 'money_transfer', 'payment_terminal',
+    'place_of_worship', 'taxi', 'public_bookcase', 'bench', 'waste_basket',
+    'social_facility', 'parking', 'fuel', 'public_building', 'grave_yard', 'shelter',
+    'post_office', 'theatre', 'library', 'community_centre', 'cemetery', 'hostel',
+    'recycling', 'waste_disposal', 'charging_station', 'telephone'
+  ];
+
+  const blockedNames = [
+    // Bancos e Instituições Financeiras
+    'banco', 'itau', 'itaú', 'bradesco', 'santander', 'caixa economica', 'caixa econômica',
+    'banco do brasil', 'banrisul', 'sicoob', 'sicredi', 'safra', 'btg pactual', 'c6 bank',
+    'banco inter', 'nubank', 'banco pan', 'bv financeira', 'banco original', 'banco bmg',
+    'banco24horas', 'banco 24 horas', 'casa lotérica', 'loterica', 'lotérica', 'western union',
+    'banco da amazonia', 'banco da amazônia', 'banco do nordeste', 'crefisa',
+
+    // Grandes Redes de Fast-Food e Franquias Globais
+    'mcdonald', 'burger king', 'subway', 'kfc', 'starbucks', "habib's", 'habibs',
+    "bob's", 'bobs', 'pizza hut', "domino's", 'dominos', 'cacau show', 'kopenhagen',
+    'chiquinho sorvetes', 'outback', 'madero', 'giraffas', 'spoleto', 'pizzahut',
+
+    // Grandes Redes de Varejo, Supermercados e Lojas de Departamento
+    'carrefour', 'pão de açúcar', 'pao de acucar', 'extra supermercado', 'atacadao', 'atacadão',
+    'assai', 'assaí', "sam's club", 'sams club', 'lojas americanas', 'americanas',
+    'magazine luiza', 'magalu', 'casas bahia', 'ponto frio', 'fast shop', 'pernambucanas',
+    'renner', 'lojas renner', 'riachuelo', 'c&a', 'zara', 'marisa', 'kalunga',
+    'leroy merlin', 'telhanorte', 'c&c', 'cec casa', 'petz', 'cobasi', 'smart fit', 'bluefit',
+    'dia supermercado', 'supermercado dia', 'hipermercado',
+
+    // Grandes Redes de Farmácias
+    'drogasil', 'droga raia', 'drogaria são paulo', 'drogaria sao paulo', 'pague menos',
+    'panvel', 'drogaria pacheco', 'extrafarma', 'ultrafarma', 'drogal', 'drogaria araujo',
+    'farmácia pague menos',
+
+    // Postos de Combustível Famosos
+    'posto ipiranga', 'posto shell', 'posto br', 'posto petrobras', 'petrobras', 'shell',
+    'ipiranga', 'raizen', 'raízen', 'ale combustiveis',
+
+    // Órgãos Públicos, Governamentais, Religiosos e de Transporte
+    'escola municipal', 'escola estadual', 'colegio estadual', 'colégio estadual',
+    'paróquia', 'paroquia', 'igreja', 'templo', 'catedral', 'mesquita', 'sinagoga',
+    'ponto de táxi', 'ponto de taxi', 'refeitório comunitário', 'refeitorio comunitario',
+    'correios', 'inss', 'receita federal', 'poupatempo', 'detran', 'procon',
+    'cartório', 'cartorio', 'prefeitura', 'embaixada', 'consulado', 'tribunal',
+    'secretaria de', 'secretaria municipal', 'polícia', 'policia', 'delegacia',
+    'upa 24h', 'posto de saúde', 'posto de saude', 'ubs ', 'albergue'
+  ];
 
   const finalElements = allElements.filter((e: any) => {
     if (e.tags?.office && blockedTags.includes(e.tags.office)) return false;
     if (e.tags?.amenity && blockedTags.includes(e.tags.amenity)) return false;
-    if (e.tags?.military) return false;
+    if (e.tags?.shop && ['lottery'].includes(e.tags.shop)) return false;
+    if (e.tags?.military || e.tags?.government || e.tags?.religion) return false;
     
-    const n = (e.tags?.name || "").toLowerCase();
+    const n = [e.tags?.name || "", e.tags?.brand || "", e.tags?.operator || ""].join(" ").toLowerCase();
     if (blockedNames.some(term => n.includes(term))) return false;
     
     return true;
@@ -263,7 +311,9 @@ export async function buscarEmpresas(
     telefone: e.tags?.phone || e.tags?.["contact:phone"] || e.tags?.whatsapp || e.tags?.["contact:whatsapp"] || null,
     website: e.tags?.website || e.tags?.["contact:website"] || null,
     instagram: e.tags?.["contact:instagram"] || e.tags?.instagram || null,
-    email: e.tags?.email || e.tags?.["contact:email"] || null,
+    email: isEmailValidoParaB2B(e.tags?.email || e.tags?.["contact:email"])
+      ? (e.tags?.email || e.tags?.["contact:email"]).toLowerCase().trim()
+      : null,
     facebook: e.tags?.["contact:facebook"] || e.tags?.facebook || null,
   })).filter((e: any) => e.nome !== "Empresa Desconhecida");
 

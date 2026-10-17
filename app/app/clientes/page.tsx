@@ -11,6 +11,7 @@ import {
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import HardyMascot from "@/components/codemakers/HardyMascot";
 import ModalRegistrarCliente from "@/components/codemakers/ModalRegistrarCliente";
+import { isEmailValidoParaB2B } from "@/lib/validar-email";
 
 export interface SavedLead {
   id: string;
@@ -47,6 +48,7 @@ export default function ClientesLeadsPage() {
   const [abaAtiva, setAbaAtiva] = useState("todos");
   const [viewMode, setViewMode] = useState<"cards" | "tabela">("cards");
   const [modalClienteOpen, setModalClienteOpen] = useState(false);
+  const [menuRemoverAberto, setMenuRemoverAberto] = useState(false);
 
   // Estados de Operação Individual
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -94,6 +96,30 @@ export default function ClientesLeadsPage() {
       }
     } catch (e) {
       console.warn("Falha ao ler localStorage:", e);
+    }
+
+    // Sanitização automática: purgar e-mails fantasmas e resquícios de busca como 20@gmail.com
+    let houveSanitizacao = false;
+    listaFinal = listaFinal.map((lead) => {
+      if (lead.email && (lead.email.trim() === "20@gmail.com" || !isEmailValidoParaB2B(lead.email))) {
+        houveSanitizacao = true;
+        return { ...lead, email: null };
+      }
+      return lead;
+    });
+
+    if (houveSanitizacao) {
+      try {
+        localStorage.setItem("prospectai_saved_leads", JSON.stringify(listaFinal));
+      } catch (e) {}
+      try {
+        const sb = supabaseBrowser();
+        sb.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            sb.from("leads").update({ email: null }).eq("email", "20@gmail.com").eq("user_id", user.id);
+          }
+        });
+      } catch (e) {}
     }
 
     setLeads(listaFinal);
@@ -296,6 +322,79 @@ export default function ClientesLeadsPage() {
     setAviso({ tipo: "ok", msg: `Lead "${nome}" removido.` });
   };
 
+  // ── FUNÇÃO: REMOVER TODOS OS LEADS ──
+  const handleRemoverTodos = async () => {
+    if (leads.length === 0) return;
+    if (!confirm(`Deseja realmente remover TODOS os ${leads.length} leads salvos? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setOcupado("bulk:delete_all");
+    setLeads([]);
+
+    // Limpar LocalStorage
+    try {
+      localStorage.removeItem("prospectai_saved_leads");
+    } catch (e) {}
+
+    // Limpar Supabase
+    try {
+      const sb = supabaseBrowser();
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        await sb.from("leads").delete().eq("user_id", user.id);
+      }
+    } catch (e) {}
+
+    setOcupado(null);
+    setMenuRemoverAberto(false);
+    setAviso({ tipo: "ok", msg: "Todos os leads foram removidos da sua carteira." });
+  };
+
+  // ── FUNÇÃO: REMOVER POR NÍVEL (QUENTES, MORNOS, FRIOS) ──
+  const handleRemoverPorNivel = async (nivelAlvo: "quente" | "morno" | "frio") => {
+    const alvos = leads.filter((l) => {
+      const n = l.nivel || (!l.website && (l.score || 0) >= 80 ? "quente" : (l.score || 0) >= 50 ? "morno" : "frio");
+      return n === nivelAlvo;
+    });
+
+    if (alvos.length === 0) {
+      setAviso({ tipo: "erro", msg: `Não há leads classificados como ${nivelAlvo} para remover.` });
+      setMenuRemoverAberto(false);
+      return;
+    }
+
+    const labelNivel = nivelAlvo === "quente" ? "QUENTES" : nivelAlvo === "morno" ? "MORNOS" : "FRIOS";
+    if (!confirm(`Deseja remover todos os ${alvos.length} leads ${labelNivel}?`)) {
+      return;
+    }
+
+    const alvosIds = new Set(alvos.map((a) => a.id));
+    const restantes = leads.filter((l) => !alvosIds.has(l.id));
+
+    setOcupado(`bulk:delete_${nivelAlvo}`);
+    setLeads(restantes);
+
+    // Atualizar LocalStorage
+    try {
+      localStorage.setItem("prospectai_saved_leads", JSON.stringify(restantes));
+    } catch (e) {}
+
+    // Atualizar Supabase
+    try {
+      const sb = supabaseBrowser();
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        const idsArray = Array.from(alvosIds);
+        await sb.from("leads").delete().in("id", idsArray).eq("user_id", user.id);
+      }
+    } catch (e) {}
+
+    setOcupado(null);
+    setMenuRemoverAberto(false);
+    setAviso({ tipo: "ok", msg: `${alvos.length} leads ${labelNivel.toLowerCase()} foram removidos.` });
+  };
+
   // ── OPÇÃO 6: DISPARO EM LOTE DE E-MAILS ──
   const handleDisparoEmLote = async () => {
     const comEmail = leadsFiltrados.filter((l) => l.email && l.status !== "enviado" && l.status !== "cliente");
@@ -340,9 +439,9 @@ export default function ClientesLeadsPage() {
       if (abaAtiva === "contato" && l.status !== "novo" && l.status !== "mensagem_gerada") return false;
       if (abaAtiva === "enviados" && l.status !== "enviado") return false;
       if (abaAtiva === "negociacao" && l.status !== "negociacao" && l.status !== "respondido") return false;
-      if (abaAtiva === "cliente" && l.status !== "cliente") return false;
-      if (abaAtiva === "quentes" && l.nivel !== "quente") return false;
-      if (abaAtiva === "mornos" && l.nivel !== "morno") return false;
+      if (abaAtiva === "quentes" && !(l.nivel === "quente" || (!l.website && (l.score || 0) >= 80))) return false;
+      if (abaAtiva === "mornos" && !(l.nivel === "morno" || (!l.website && (l.score || 0) >= 50 && (l.score || 0) < 80))) return false;
+      if (abaAtiva === "frios" && !(l.nivel === "frio" || (l.website && (l.score || 0) < 50))) return false;
 
       // Filtro por texto
       if (busca.trim()) {
@@ -362,7 +461,9 @@ export default function ClientesLeadsPage() {
   const contagens = useMemo(() => {
     return {
       total: leads.length,
-      quentes: leads.filter((l) => l.nivel === "quente").length,
+      quentes: leads.filter((l) => l.nivel === "quente" || (!l.website && (l.score || 0) >= 80)).length,
+      mornos: leads.filter((l) => l.nivel === "morno" || (!l.website && (l.score || 0) >= 50 && (l.score || 0) < 80)).length,
+      frios: leads.filter((l) => l.nivel === "frio" || (l.website && (l.score || 0) < 50)).length,
       enviados: leads.filter((l) => l.status === "enviado").length,
       clientes: leads.filter((l) => l.status === "cliente").length,
     };
@@ -455,7 +556,8 @@ export default function ClientesLeadsPage() {
               { id: "negociacao", label: "Em Negociação", count: leads.filter(l => l.status === "negociacao" || l.status === "respondido").length },
               { id: "cliente", label: "Clientes", count: contagens.clientes },
               { id: "quentes", label: "🔥 Quentes", count: contagens.quentes },
-              { id: "mornos", label: "💡 Mornos", count: leads.filter(l => l.nivel === "morno").length },
+              { id: "mornos", label: "💡 Mornos", count: contagens.mornos },
+              { id: "frios", label: "❄️ Frios", count: contagens.frios },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -476,6 +578,93 @@ export default function ClientesLeadsPage() {
 
           {/* Botões de Ação Global */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Menu de Exclusão em Massa */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuRemoverAberto(!menuRemoverAberto)}
+                disabled={leads.length === 0 || ocupado?.startsWith("bulk:delete")}
+                className="px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40 shadow-sm"
+                title="Opções de exclusão e limpeza da lista"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <span>Limpar Leads</span>
+                <ChevronDown className={`w-3 h-3 text-red-400 transition-transform ${menuRemoverAberto ? "rotate-180" : ""}`} />
+              </button>
+
+              {menuRemoverAberto && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setMenuRemoverAberto(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-60 rounded-2xl bg-[#0c0a18] border border-red-500/30 shadow-[0_15px_35px_rgba(0,0,0,0.85)] p-2 z-50 space-y-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold border-b border-white/[0.08]">
+                      Limpar por Temperatura
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoverPorNivel("quente")}
+                      disabled={contagens.quentes === 0}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-red-500/20 text-xs font-semibold text-red-300 flex items-center justify-between transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Flame className="w-3.5 h-3.5 text-red-400" /> Remover Quentes
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-red-950/60 border border-red-500/30 text-red-300 font-bold">
+                        {contagens.quentes}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoverPorNivel("morno")}
+                      disabled={contagens.mornos === 0}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-500/20 text-xs font-semibold text-amber-300 flex items-center justify-between transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Remover Mornos
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950/60 border border-amber-500/30 text-amber-300 font-bold">
+                        {contagens.mornos}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoverPorNivel("frio")}
+                      disabled={contagens.frios === 0}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-500/20 text-xs font-semibold text-blue-300 flex items-center justify-between transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-xs">❄️</span> Remover Frios
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/60 border border-blue-500/30 text-blue-300 font-bold">
+                        {contagens.frios}
+                      </span>
+                    </button>
+
+                    <div className="border-t border-white/[0.08] pt-1.5 mt-1">
+                      <button
+                        type="button"
+                        onClick={handleRemoverTodos}
+                        disabled={leads.length === 0}
+                        className="w-full text-left px-3 py-2 rounded-xl bg-red-600/30 hover:bg-red-600 text-xs font-bold text-red-100 hover:text-white flex items-center justify-between transition-colors disabled:opacity-30 cursor-pointer"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Trash2 className="w-3.5 h-3.5" /> Remover Todos
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/50 text-white font-bold">
+                          {leads.length}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             <button
               onClick={handleDisparoEmLote}
               disabled={ocupado === "bulk:email"}
