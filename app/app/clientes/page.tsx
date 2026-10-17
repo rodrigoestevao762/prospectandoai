@@ -6,7 +6,7 @@ import {
   Users, Mail, ExternalLink, Send, MessageSquare, Phone, Globe, Sparkles,
   Trash2, Copy, Check, Search, Filter, Plus, ArrowUpRight, Flame, ShieldAlert,
   ChevronDown, Edit3, Kanban, RefreshCw, LayoutGrid, Table as TableIcon,
-  MapPin, CheckCircle2, AlertCircle, Building2, Eye
+  MapPin, CheckCircle2, AlertCircle, Building2, Eye, Compass
 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import HardyMascot from "@/components/codemakers/HardyMascot";
@@ -82,17 +82,23 @@ export default function ClientesLeadsPage() {
 
     // Mesclar com cache local para nunca perder leads capturados
     try {
-      const locaisRaw = localStorage.getItem("prospectai_saved_leads");
-      if (locaisRaw) {
-        const locais: SavedLead[] = JSON.parse(locaisRaw);
-        locais.forEach((loc) => {
-          const jaExiste = listaFinal.some(
-            (rem) => rem.id === loc.id || (rem.osm_id && rem.osm_id === loc.osm_id)
-          );
-          if (!jaExiste) {
-            listaFinal.unshift(loc);
+      if (typeof window !== "undefined") {
+        const locaisRaw = localStorage.getItem("prospectai_saved_leads");
+        if (locaisRaw) {
+          const locais: SavedLead[] = JSON.parse(locaisRaw);
+          if (Array.isArray(locais)) {
+            locais.forEach((loc) => {
+              if (loc && loc.id) {
+                const jaExiste = listaFinal.some(
+                  (rem) => rem && (rem.id === loc.id || (rem.osm_id && rem.osm_id === loc.osm_id))
+                );
+                if (!jaExiste) {
+                  listaFinal.unshift(loc);
+                }
+              }
+            });
           }
-        });
+        }
       }
     } catch (e) {
       console.warn("Falha ao ler localStorage:", e);
@@ -100,13 +106,15 @@ export default function ClientesLeadsPage() {
 
     // Sanitização automática: purgar e-mails fantasmas e resquícios de busca como 20@gmail.com
     let houveSanitizacao = false;
-    listaFinal = listaFinal.map((lead) => {
-      if (lead.email && (lead.email.trim() === "20@gmail.com" || !isEmailValidoParaB2B(lead.email))) {
-        houveSanitizacao = true;
-        return { ...lead, email: null };
-      }
-      return lead;
-    });
+    listaFinal = listaFinal
+      .filter((lead): lead is SavedLead => Boolean(lead && lead.id))
+      .map((lead) => {
+        if (lead.email && (lead.email.trim() === "20@gmail.com" || !isEmailValidoParaB2B(lead.email))) {
+          houveSanitizacao = true;
+          return { ...lead, email: null };
+        }
+        return lead;
+      });
 
     if (houveSanitizacao) {
       try {
@@ -133,16 +141,20 @@ export default function ClientesLeadsPage() {
   // Salvar no estado e sincronizar com Supabase & LocalStorage
   const atualizarLead = async (id: string, campos: Partial<SavedLead>) => {
     setLeads((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, ...campos } : l))
+      prev.map((l) => (l && l.id === id ? { ...l, ...campos } : l))
     );
 
     // Sincronizar LocalStorage
     try {
-      const locaisRaw = localStorage.getItem("prospectai_saved_leads");
-      if (locaisRaw) {
-        const locais: SavedLead[] = JSON.parse(locaisRaw);
-        const atualizados = locais.map((l) => (l.id === id ? { ...l, ...campos } : l));
-        localStorage.setItem("prospectai_saved_leads", JSON.stringify(atualizados));
+      if (typeof window !== "undefined") {
+        const locaisRaw = localStorage.getItem("prospectai_saved_leads");
+        if (locaisRaw) {
+          const locais: SavedLead[] = JSON.parse(locaisRaw);
+          if (Array.isArray(locais)) {
+            const atualizados = locais.map((l) => (l && l.id === id ? { ...l, ...campos } : l));
+            localStorage.setItem("prospectai_saved_leads", JSON.stringify(atualizados));
+          }
+        }
       }
     } catch (e) {}
 
@@ -217,18 +229,23 @@ export default function ClientesLeadsPage() {
       }
 
       // Copiar para o clipboard
-      navigator.clipboard.writeText(texto);
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        navigator.clipboard.writeText(texto);
+      }
       setCopiado((prev) => ({ ...prev, [lead.id]: true }));
       setTimeout(() => setCopiado((prev) => ({ ...prev, [lead.id]: false })), 2500);
 
       // Abrir Instagram se tiver
-      if (lead.instagram) {
-        let username = lead.instagram.trim().replace("@", "");
+      if (lead.instagram && typeof window !== "undefined") {
+        let username = String(lead.instagram).trim().replace("@", "");
         if (username.includes("instagram.com/")) {
-          username = username.split("instagram.com/")[1].split("/")[0].split("?")[0];
+          const parts = username.split("instagram.com/")[1];
+          username = parts ? parts.split("/")[0].split("?")[0] : "";
         }
-        window.open(`https://ig.me/m/${username}`, "_blank");
-        await atualizarLead(lead.id, { status: "enviado" });
+        if (username) {
+          window.open(`https://ig.me/m/${username}`, "_blank");
+          await atualizarLead(lead.id, { status: "enviado" });
+        }
       }
 
       setAviso({ tipo: "ok", msg: "Mensagem copiada para a área de transferência!" });
@@ -267,10 +284,14 @@ export default function ClientesLeadsPage() {
       }
     }
 
-    navigator.clipboard.writeText(texto);
-    const numLimpo = lead.telefone.replace(/\D/g, "");
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(texto);
+    }
+    const numLimpo = String(lead.telefone).replace(/\D/g, "");
     const ddi = numLimpo.length <= 11 ? "55" + numLimpo : numLimpo;
-    window.open(`https://wa.me/${ddi}?text=${encodeURIComponent(texto)}`, "_blank");
+    if (typeof window !== "undefined") {
+      window.open(`https://wa.me/${ddi}?text=${encodeURIComponent(texto)}`, "_blank");
+    }
     await atualizarLead(lead.id, { status: "enviado" });
   };
 
@@ -310,17 +331,21 @@ export default function ClientesLeadsPage() {
     if (!confirm(`Deseja realmente remover "${nome}" da sua carteira de leads?`)) return;
 
     setOcupado(id + ":delete");
-    setLeads((prev) => prev.filter((l) => l.id !== id));
+    setLeads((prev) => prev.filter((l) => l && l.id !== id));
 
     // Remover do LocalStorage
     try {
-      const locaisRaw = localStorage.getItem("prospectai_saved_leads");
-      if (locaisRaw) {
-        const locais: SavedLead[] = JSON.parse(locaisRaw);
-        localStorage.setItem(
-          "prospectai_saved_leads",
-          JSON.stringify(locais.filter((l) => l.id !== id))
-        );
+      if (typeof window !== "undefined") {
+        const locaisRaw = localStorage.getItem("prospectai_saved_leads");
+        if (locaisRaw) {
+          const locais: SavedLead[] = JSON.parse(locaisRaw);
+          if (Array.isArray(locais)) {
+            localStorage.setItem(
+              "prospectai_saved_leads",
+              JSON.stringify(locais.filter((l) => l && l.id !== id))
+            );
+          }
+        }
       }
     } catch (e) {}
 
@@ -349,7 +374,9 @@ export default function ClientesLeadsPage() {
 
     // Limpar LocalStorage
     try {
-      localStorage.removeItem("prospectai_saved_leads");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("prospectai_saved_leads");
+      }
     } catch (e) {}
 
     // Limpar Supabase
@@ -369,6 +396,7 @@ export default function ClientesLeadsPage() {
   // ── FUNÇÃO: REMOVER POR NÍVEL (QUENTES, MORNOS, FRIOS) ──
   const handleRemoverPorNivel = async (nivelAlvo: "quente" | "morno" | "frio") => {
     const alvos = leads.filter((l) => {
+      if (!l) return false;
       const n = l.nivel || (!l.website && (l.score || 0) >= 80 ? "quente" : (l.score || 0) >= 50 ? "morno" : "frio");
       return n === nivelAlvo;
     });
@@ -385,14 +413,16 @@ export default function ClientesLeadsPage() {
     }
 
     const alvosIds = new Set(alvos.map((a) => a.id));
-    const restantes = leads.filter((l) => !alvosIds.has(l.id));
+    const restantes = leads.filter((l) => l && !alvosIds.has(l.id));
 
     setOcupado(`bulk:delete_${nivelAlvo}`);
     setLeads(restantes);
 
     // Atualizar LocalStorage
     try {
-      localStorage.setItem("prospectai_saved_leads", JSON.stringify(restantes));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("prospectai_saved_leads", JSON.stringify(restantes));
+      }
     } catch (e) {}
 
     // Atualizar Supabase
@@ -529,7 +559,10 @@ export default function ClientesLeadsPage() {
 
   // ── FILTRAGEM DINÂMICA DE LEADS ──
   const leadsFiltrados = useMemo(() => {
-    return leads.filter((l) => {
+    const list = Array.isArray(leads) ? leads : [];
+    return list.filter((l) => {
+      if (!l) return false;
+
       // Filtro por abas
       if (abaAtiva === "contato" && l.status !== "novo" && l.status !== "mensagem_gerada") return false;
       if (abaAtiva === "enviados" && l.status !== "enviado") return false;
@@ -539,12 +572,12 @@ export default function ClientesLeadsPage() {
       if (abaAtiva === "frios" && !(l.nivel === "frio" || (l.website && (l.score || 0) < 50))) return false;
 
       // Filtro por texto
-      if (busca.trim()) {
+      if (busca && busca.trim()) {
         const q = busca.toLowerCase();
-        const nomeMatch = l.nome?.toLowerCase().includes(q);
-        const cidadeMatch = l.cidade?.toLowerCase().includes(q);
-        const catMatch = l.categoria?.toLowerCase().includes(q);
-        const telMatch = l.telefone?.toLowerCase().includes(q);
+        const nomeMatch = l.nome ? l.nome.toLowerCase().includes(q) : false;
+        const cidadeMatch = l.cidade ? l.cidade.toLowerCase().includes(q) : false;
+        const catMatch = l.categoria ? l.categoria.toLowerCase().includes(q) : false;
+        const telMatch = l.telefone ? String(l.telefone).toLowerCase().includes(q) : false;
         if (!nomeMatch && !cidadeMatch && !catMatch && !telMatch) return false;
       }
 
@@ -554,13 +587,14 @@ export default function ClientesLeadsPage() {
 
   // Contadores para métricas
   const contagens = useMemo(() => {
+    const list = Array.isArray(leads) ? leads : [];
     return {
-      total: leads.length,
-      quentes: leads.filter((l) => l.nivel === "quente" || (!l.website && (l.score || 0) >= 80)).length,
-      mornos: leads.filter((l) => l.nivel === "morno" || (!l.website && (l.score || 0) >= 50 && (l.score || 0) < 80)).length,
-      frios: leads.filter((l) => l.nivel === "frio" || (l.website && (l.score || 0) < 50)).length,
-      enviados: leads.filter((l) => l.status === "enviado").length,
-      clientes: leads.filter((l) => l.status === "cliente").length,
+      total: list.length,
+      quentes: list.filter((l) => l && (l.nivel === "quente" || (!l.website && (l.score || 0) >= 80))).length,
+      mornos: list.filter((l) => l && (l.nivel === "morno" || (!l.website && (l.score || 0) >= 50 && (l.score || 0) < 80))).length,
+      frios: list.filter((l) => l && (l.nivel === "frio" || (l.website && (l.score || 0) < 50))).length,
+      enviados: list.filter((l) => l && l.status === "enviado").length,
+      clientes: list.filter((l) => l && l.status === "cliente").length,
     };
   }, [leads]);
 
@@ -763,42 +797,42 @@ export default function ClientesLeadsPage() {
             {/* Botão: Gerar DMs Instagram em Lote */}
             <button
               onClick={handleGerarDMInstagramLote}
-              disabled={ocupado === "bulk:dm_instagram" || leadsFiltrados.filter(l => l.instagram).length === 0}
+              disabled={ocupado === "bulk:dm_instagram" || leadsFiltrados.filter(l => l && l.instagram).length === 0}
               className="px-3.5 py-2 rounded-xl bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/30 text-pink-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 cursor-pointer"
               title="Gerar DMs de abordagem no Instagram com IA para todos os leads com Instagram"
             >
               <MessageSquare className="w-3.5 h-3.5 text-pink-400" />
               <span>{ocupado === "bulk:dm_instagram" ? "Gerando..." : "Gerar DMs Insta"}</span>
               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-pink-950/60 border border-pink-500/40 text-pink-200">
-                {leadsFiltrados.filter(l => l.instagram).length}
+                {leadsFiltrados.filter(l => l && l.instagram).length}
               </span>
             </button>
 
             {/* Botão: Gerar Mensagens WhatsApp em Lote */}
             <button
               onClick={handleGerarWhatsAppLote}
-              disabled={ocupado === "bulk:dm_whatsapp" || leadsFiltrados.filter(l => l.telefone).length === 0}
+              disabled={ocupado === "bulk:dm_whatsapp" || leadsFiltrados.filter(l => l && l.telefone).length === 0}
               className="px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 cursor-pointer"
               title="Gerar mensagens de abordagem WhatsApp com IA para todos os leads com telefone"
             >
               <Phone className="w-3.5 h-3.5 text-emerald-400" />
               <span>{ocupado === "bulk:dm_whatsapp" ? "Gerando..." : "Gerar WhatsApp"}</span>
               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-200">
-                {leadsFiltrados.filter(l => l.telefone).length}
+                {leadsFiltrados.filter(l => l && l.telefone).length}
               </span>
             </button>
 
             {/* Botão: Disparo em Lote de E-mails */}
             <button
               onClick={handleDisparoEmLote}
-              disabled={ocupado === "bulk:email" || leadsFiltrados.filter(l => l.email).length === 0}
+              disabled={ocupado === "bulk:email" || leadsFiltrados.filter(l => l && l.email).length === 0}
               className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg transition-all disabled:opacity-40 cursor-pointer"
               title="Disparar e-mail para todos os leads da lista com e-mail"
             >
               <Send className="w-3.5 h-3.5" />
               <span>{ocupado === "bulk:email" ? "Disparando..." : "Disparo E-mails"}</span>
               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/30 text-purple-200">
-                {leadsFiltrados.filter(l => l.email).length}
+                {leadsFiltrados.filter(l => l && l.email).length}
               </span>
             </button>
 
