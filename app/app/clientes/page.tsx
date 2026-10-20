@@ -50,8 +50,9 @@ export default function ClientesLeadsPage() {
   const [modalClienteOpen, setModalClienteOpen] = useState(false);
   const [menuRemoverAberto, setMenuRemoverAberto] = useState(false);
 
-  // Estados de Operação Individual
+  // Estados de Operação Individual e Lote
   const [ocupado, setOcupado] = useState<string | null>(null);
+  const [progressoEnrich, setProgressoEnrich] = useState<{ atual: number; total: number } | null>(null);
   const [aviso, setAviso] = useState<{ tipo: "ok" | "erro"; msg: string } | null>(null);
   const [msgAberta, setMsgAberta] = useState<Record<string, string>>({});
   const [copiado, setCopiado] = useState<Record<string, boolean>>({});
@@ -182,7 +183,7 @@ export default function ClientesLeadsPage() {
       const res = await fetch("/api/enviar-automatico", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId: lead.id }),
+        body: JSON.stringify({ leadId: lead.id, leadData: lead }),
       });
       const data = await res.json();
 
@@ -308,7 +309,8 @@ export default function ClientesLeadsPage() {
           leadId: lead.id,
           nome: lead.nome,
           cidade: lead.cidade,
-          pais: lead.pais || "Brasil"
+          pais: lead.pais || "Brasil",
+          leadData: lead
         }),
       });
       const data = await res.json();
@@ -458,7 +460,7 @@ export default function ClientesLeadsPage() {
       const res = await fetch("/api/enviar-lote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadIds: ids }),
+        body: JSON.stringify({ leadIds: ids, leads: comEmail }),
       });
       const data = await res.json();
 
@@ -466,7 +468,7 @@ export default function ClientesLeadsPage() {
         for (const l of comEmail) {
           await atualizarLead(l.id, { status: "enviado" });
         }
-        setAviso({ tipo: "ok", msg: `Disparo concluído com sucesso para ${comEmail.length} empresas!` });
+        setAviso({ tipo: "ok", msg: `Disparo concluído! ${data.sucessos ?? comEmail.length} de ${comEmail.length} e-mails enviados com sucesso!` });
       } else {
         setAviso({ tipo: "erro", msg: data.erro || "Falha no envio em lote." });
       }
@@ -555,6 +557,61 @@ export default function ClientesLeadsPage() {
 
     setOcupado(null);
     setAviso({ tipo: "ok", msg: `Sucesso! Mensagens de WhatsApp geradas para ${geradas} empresas.` });
+  };
+
+  // ── OPÇÃO 9: ENRIQUECER EM LOTE (DEEP SCAN COM IA & OSINT) ──
+  const handleEnriquecerLote = async () => {
+    const pendentes = leadsFiltrados.filter((l) => l && (!l.email || !l.instagram));
+    const listaAlvos = pendentes.length > 0 ? pendentes : leadsFiltrados;
+
+    if (listaAlvos.length === 0) {
+      setAviso({ tipo: "erro", msg: "Nenhum lead encontrado para enriquecer nos filtros atuais." });
+      return;
+    }
+
+    if (!confirm(`Deseja iniciar o Deep Scan em lote para enriquecer ${listaAlvos.length} empresas com e-mails e contatos públicos da web?`)) {
+      return;
+    }
+
+    setOcupado("bulk:enrich");
+    setProgressoEnrich({ atual: 0, total: listaAlvos.length });
+    setAviso({ tipo: "ok", msg: `Iniciando Deep Scan com IA para ${listaAlvos.length} empresas...` });
+
+    let enriquecidosCount = 0;
+
+    for (let i = 0; i < listaAlvos.length; i++) {
+      const lead = listaAlvos[i];
+      setProgressoEnrich({ atual: i + 1, total: listaAlvos.length });
+
+      try {
+        const res = await fetch("/api/enrich", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leadId: lead.id,
+            nome: lead.nome,
+            cidade: lead.cidade,
+            pais: lead.pais || "Brasil",
+            leadData: lead,
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.lead) {
+          await atualizarLead(lead.id, data.lead);
+          enriquecidosCount++;
+        }
+      } catch (err) {
+        console.warn(`Erro no enriquecimento do lead ${lead.nome}:`, err);
+      }
+    }
+
+    setOcupado(null);
+    setProgressoEnrich(null);
+    setAviso({
+      tipo: "ok",
+      msg: `Deep Scan concluído com sucesso! ${enriquecidosCount} de ${listaAlvos.length} empresas enriquecidas com novos dados públicos.`
+    });
   };
 
   // ── FILTRAGEM DINÂMICA DE LEADS ──
@@ -793,6 +850,26 @@ export default function ClientesLeadsPage() {
                 </>
               )}
             </div>
+
+            {/* Botão: Enriquecer Lote com IA (Deep Scan) */}
+            <button
+              onClick={handleEnriquecerLote}
+              disabled={ocupado === "bulk:enrich" || leadsFiltrados.length === 0}
+              className="px-3.5 py-2 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md disabled:opacity-40 cursor-pointer"
+              title="Buscar e-mails, redes sociais e contatos públicos com IA para os leads filtrados"
+            >
+              <Sparkles className={`w-3.5 h-3.5 text-indigo-400 ${ocupado === "bulk:enrich" ? "animate-spin" : ""}`} />
+              <span>
+                {ocupado === "bulk:enrich" && progressoEnrich
+                  ? `Scan (${progressoEnrich.atual}/${progressoEnrich.total})`
+                  : "Enriquecer Lote"}
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-indigo-950/60 border border-indigo-500/40 text-indigo-200">
+                {leadsFiltrados.filter((l) => l && (!l.email || !l.instagram)).length > 0
+                  ? leadsFiltrados.filter((l) => l && (!l.email || !l.instagram)).length
+                  : leadsFiltrados.length}
+              </span>
+            </button>
 
             {/* Botão: Gerar DMs Instagram em Lote */}
             <button

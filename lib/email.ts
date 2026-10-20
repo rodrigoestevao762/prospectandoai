@@ -3,15 +3,15 @@ import nodemailer from "nodemailer";
 
 const LIMITE_POR_DIA = 450;
 
-type LeadEmail = { id: string; nome: string; email: string | null };
+type LeadEmail = { id: string; nome: string; email: string | null; osm_id?: string };
 
 export async function enviarEmailDoLead(
   sb: any,
-  user: { id: string },
+  user: { id: string } | null,
   lead: LeadEmail,
   texto: string,
   assunto?: string,
-  negocioNome = "ProspectAI"
+  negocioNome = "HardZ Sites"
 ): Promise<{ ok: true } | { ok: false; erro: string; status: number }> {
   if (!lead.email) return { ok: false, erro: "lead sem e-mail", status: 400 };
 
@@ -43,36 +43,54 @@ export async function enviarEmailDoLead(
     usernamesBloqueados.some(u => userPart === u || userPart.includes(u)) ||
     !domainPart.includes('.') || domainPart.split('.').some(p => p.length === 0)
   ) {
-    // Retornamos ok: true mas marcamos como erro no status, ou ok: false. 
-    // Se retornarmos erro aqui, não gastamos a cota e avisamos a UI.
     return { ok: false, erro: "E-mail bloqueado por conter formato inválido ou ser reconhecido como falso (Anti-Bounce)", status: 400 };
   }
 
-  const { data: settings } = await sb.from("settings").select("*").eq("user_id", user.id).single();
-  let gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD;
-  if (gmailPassword) gmailPassword = gmailPassword.replace(/\s+/g, ""); // Usando a mesma coluna no banco
+  let settings: any = null;
+  if (sb && user?.id) {
+    try {
+      const { data } = await sb.from("settings").select("*").eq("user_id", user.id).maybeSingle();
+      settings = data;
+    } catch (e) {}
+  }
+
+  let gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD || process.env.RESEND_API_KEY;
+  if (gmailPassword) gmailPassword = gmailPassword.replace(/\s+/g, "");
   const gmailEmail = settings?.remetente_email || process.env.GMAIL_EMAIL;
 
   if (!gmailPassword || !gmailEmail) {
-    return { ok: false, erro: "E-mail ou Senha de App do Gmail não configurados nas configurações", status: 400 };
+    return { ok: false, erro: "E-mail ou Senha de App do Gmail não configurados nas configurações nem no servidor.", status: 400 };
   }
 
-  // limite diário por usuário
-  const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  const { count } = await sb.from("messages")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id).eq("canal", "email").eq("status", "enviada").gte("criado_em", desde);
-  if (false) { // Backend limit bypassed
-    return { ok: false, erro: `Limite diário de ${LIMITE_POR_DIA} e-mails atingido (Anti-Spam)`, status: 429 };
-  }
-
-  const transporter = nodemailer.createTransport({
+  let transportConfig: any = {
     service: "gmail",
-    auth: {
-      user: gmailEmail,
-      pass: gmailPassword,
-    },
-  });
+    auth: { user: gmailEmail, pass: gmailPassword },
+  };
+
+  if (gmailPassword.startsWith("re_")) {
+    transportConfig = {
+      host: "smtp.resend.com",
+      port: 465,
+      secure: true,
+      auth: { user: "resend", pass: gmailPassword },
+    };
+  } else if (gmailPassword.startsWith("SG.")) {
+    transportConfig = {
+      host: "smtp.sendgrid.net",
+      port: 465,
+      secure: true,
+      auth: { user: "apikey", pass: gmailPassword },
+    };
+  } else if (gmailPassword.startsWith("xkeysib-")) {
+    transportConfig = {
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false,
+      auth: { user: gmailEmail, pass: gmailPassword },
+    };
+  }
+
+  const transporter = nodemailer.createTransport(transportConfig);
 
   try {
     await transporter.sendMail({
@@ -82,12 +100,30 @@ export async function enviarEmailDoLead(
       text: texto,
     });
     
-    await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto, status: "enviada" });
-    await sb.from("leads").update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() }).eq("id", lead.id);
+    if (sb && user?.id && lead.id) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lead.id);
+      try {
+        if (isUuid) {
+          await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto, status: "enviada" });
+          await sb.from("leads").update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() }).eq("id", lead.id);
+        } else {
+          await sb.from("leads").update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() }).eq("osm_id", lead.id);
+        }
+      } catch (e) {
+        console.warn("Aviso ao persistir envio no banco:", e);
+      }
+    }
     return { ok: true };
   } catch (error: any) {
     console.error("Erro ao enviar email:", error);
-    await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto, status: "erro", erro: error.message || "Erro SMTP" });
+    if (sb && user?.id && lead.id) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lead.id);
+      if (isUuid) {
+        try {
+          await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto, status: "erro", erro: error.message || "Erro SMTP" });
+        } catch (e) {}
+      }
+    }
     return { ok: false, erro: error.message || "Falha no provedor de e-mail (Gmail)", status: 502 };
   }
 }

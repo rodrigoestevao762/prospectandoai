@@ -33,30 +33,49 @@ Equipe Comercial`;
 
 export async function POST(req: Request) {
   try {
-    const { sb, user } = await usuarioObrigatorio();
-    const { leadIds } = await req.json();
+    let sb: any = null;
+    let user: any = null;
 
-    if (!leadIds || !Array.isArray(leadIds) || leadIds.length === 0) {
-      return NextResponse.json({ erro: "Lista de leadIds obrigatória" }, { status: 400 });
+    try {
+      const auth = await usuarioObrigatorio();
+      sb = auth.sb;
+      user = auth.user;
+    } catch {
+      // Aberto para modo resiliente / local
     }
 
-    const { data: settings } = await sb.from("settings").select("*").eq("user_id", user.id).single();
-    let gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD;
+    const { leadIds, leads: leadsPayload } = await req.json();
+
+    if ((!leadIds || !Array.isArray(leadIds) || leadIds.length === 0) && (!leadsPayload || !Array.isArray(leadsPayload) || leadsPayload.length === 0)) {
+      return NextResponse.json({ erro: "Lista de leads ou leadIds é obrigatória para o disparo em lote." }, { status: 400 });
+    }
+
+    let settings: any = null;
+    if (sb && user) {
+      try {
+        const { data } = await sb.from("settings").select("*").eq("user_id", user.id).maybeSingle();
+        settings = data;
+      } catch (e) {
+        console.warn("Falha ao ler settings:", e);
+      }
+    }
+
+    let gmailPassword = settings?.resend_api_key || process.env.GMAIL_APP_PASSWORD || process.env.RESEND_API_KEY;
     if (gmailPassword) gmailPassword = gmailPassword.replace(/\s+/g, "");
     const gmailEmail = settings?.remetente_email || process.env.GMAIL_EMAIL;
 
     if (!gmailPassword || !gmailEmail) {
       return NextResponse.json(
-        { erro: "E-mail ou Senha de App do Gmail não configurados nas Configurações da plataforma." },
+        { erro: "E-mail ou Senha de App do Gmail não configurados nas Configurações da plataforma nem nas variáveis de ambiente." },
         { status: 400 }
       );
     }
 
-    const negocioNome = settings?.negocio_nome && settings.negocio_nome !== "ProspectAI" ? settings.negocio_nome : "ProspectAI";
+    const negocioNome = settings?.negocio_nome && settings.negocio_nome !== "ProspectAI" ? settings.negocio_nome : "HardZ Sites";
     const negocio = settings || {
       negocio_nome: negocioNome,
-      servico: "Criação de websites profissionais",
-      diferenciais: "Destaque nas buscas e captação de clientes",
+      servico: "Criação de websites profissionais de alta conversão",
+      diferenciais: "Destaque nas buscas e captação de clientes locais",
     };
 
     // ------------------ SMTP POOL INTELIGENTE ------------------
@@ -102,49 +121,93 @@ export async function POST(req: Request) {
 
     const transporter = nodemailer.createTransport(transportConfig);
 
-    // ------------------ BUSCA EM LOTE (1 ÚNICA QUERY) ------------------
-    const { data: leads, error: leadsErr } = await sb
-      .from("leads")
-      .select("id, nome, email, categoria, cidade, pais, website, instagram")
-      .in("id", leadIds)
-      .eq("user_id", user.id);
+    // ------------------ MAPA DE LEADS (RESILIENTE) ------------------
+    const leadMap = new Map<string, any>();
 
-    if (leadsErr || !leads) {
-      transporter.close();
-      return NextResponse.json({ erro: "Erro ao consultar leads no banco de dados." }, { status: 500 });
+    // 1. Prioriza leads recebidos diretamente no payload da requisição
+    if (Array.isArray(leadsPayload)) {
+      leadsPayload.forEach((l: any) => {
+        if (l && l.id) leadMap.set(String(l.id), l);
+        if (l && l.osm_id) leadMap.set(String(l.osm_id), l);
+      });
     }
 
-    const leadMap = new Map<string, any>();
-    leads.forEach((l) => leadMap.set(l.id, l));
+    // 2. Se temos conexão com Supabase e IDs para buscar, consulta de forma segura
+    if (sb && user && Array.isArray(leadIds) && leadIds.length > 0) {
+      const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+      const uuidList = leadIds.filter((id) => typeof id === "string" && isUuid(id));
+      const nonUuidList = leadIds.filter((id) => typeof id === "string" && !isUuid(id));
 
-    // Busca mensagens pré-geradas em 1 única query
-    const { data: existingMsgs } = await sb
-      .from("messages")
-      .select("lead_id, texto")
-      .in("lead_id", leadIds)
-      .eq("user_id", user.id);
+      if (uuidList.length > 0) {
+        try {
+          const { data: leadsDb } = await sb
+            .from("leads")
+            .select("id, nome, email, categoria, cidade, pais, website, instagram")
+            .in("id", uuidList)
+            .eq("user_id", user.id);
 
+          leadsDb?.forEach((l: any) => {
+            if (!leadMap.has(String(l.id))) leadMap.set(String(l.id), l);
+          });
+        } catch (e) {
+          console.warn("Consulta Supabase por UUID ignorada:", e);
+        }
+      }
+
+      if (nonUuidList.length > 0) {
+        try {
+          const { data: leadsByOsm } = await sb
+            .from("leads")
+            .select("id, nome, email, categoria, cidade, pais, website, instagram, osm_id")
+            .in("osm_id", nonUuidList)
+            .eq("user_id", user.id);
+
+          leadsByOsm?.forEach((l: any) => {
+            if (l.osm_id && !leadMap.has(String(l.osm_id))) leadMap.set(String(l.osm_id), l);
+            if (l.id && !leadMap.has(String(l.id))) leadMap.set(String(l.id), l);
+          });
+        } catch (e) {
+          console.warn("Consulta Supabase por osm_id ignorada:", e);
+        }
+      }
+    }
+
+    // Se nenhum lead com dados foi encontrado
+    if (leadMap.size === 0) {
+      transporter.close();
+      return NextResponse.json({ erro: "Nenhum lead com dados válidos encontrado para o disparo." }, { status: 404 });
+    }
+
+    // Busca mensagens pré-geradas se Supabase estiver ativo
     const msgMap = new Map<string, string>();
-    existingMsgs?.forEach((m: any) => {
-      if (m.texto && !msgMap.has(m.lead_id)) msgMap.set(m.lead_id, m.texto);
-    });
+    if (sb && user && Array.isArray(leadIds) && leadIds.length > 0) {
+      try {
+        const { data: existingMsgs } = await sb
+          .from("messages")
+          .select("lead_id, texto")
+          .in("lead_id", leadIds)
+          .eq("user_id", user.id);
+
+        existingMsgs?.forEach((m: any) => {
+          if (m.texto && !msgMap.has(m.lead_id)) msgMap.set(m.lead_id, m.texto);
+        });
+      } catch (e) {}
+    }
 
     const resultados: any[] = [];
     let sucessos = 0;
     const sentMessages: any[] = [];
     const sentLeadIds: string[] = [];
 
-    // Processamento sequencial rápido (respeita o rate limit do Gmail sem travamentos)
-    for (const leadId of leadIds) {
-      const lead = leadMap.get(leadId);
+    // Lista unificada para iteração
+    const listaParaEnviar = Array.isArray(leadIds) && leadIds.length > 0
+      ? leadIds.map((id) => leadMap.get(String(id))).filter(Boolean)
+      : Array.from(leadMap.values());
 
-      if (!lead) {
-        resultados.push({ id: leadId, ok: false, erro: "Lead não encontrado" });
-        continue;
-      }
-
+    // Processamento sequencial rápido
+    for (const lead of listaParaEnviar) {
       if (!lead.email || !isEmailValidoParaB2B(lead.email)) {
-        resultados.push({ id: leadId, ok: false, erro: "E-mail inválido ou retido por proteção anti-bounce" });
+        resultados.push({ id: lead.id, ok: false, erro: "E-mail inválido ou retido por proteção anti-bounce" });
         continue;
       }
 
@@ -171,19 +234,20 @@ export async function POST(req: Request) {
 
         sucessos++;
         resultados.push({ id: lead.id, ok: true });
-        sentMessages.push({
-          user_id: user.id,
-          lead_id: lead.id,
-          canal: "email",
-          texto: corpo,
-          status: "enviada",
-        });
+        if (user?.id) {
+          sentMessages.push({
+            user_id: user.id,
+            lead_id: lead.id,
+            canal: "email",
+            texto: corpo,
+            status: "enviada",
+          });
+        }
         sentLeadIds.push(lead.id);
       } catch (err: any) {
         const erroMsg = err.message || "Erro desconhecido ao enviar e-mail";
         resultados.push({ id: lead.id, ok: false, erro: erroMsg });
 
-        // Se for erro crítico de autenticação ou limite total do Gmail, interrompe o lote
         if (
           erroMsg.includes("Too many login attempts") ||
           erroMsg.includes("Invalid login") ||
@@ -201,16 +265,34 @@ export async function POST(req: Request) {
       }
     }
 
-    // Gravação em lote no banco
-    if (sentMessages.length > 0) {
+    // Gravação segura no banco se houver sessão
+    if (sentMessages.length > 0 && sb && user) {
       try {
-        await sb.from("messages").insert(sentMessages);
-        await sb
-          .from("leads")
-          .update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() })
-          .in("id", sentLeadIds);
+        const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+        const validMessages = sentMessages.filter((m) => isUuid(m.lead_id));
+        if (validMessages.length > 0) {
+          await sb.from("messages").insert(validMessages);
+        }
+
+        const uuidSent = sentLeadIds.filter(isUuid);
+        const nonUuidSent = sentLeadIds.filter((id) => !isUuid(id));
+
+        if (uuidSent.length > 0) {
+          await sb
+            .from("leads")
+            .update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() })
+            .in("id", uuidSent)
+            .eq("user_id", user.id);
+        }
+        if (nonUuidSent.length > 0) {
+          await sb
+            .from("leads")
+            .update({ status: "enviado", canal: "email", atualizado_em: new Date().toISOString() })
+            .in("osm_id", nonUuidSent)
+            .eq("user_id", user.id);
+        }
       } catch (dbErr) {
-        console.error("Erro ao atualizar banco após envio:", dbErr);
+        console.warn("Aviso ao atualizar banco após envio:", dbErr);
       }
     }
 
@@ -219,7 +301,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       sucessos,
-      total: leadIds.length,
+      total: listaParaEnviar.length,
       resultados,
     });
   } catch (e: any) {

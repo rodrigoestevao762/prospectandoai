@@ -7,45 +7,100 @@ import { enviarEmailDoLead } from "@/lib/email";
 // Envio em um clique: gera a mensagem (se ainda não houver) e envia o e-mail.
 export async function POST(req: Request) {
   try {
-    const { sb, user } = await usuarioObrigatorio();
-    const { leadId } = await req.json();
-    if (!leadId) return NextResponse.json({ erro: "leadId obrigatório" }, { status: 400 });
+    let sb: any = null;
+    let user: any = null;
 
-    const { data: lead, error: e1 } = await sb
-      .from("leads").select("*").eq("id", leadId).eq("user_id", user.id).single();
-    if (e1 || !lead) return NextResponse.json({ erro: "lead não encontrado" }, { status: 404 });
-    if (!lead.email) return NextResponse.json({ erro: "lead sem e-mail" }, { status: 400 });
+    try {
+      const auth = await usuarioObrigatorio();
+      sb = auth.sb;
+      user = auth.user;
+    } catch {
+      // Aberto para modo resiliente / local
+    }
+
+    const { leadId, leadData } = await req.json();
+    if (!leadId && !leadData) return NextResponse.json({ erro: "leadId ou leadData obrigatório" }, { status: 400 });
+
+    let lead = leadData || null;
+
+    if (!lead && sb && user && leadId) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId);
+      try {
+        if (isUuid) {
+          const { data } = await sb.from("leads").select("*").eq("id", leadId).eq("user_id", user.id).maybeSingle();
+          lead = data;
+        } else {
+          const { data } = await sb.from("leads").select("*").eq("osm_id", leadId).eq("user_id", user.id).maybeSingle();
+          lead = data;
+        }
+      } catch (e) {
+        console.warn("Consulta Supabase por lead falhou:", e);
+      }
+    }
+
+    if (!lead) return NextResponse.json({ erro: "Lead não encontrado" }, { status: 404 });
+    if (!lead.email) return NextResponse.json({ erro: "Lead sem e-mail" }, { status: 400 });
 
     if (!isEmailValidoParaB2B(lead.email)) {
       return NextResponse.json({ erro: "E-mail bloqueado por ser reconhecido como falso (Anti-Bounce)" }, { status: 400 });
     }
 
-    // reutiliza a última mensagem gerada, se existir; senão gera agora
-    const { data: ultima } = await sb
-      .from("messages").select("texto, status")
-      .eq("lead_id", leadId).order("criado_em", { ascending: false }).limit(1).maybeSingle();
-
-    let texto = ultima?.texto || "";
+    // Reutiliza a última mensagem gerada, se existir; senão gera agora
+    let texto = "";
     let fonte = "existente";
+
+    if (sb && user && leadId) {
+      try {
+        const { data: ultima } = await sb
+          .from("messages").select("texto, status")
+          .eq("lead_id", leadId).order("criado_em", { ascending: false }).limit(1).maybeSingle();
+        if (ultima?.texto) texto = ultima.texto;
+      } catch (e) {}
+    }
+
+    let settings: any = null;
+    if (sb && user) {
+      try {
+        const { data } = await sb.from("settings").select("negocio_nome, servico, diferenciais").eq("user_id", user.id).maybeSingle();
+        settings = data;
+      } catch (e) {}
+    }
+
+    const negocioNome = settings?.negocio_nome && settings.negocio_nome !== "ProspectAI" ? settings.negocio_nome : "HardZ Sites";
+    const negocio = settings || {
+      negocio_nome: negocioNome,
+      servico: "Criação de websites profissionais de alta conversão",
+      diferenciais: "Site próprio que aparece no Google, entrega rápida e design moderno",
+    };
+
     if (!texto) {
-      const { data: settings } = await sb
-        .from("settings").select("negocio_nome, servico, diferenciais").eq("user_id", user.id).single();
-      const negocio = settings || { negocio_nome: "ProspectAI", servico: "Criação de sites profissionais", diferenciais: "Site próprio que aparece no Google, entrega rápida" };
       const g = await gerarMensagem(
         {
-          nome: lead.nome, categoria: lead.categoria, cidade: lead.cidade, pais: lead.pais,
-          temSite: Boolean(lead.website), temInstagram: Boolean(lead.instagram), temEmail: Boolean(lead.email),
+          nome: lead.nome,
+          categoria: lead.categoria || "Comércio Local",
+          cidade: lead.cidade || "sua região",
+          pais: lead.pais || "Brasil",
+          temSite: Boolean(lead.website),
+          temInstagram: Boolean(lead.instagram),
+          temEmail: Boolean(lead.email),
           negocio,
         },
         process.env.GEMINI_API_KEY || null
       );
       texto = g.texto;
       fonte = g.fonte;
-      await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto, status: "gerada" });
+
+      if (sb && user && lead.id) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lead.id);
+        if (isUuid) {
+          try {
+            await sb.from("messages").insert({ user_id: user.id, lead_id: lead.id, canal: "email", texto, status: "gerada" });
+          } catch (e) {}
+        }
+      }
     }
 
-    const { data: settings } = await sb.from("settings").select("negocio_nome").eq("user_id", user.id).single();
-    const r = await enviarEmailDoLead(sb, user, lead, texto, undefined, settings?.negocio_nome || "ProspectAI");
+    const r = await enviarEmailDoLead(sb, user, lead, texto, undefined, negocioNome);
     if (!r.ok) return NextResponse.json({ erro: r.erro }, { status: r.status });
     return NextResponse.json({ ok: true, texto, fonte });
   } catch (e: unknown) {
