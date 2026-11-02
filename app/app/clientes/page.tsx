@@ -53,6 +53,7 @@ export default function ClientesLeadsPage() {
   // Estados de Operação Individual e Lote
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [progressoEnrich, setProgressoEnrich] = useState<{ atual: number; total: number } | null>(null);
+  const [progressoLote, setProgressoLote] = useState<{ atual: number; total: number } | null>(null);
   const [aviso, setAviso] = useState<{ tipo: "ok" | "erro"; msg: string } | null>(null);
   const [msgAberta, setMsgAberta] = useState<Record<string, string>>({});
   const [copiado, setCopiado] = useState<Record<string, boolean>>({});
@@ -479,9 +480,9 @@ export default function ClientesLeadsPage() {
     }
   };
 
-  // ── OPÇÃO 7: GERAR DM INSTAGRAM EM LOTE COM IA ──
+  // ── OPÇÃO 7: GERAR DM INSTAGRAM EM LOTE COM IA (PARALELO) ──
   const handleGerarDMInstagramLote = async () => {
-    const comInsta = leadsFiltrados.filter((l) => l.instagram);
+    const comInsta = leadsFiltrados.filter((l) => l && l.instagram);
     if (comInsta.length === 0) {
       setAviso({ tipo: "erro", msg: "Nenhum lead com Instagram encontrado nos filtros atuais." });
       return;
@@ -492,36 +493,52 @@ export default function ClientesLeadsPage() {
     }
 
     setOcupado("bulk:dm_instagram");
+    setProgressoLote({ atual: 0, total: comInsta.length });
     setAviso({ tipo: "ok", msg: `Gerando DMs com IA para ${comInsta.length} empresas com Instagram...` });
 
     let geradas = 0;
-    for (const lead of comInsta) {
-      try {
-        const res = await fetch("/api/gerar-mensagem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ leadId: lead.id, canal: "instagram", leadData: lead }),
-        });
-        const data = await res.json();
-        const texto = data.texto || `Olá ${lead.nome}! Notamos o trabalho incrível da sua empresa em ${lead.cidade}, mas identificamos que vocês estão sem um site profissional no Google. Criamos uma proposta rápida sem compromisso, podemos conversar?`;
-        setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
-        await atualizarLead(lead.id, { status: "mensagem_gerada" });
-        geradas++;
-      } catch {
-        const fallback = `Olá ${lead.nome}! Notamos o trabalho incrível da sua empresa em ${lead.cidade}, mas identificamos que vocês estão sem um site profissional no Google. Criamos uma proposta rápida sem compromisso, podemos conversar?`;
-        setMsgAberta((prev) => ({ ...prev, [lead.id]: fallback }));
-        await atualizarLead(lead.id, { status: "mensagem_gerada" });
-        geradas++;
+    let concluidos = 0;
+    const concorrencia = Math.min(4, comInsta.length);
+    let index = 0;
+
+    async function worker() {
+      while (index < comInsta.length) {
+        const lead = comInsta[index++];
+        if (!lead) continue;
+
+        try {
+          const res = await fetch("/api/gerar-mensagem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leadId: lead.id, canal: "instagram", leadData: lead }),
+          });
+          const data = await res.json();
+          const texto = data.texto || `Olá ${lead.nome}! Notamos o trabalho incrível da sua empresa em ${lead.cidade}, mas identificamos que vocês estão sem um site profissional no Google. Criamos uma proposta rápida sem compromisso, podemos conversar?`;
+          setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
+          await atualizarLead(lead.id, { status: "mensagem_gerada" });
+          geradas++;
+        } catch {
+          const fallback = `Olá ${lead.nome}! Notamos o trabalho incrível da sua empresa em ${lead.cidade}, mas identificamos que vocês estão sem um site profissional no Google. Criamos uma proposta rápida sem compromisso, podemos conversar?`;
+          setMsgAberta((prev) => ({ ...prev, [lead.id]: fallback }));
+          await atualizarLead(lead.id, { status: "mensagem_gerada" });
+          geradas++;
+        } finally {
+          concluidos++;
+          setProgressoLote({ atual: concluidos, total: comInsta.length });
+        }
       }
     }
 
+    await Promise.all(Array.from({ length: concorrencia }, () => worker()));
+
     setOcupado(null);
-    setAviso({ tipo: "ok", msg: `Sucesso! DMs geradas para ${geradas} empresas com Instagram.` });
+    setProgressoLote(null);
+    setAviso({ tipo: "ok", msg: `Sucesso! DMs geradas para ${geradas} de ${comInsta.length} empresas com Instagram.` });
   };
 
-  // ── OPÇÃO 8: GERAR MENSAGEM WHATSAPP EM LOTE COM IA ──
+  // ── OPÇÃO 8: GERAR MENSAGEM WHATSAPP EM LOTE COM IA (PARALELO) ──
   const handleGerarWhatsAppLote = async () => {
-    const comWhats = leadsFiltrados.filter((l) => l.telefone);
+    const comWhats = leadsFiltrados.filter((l) => l && l.telefone);
     if (comWhats.length === 0) {
       setAviso({ tipo: "erro", msg: "Nenhum lead com telefone/WhatsApp encontrado nos filtros atuais." });
       return;
@@ -532,34 +549,50 @@ export default function ClientesLeadsPage() {
     }
 
     setOcupado("bulk:dm_whatsapp");
+    setProgressoLote({ atual: 0, total: comWhats.length });
     setAviso({ tipo: "ok", msg: `Gerando mensagens de WhatsApp com IA para ${comWhats.length} empresas...` });
 
     let geradas = 0;
-    for (const lead of comWhats) {
-      try {
-        const res = await fetch("/api/gerar-mensagem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ leadId: lead.id, canal: "whatsapp", leadData: lead }),
-        });
-        const data = await res.json();
-        const texto = data.texto || `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
-        setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
-        await atualizarLead(lead.id, { status: "mensagem_gerada" });
-        geradas++;
-      } catch {
-        const fallback = `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
-        setMsgAberta((prev) => ({ ...prev, [lead.id]: fallback }));
-        await atualizarLead(lead.id, { status: "mensagem_gerada" });
-        geradas++;
+    let concluidos = 0;
+    const concorrencia = Math.min(4, comWhats.length);
+    let index = 0;
+
+    async function worker() {
+      while (index < comWhats.length) {
+        const lead = comWhats[index++];
+        if (!lead) continue;
+
+        try {
+          const res = await fetch("/api/gerar-mensagem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leadId: lead.id, canal: "whatsapp", leadData: lead }),
+          });
+          const data = await res.json();
+          const texto = data.texto || `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
+          setMsgAberta((prev) => ({ ...prev, [lead.id]: texto }));
+          await atualizarLead(lead.id, { status: "mensagem_gerada" });
+          geradas++;
+        } catch {
+          const fallback = `Olá, tudo bem? Falo com o responsável pela ${lead.nome}? Notamos que sua empresa atende em ${lead.cidade}, mas ainda não tem um site profissional no topo do Google. Montamos uma demonstração sem compromisso, podemos conversar 2 minutos?`;
+          setMsgAberta((prev) => ({ ...prev, [lead.id]: fallback }));
+          await atualizarLead(lead.id, { status: "mensagem_gerada" });
+          geradas++;
+        } finally {
+          concluidos++;
+          setProgressoLote({ atual: concluidos, total: comWhats.length });
+        }
       }
     }
 
+    await Promise.all(Array.from({ length: concorrencia }, () => worker()));
+
     setOcupado(null);
-    setAviso({ tipo: "ok", msg: `Sucesso! Mensagens de WhatsApp geradas para ${geradas} empresas.` });
+    setProgressoLote(null);
+    setAviso({ tipo: "ok", msg: `Sucesso! Mensagens de WhatsApp geradas para ${geradas} de ${comWhats.length} empresas.` });
   };
 
-  // ── OPÇÃO 9: ENRIQUECER EM LOTE (DEEP SCAN COM IA & OSINT) ──
+  // ── OPÇÃO 9: ENRIQUECER EM LOTE (DEEP SCAN COM IA & OSINT - PARALELO) ──
   const handleEnriquecerLote = async () => {
     const pendentes = leadsFiltrados.filter((l) => l && (!l.email || !l.instagram));
     const listaAlvos = pendentes.length > 0 ? pendentes : leadsFiltrados;
@@ -578,33 +611,43 @@ export default function ClientesLeadsPage() {
     setAviso({ tipo: "ok", msg: `Iniciando Deep Scan com IA para ${listaAlvos.length} empresas...` });
 
     let enriquecidosCount = 0;
+    let concluidos = 0;
+    const concorrencia = Math.min(4, listaAlvos.length);
+    let index = 0;
 
-    for (let i = 0; i < listaAlvos.length; i++) {
-      const lead = listaAlvos[i];
-      setProgressoEnrich({ atual: i + 1, total: listaAlvos.length });
+    async function worker() {
+      while (index < listaAlvos.length) {
+        const lead = listaAlvos[index++];
+        if (!lead) continue;
 
-      try {
-        const res = await fetch("/api/enrich", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            leadId: lead.id,
-            nome: lead.nome,
-            cidade: lead.cidade,
-            pais: lead.pais || "Brasil",
-            leadData: lead,
-          }),
-        });
+        try {
+          const res = await fetch("/api/enrich", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              leadId: lead.id,
+              nome: lead.nome,
+              cidade: lead.cidade,
+              pais: lead.pais || "Brasil",
+              leadData: lead,
+            }),
+          });
 
-        const data = await res.json();
-        if (res.ok && data.lead) {
-          await atualizarLead(lead.id, data.lead);
-          enriquecidosCount++;
+          const data = await res.json();
+          if (res.ok && data.lead) {
+            await atualizarLead(lead.id, data.lead);
+            enriquecidosCount++;
+          }
+        } catch (err) {
+          console.warn(`Erro no enriquecimento do lead ${lead.nome}:`, err);
+        } finally {
+          concluidos++;
+          setProgressoEnrich({ atual: concluidos, total: listaAlvos.length });
         }
-      } catch (err) {
-        console.warn(`Erro no enriquecimento do lead ${lead.nome}:`, err);
       }
     }
+
+    await Promise.all(Array.from({ length: concorrencia }, () => worker()));
 
     setOcupado(null);
     setProgressoEnrich(null);

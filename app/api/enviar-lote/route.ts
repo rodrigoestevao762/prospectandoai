@@ -204,65 +204,83 @@ export async function POST(req: Request) {
       ? leadIds.map((id) => leadMap.get(String(id))).filter(Boolean)
       : Array.from(leadMap.values());
 
-    // Processamento sequencial rápido
-    for (const lead of listaParaEnviar) {
-      if (!lead.email || !isEmailValidoParaB2B(lead.email)) {
-        resultados.push({ id: lead.id, ok: false, erro: "E-mail inválido ou retido por proteção anti-bounce" });
-        continue;
-      }
+    // Processamento paralelo rápido com pool SMTP (concorrência de 4 conexões)
+    const concorrencia = Math.min(4, listaParaEnviar.length);
+    let leadIndex = 0;
+    let abortadoPorAuth = false;
+    let authErroMsg = "";
 
-      let texto = msgMap.get(lead.id) || "";
-      let assunto = "";
-      let corpo = "";
+    async function worker() {
+      while (leadIndex < listaParaEnviar.length && !abortadoPorAuth) {
+        const lead = listaParaEnviar[leadIndex++];
+        if (!lead) continue;
 
-      if (texto) {
-        assunto = texto.split("\n")[0].replace(/^assunto:\s*/i, "").trim() || `${negocioNome} — contato profissional para ${lead.nome}`;
-        corpo = texto.replace(/^Assunto:.*$/im, "").trim();
-      } else {
-        const gerado = gerarEmailRapido(lead, negocio, negocioNome);
-        assunto = gerado.assunto;
-        corpo = gerado.corpo;
-      }
+        if (!lead.email || !isEmailValidoParaB2B(lead.email)) {
+          resultados.push({ id: lead.id, ok: false, erro: "E-mail inválido ou retido por proteção anti-bounce" });
+          continue;
+        }
 
-      try {
-        await transporter.sendMail({
-          from: `"${negocioNome}" <${gmailEmail}>`,
-          to: lead.email,
-          subject: assunto,
-          text: corpo,
-        });
+        let texto = msgMap.get(lead.id) || "";
+        let assunto = "";
+        let corpo = "";
 
-        sucessos++;
-        resultados.push({ id: lead.id, ok: true });
-        if (user?.id) {
-          sentMessages.push({
-            user_id: user.id,
-            lead_id: lead.id,
-            canal: "email",
-            texto: corpo,
-            status: "enviada",
+        if (texto) {
+          assunto = texto.split("\n")[0].replace(/^assunto:\s*/i, "").trim() || `${negocioNome} — contato profissional para ${lead.nome}`;
+          corpo = texto.replace(/^Assunto:.*$/im, "").trim();
+        } else {
+          const gerado = gerarEmailRapido(lead, negocio, negocioNome);
+          assunto = gerado.assunto;
+          corpo = gerado.corpo;
+        }
+
+        try {
+          await transporter.sendMail({
+            from: `"${negocioNome}" <${gmailEmail}>`,
+            to: lead.email,
+            subject: assunto,
+            text: corpo,
           });
-        }
-        sentLeadIds.push(lead.id);
-      } catch (err: any) {
-        const erroMsg = err.message || "Erro desconhecido ao enviar e-mail";
-        resultados.push({ id: lead.id, ok: false, erro: erroMsg });
 
-        if (
-          erroMsg.includes("Too many login attempts") ||
-          erroMsg.includes("Invalid login") ||
-          erroMsg.includes("535") ||
-          erroMsg.includes("BadCredentials") ||
-          erroMsg.includes("Username and Password not accepted")
-        ) {
-          transporter.close();
-          return NextResponse.json({
-            erro: "Falha de autenticação no Gmail. Sua Senha de App foi recusada pelo Google. Atualize em Configurações.",
-            sucessos,
-            resultados,
-          }, { status: 401 });
+          sucessos++;
+          resultados.push({ id: lead.id, ok: true });
+          if (user?.id) {
+            sentMessages.push({
+              user_id: user.id,
+              lead_id: lead.id,
+              canal: "email",
+              texto: corpo,
+              status: "enviada",
+            });
+          }
+          sentLeadIds.push(lead.id);
+        } catch (err: any) {
+          const erroMsg = err.message || "Erro desconhecido ao enviar e-mail";
+          resultados.push({ id: lead.id, ok: false, erro: erroMsg });
+
+          if (
+            erroMsg.includes("Too many login attempts") ||
+            erroMsg.includes("Invalid login") ||
+            erroMsg.includes("535") ||
+            erroMsg.includes("BadCredentials") ||
+            erroMsg.includes("Username and Password not accepted")
+          ) {
+            abortadoPorAuth = true;
+            authErroMsg = "Falha de autenticação no Gmail. Sua Senha de App foi recusada pelo Google. Atualize em Configurações.";
+            break;
+          }
         }
       }
+    }
+
+    await Promise.all(Array.from({ length: concorrencia }, () => worker()));
+
+    if (abortadoPorAuth) {
+      transporter.close();
+      return NextResponse.json({
+        erro: authErroMsg,
+        sucessos,
+        resultados,
+      }, { status: 401 });
     }
 
     // Gravação segura no banco se houver sessão

@@ -12,7 +12,7 @@ async function fetchHtml(url: string): Promise<string> {
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
       },
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(2500),
     });
     return await res.text();
   } catch (err) {
@@ -71,12 +71,12 @@ export async function enrichLeadData(
 
   const searchesResult = await Promise.allSettled([
     searchDuckDuckGo(`"${safeNome}" ${cidade} contato email`),
-    searchBing(`"${safeNome}" ${cidade} contato email`),
-    searchYahoo(`site:instagram.com "${safeNome}" ${cidade}`),
-    searchQwant(`site:facebook.com "${safeNome}" ${cidade}`),
-    searchBrave(`"${safeNome}" ${cidade} email contato`),
-    searchAsk(`"${safeNome}" ${cidade} instagram facebook email`),
-    searchEcosia(`"${safeNome}" ${cidade} contato`),
+    searchDuckDuckGo(`site:instagram.com "${safeNome}" ${cidade}`),
+    searchQwant(`"${safeNome}" ${cidade} email contato instagram`),
+    searchAsk(`"${safeNome}" ${cidade} contato`),
+
+
+
   ]);
   const searches = searchesResult.map((r: any) =>
     r.status === "fulfilled" ? r.value : "",
@@ -94,7 +94,7 @@ export async function enrichLeadData(
     htmlLimpo.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}/g) || []
   ).filter((e) => isEmailValidoParaB2B(e));
   const instas = (
-    htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
+    htmlLimpo.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
   ).filter((u) => {
     const lower = u.toLowerCase();
     return (
@@ -126,7 +126,7 @@ export async function enrichLeadData(
       instas.length > 0 ? `https://www.${instas[0]?.toLowerCase()}` : null,
     facebook:
       faces.length > 0 ? `https://www.${faces[0]?.toLowerCase()}` : null,
-    fontes: ["duckduckgo", "bing", "yahoo", "qwant", "brave", "ask", "ecosia"],
+    fontes: ["duckduckgo", "qwant", "ask"],
   };
 }
 
@@ -233,7 +233,7 @@ export async function radarInstagram(
 
       const htmlUnificado = searches.join(" ");
       const instaMatches = (
-        htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
+        htmlLimpo.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
       ).filter((u) => {
         const lower = u.toLowerCase();
         return (

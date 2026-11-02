@@ -105,11 +105,12 @@ export async function gerarMensagem(l: MsgInput, apiKey: string | null): Promise
   if (apiKey) {
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [{ text: promptMsg(l) }] }] }),
+          signal: AbortSignal.timeout(3500),
         }
       );
       if (res.ok) {
