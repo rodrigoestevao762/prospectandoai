@@ -1,663 +1,110 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import * as THREE from "three";
-import { Compass, RotateCw, Pause, Play, MapPin, Globe as GlobeIcon, Layers } from "lucide-react";
-import WORLD_LAND_DATA from "@/public/world-land.json";
+import { useEffect, useRef, useCallback } from "react";
+import createGlobe from "cobe";
 
-export interface CityTarget {
-  name: string;
-  region: string;
-  country: string;
-  lat: number;
-  lng: number;
-  leads: string;
-  segments: string;
-  missingWebsites: string;
-}
+export default function Globe() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pointerInteracting = useRef<number | null>(null);
+  const pointerInteractionMovement = useRef(0);
+  const phiRef = useRef(0);
+  const widthRef = useRef(0);
 
-export const ENTERPRISE_HUBS: CityTarget[] = [
-  {
-    name: "São Paulo",
-    region: "SP",
-    country: "Brasil",
-    lat: -23.5505,
-    lng: -46.6333,
-    leads: "14.820 empresas mapeadas",
-    segments: "Clínicas, Varejo & B2B",
-    missingWebsites: "64% sem presença mobile ou SSL",
-  },
-  {
-    name: "Rio de Janeiro",
-    region: "RJ",
-    country: "Brasil",
-    lat: -22.9068,
-    lng: -43.1729,
-    leads: "8.430 empresas mapeadas",
-    segments: "Gastronomia, Serviços & Saúde",
-    missingWebsites: "58% sem website profissional",
-  },
-  {
-    name: "Belo Horizonte",
-    region: "MG",
-    country: "Brasil",
-    lat: -19.9167,
-    lng: -43.9345,
-    leads: "6.120 empresas mapeadas",
-    segments: "Indústria, Comércio & Logística",
-    missingWebsites: "61% sem domínio próprio",
-  },
-  {
-    name: "Curitiba",
-    region: "PR",
-    country: "Brasil",
-    lat: -25.4284,
-    lng: -49.2733,
-    leads: "4.980 empresas mapeadas",
-    segments: "Tech, Escritórios & Saúde",
-    missingWebsites: "52% com sites obsoletos",
-  },
-  {
-    name: "Lisboa",
-    region: "Distrito de Lisboa",
-    country: "Portugal",
-    lat: 38.7223,
-    lng: -9.1393,
-    leads: "3.250 empresas mapeadas",
-    segments: "Imobiliário, Turismo & B2B",
-    missingWebsites: "48% sem cardápio/site digital",
-  },
-  {
-    name: "Nova York",
-    region: "NY",
-    country: "EUA",
-    lat: 40.7128,
-    lng: -74.006,
-    leads: "12.400 empresas mapeadas",
-    segments: "Agências, Serviços & SaaS",
-    missingWebsites: "43% necessitam de modernização",
-  },
-];
-
-function latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector3 {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lng + 180) * (Math.PI / 180);
-  const x = -(radius * Math.sin(phi) * Math.cos(theta));
-  const z = radius * Math.sin(phi) * Math.sin(theta);
-  const y = radius * Math.cos(phi);
-  return new THREE.Vector3(x, y, z);
-}
-
-// Procedural texture generator directly from bundled Natural Earth GeoJSON with cache
-let cachedWorldTexture: THREE.CanvasTexture | null = null;
-
-function createWorldTexture(): THREE.CanvasTexture {
-  if (cachedWorldTexture) return cachedWorldTexture;
-
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const width = isMobile ? 1024 : 2048;
-  const height = isMobile ? 512 : 1024;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d")!;
-
-  // 1. Solid Deep Obsidian Space Ocean with Subtle Purple Depth
-  ctx.fillStyle = "#070812";
-  ctx.fillRect(0, 0, width, height);
-
-  // 2. Tactical Latitude & Longitude Coordinate Grid (Graticules in Violet)
-  ctx.strokeStyle = "rgba(124, 58, 237, 0.12)";
-  ctx.lineWidth = 1;
-  const step = isMobile ? 30 : 15;
-  for (let lat = -75; lat <= 75; lat += step) {
-    const y = ((90 - lat) / 180) * height;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.stroke();
-  }
-  for (let lng = -180; lng <= 180; lng += step) {
-    const x = ((lng + 180) / 360) * width;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-  }
-
-  // 3. Render Continents from bundled GeoJSON
-  if (WORLD_LAND_DATA && (WORLD_LAND_DATA as any).features) {
-    ctx.fillStyle = "#1e0b3d";
-
-    const drawPolygon = (coords: number[][]) => {
-      ctx.beginPath();
-      for (let i = 0; i < coords.length; i++) {
-        const [lng, lat] = coords[i];
-        const x = ((lng + 180) / 360) * width;
-        const y = ((90 - lat) / 180) * height;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.fill();
-    };
-
-    (WORLD_LAND_DATA as any).features.forEach((feature: any) => {
-      const geom = feature.geometry;
-      if (geom.type === "Polygon") {
-        geom.coordinates.forEach((ring: number[][]) => drawPolygon(ring));
-      } else if (geom.type === "MultiPolygon") {
-        geom.coordinates.forEach((poly: number[][][]) => {
-          poly.forEach((ring: number[][]) => drawPolygon(ring));
-        });
-      }
-    });
-
-    // Stroke Pass: Crisp Vivid Electric Violet Coastline Borders
-    ctx.strokeStyle = "#7c3aed";
-    ctx.lineWidth = isMobile ? 1.2 : 1.8;
-
-    const strokePolygon = (coords: number[][]) => {
-      ctx.beginPath();
-      for (let i = 0; i < coords.length; i++) {
-        const [lng, lat] = coords[i];
-        const x = ((lng + 180) / 360) * width;
-        const y = ((90 - lat) / 180) * height;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.stroke();
-    };
-
-    (WORLD_LAND_DATA as any).features.forEach((feature: any) => {
-      const geom = feature.geometry;
-      if (geom.type === "Polygon") {
-        geom.coordinates.forEach((ring: number[][]) => strokePolygon(ring));
-      } else if (geom.type === "MultiPolygon") {
-        geom.coordinates.forEach((poly: number[][][]) => {
-          poly.forEach((ring: number[][]) => strokePolygon(ring));
-        });
-      }
-    });
-
-    // Clean Geographic Coordinate Mesh on Continents (Only on Desktop for extreme speed)
-    if (!isMobile) {
-      ctx.fillStyle = "rgba(167, 139, 250, 0.32)";
-      const imgData = ctx.getImageData(0, 0, width, height);
-      const data = imgData.data;
-      for (let y = 10; y < height - 10; y += 18) {
-        for (let x = 10; x < width - 10; x += 18) {
-          const idx = (y * width + x) * 4;
-          if (data[idx] > 20) {
-            ctx.beginPath();
-            ctx.arc(x, y, 1.0, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-      }
-    }
-  }
-
-  cachedWorldTexture = new THREE.CanvasTexture(canvas);
-  cachedWorldTexture.wrapS = THREE.RepeatWrapping;
-  cachedWorldTexture.wrapT = THREE.ClampToEdgeWrapping;
-  return cachedWorldTexture;
-}
-
-interface GlobeProps {
-  size?: "hero" | "compact";
-  showControls?: boolean;
-  showHubSelector?: boolean;
-  className?: string;
-  onTargetSelect?: (hub: CityTarget) => void;
-}
-
-export default function Globe({
-  size = "hero",
-  showControls = true,
-  showHubSelector = true,
-  className = "",
-  onTargetSelect,
-}: GlobeProps) {
-  const mountRef = useRef<HTMLDivElement>(null);
-  const globeGroupRef = useRef<THREE.Group | null>(null);
-
-  // Interaction tracking refs
-  const isDragging = useRef(false);
-  const prevPointer = useRef({ x: 0, y: 0 });
-  const velocity = useRef({ x: 0, y: 0 });
-  const targetRotation = useRef<{ y: number; x: number } | null>(null);
-  const autoRotate = useRef(true);
-
-  // State
-  const [hasWebGL, setHasWebGL] = useState(true);
-  const [activeHub, setActiveHub] = useState<CityTarget>(ENTERPRISE_HUBS[0]);
-  const [isRotating, setIsRotating] = useState(true);
-  const [telemetryLat, setTelemetryLat] = useState("23.55° S");
-  const [telemetryLng, setTelemetryLng] = useState("46.63° W");
-
-  // Fly to target city with smooth rotation interpolation
-  const flyToHub = useCallback((hub: CityTarget) => {
-    setActiveHub(hub);
-    if (onTargetSelect) onTargetSelect(hub);
-
-    // Compute target rotation in radians to center city directly in front of camera
-    const targetY = -((hub.lng + 90) * (Math.PI / 180));
-    const targetX = (hub.lat * (Math.PI / 180)) * 0.75;
-
-    targetRotation.current = { y: targetY, x: targetX };
-    setTelemetryLat(`${Math.abs(hub.lat).toFixed(2)}° ${hub.lat >= 0 ? "N" : "S"}`);
-    setTelemetryLng(`${Math.abs(hub.lng).toFixed(2)}° ${hub.lng >= 0 ? "E" : "W"}`);
-  }, [onTargetSelect]);
-
-  const toggleAutoRotate = () => {
-    autoRotate.current = !autoRotate.current;
-    setIsRotating(autoRotate.current);
-  };
-
-  const recenter = () => {
-    flyToHub(ENTERPRISE_HUBS[0]);
-  };
-
-  useEffect(() => {
-    if (!mountRef.current || typeof window === "undefined") return;
-
-    let animId: number;
-    let renderer: THREE.WebGLRenderer;
-    let scene: THREE.Scene;
-    let camera: THREE.PerspectiveCamera;
-    let worldTexture: THREE.CanvasTexture;
-    let observer: IntersectionObserver | null = null;
-    let isVisible = true;
-
-    try {
-      const container = mountRef.current;
-      const width = container.clientWidth || 600;
-      const height = container.clientHeight || 600;
-      const isMobile = window.innerWidth < 768;
-
-      // 1. Three.js Scene & Camera Setup
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      camera.position.z = 2.85;
-
-      renderer = new THREE.WebGLRenderer({
-        antialias: !isMobile,
-        alpha: true,
-        powerPreference: isMobile ? "default" : "high-performance",
-      });
-      renderer.setSize(width, height);
-      // Trava em 1x no celular para eliminar qualquer travamento de GPU
-      renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 1.75));
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
-
-      container.replaceChildren(renderer.domElement);
-      renderer.domElement.style.width = "100%";
-      renderer.domElement.style.height = "100%";
-      renderer.domElement.style.cursor = "grab";
-      renderer.domElement.style.touchAction = "pan-y";
-
-      const globeGroup = new THREE.Group();
-      globeGroupRef.current = globeGroup;
-      scene.add(globeGroup);
-
-      // 2. Base Sphere Mesh with Instant Synchronous Continents Texture
-      const globeRadius = 1.0;
-      const sphereSegs = isMobile ? 36 : 64;
-      const globeGeometry = new THREE.SphereGeometry(globeRadius, sphereSegs, sphereSegs);
-
-      worldTexture = createWorldTexture();
-      const globeMaterial = new THREE.MeshPhongMaterial({
-        map: worldTexture,
-        specular: new THREE.Color("#7c3aed"),
-        shininess: 20,
-        emissive: new THREE.Color("#180630"),
-        emissiveIntensity: 0.22,
-      });
-
-      const globeMesh = new THREE.Mesh(globeGeometry, globeMaterial);
-      globeGroup.add(globeMesh);
-
-      // 3. Clean Atmospheric Limb Rim Shell (Deep Vivid Violet)
-      const atmosSegs = isMobile ? 28 : 48;
-      const atmosGeometry = new THREE.SphereGeometry(globeRadius * 1.14, atmosSegs, atmosSegs);
-      const atmosMaterial = new THREE.ShaderMaterial({
-        vertexShader: `
-          varying vec3 vNormal;
-          void main() {
-            vNormal = normalize(normalMatrix * normal);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          varying vec3 vNormal;
-          void main() {
-            float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.6);
-            gl_FragColor = vec4(0.48, 0.23, 0.93, 1.0) * intensity * 1.35;
-          }
-        `,
-        blending: THREE.AdditiveBlending,
-        side: THREE.BackSide,
-        transparent: true,
-      });
-      const atmosMesh = new THREE.Mesh(atmosGeometry, atmosMaterial);
-      scene.add(atmosMesh);
-
-      // 4. Balanced Architectural Directional Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
-      scene.add(ambientLight);
-
-      const rimLight = new THREE.DirectionalLight(0x7c3aed, 2.2);
-      rimLight.position.set(4, 3, 5);
-      scene.add(rimLight);
-
-      const subtleFill = new THREE.DirectionalLight(0x4c1d95, 0.85);
-      subtleFill.position.set(-4, -2, -3);
-      scene.add(subtleFill);
-
-      // 5. Enterprise Hub Data Markers (Clean Geographic Pins)
-      ENTERPRISE_HUBS.forEach((hub) => {
-        const pos = latLngToVector3(hub.lat, hub.lng, globeRadius * 1.01);
-
-        // Core Pin Dot
-        const isSp = hub.name === "São Paulo";
-        const dotGeo = new THREE.SphereGeometry(isSp ? 0.022 : 0.016, 12, 12);
-        const dotMat = new THREE.MeshBasicMaterial({
-          color: isSp ? 0x10b981 : 0xa78bfa,
-        });
-        const dotMesh = new THREE.Mesh(dotGeo, dotMat);
-        dotMesh.position.copy(pos);
-        globeGroup.add(dotMesh);
-
-        // Subtly elevated marker stem
-        const stemGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.038, 6);
-        const stemMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed });
-        const stemMesh = new THREE.Mesh(stemGeo, stemMat);
-        stemMesh.position.copy(pos.clone().multiplyScalar(1.015));
-        stemMesh.lookAt(new THREE.Vector3(0, 0, 0));
-        stemMesh.rotateX(Math.PI / 2);
-        globeGroup.add(stemMesh);
-      });
-
-      // 6. Initial Orientation centering South America / Brazil
-      globeGroup.rotation.y = 0.85;
-      globeGroup.rotation.x = -0.28;
-
-      // 7. Intersection Observer: Pausa rendering quando o usuário rolar a página para baixo
-      if (typeof IntersectionObserver !== "undefined") {
-        observer = new IntersectionObserver(
-          ([entry]) => {
-            isVisible = entry.isIntersecting;
-          },
-          { threshold: 0.05 }
-        );
-        observer.observe(container);
-      }
-
-      // 8. Animation Loop com render condicional inteligente
-      let lastTime = performance.now();
-      const animate = (currentTime: number) => {
-        animId = requestAnimationFrame(animate);
-
-        // Se estiver fora da tela, economiza 100% de CPU/GPU do celular
-        if (!isVisible) return;
-
-        const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
-        lastTime = currentTime;
-
-        // Target Hub Flight Interpolation
-        if (targetRotation.current) {
-          const dY = targetRotation.current.y - globeGroup.rotation.y;
-          const dX = targetRotation.current.x - globeGroup.rotation.x;
-
-          globeGroup.rotation.y += dY * 0.08;
-          globeGroup.rotation.x += dX * 0.08;
-
-          if (Math.abs(dY) < 0.001 && Math.abs(dX) < 0.001) {
-            targetRotation.current = null;
-          }
-        } else if (!isDragging.current) {
-          // Physics Momentum Damping
-          if (Math.abs(velocity.current.x) > 0.0001) {
-            globeGroup.rotation.y += velocity.current.x;
-            velocity.current.x *= 0.94;
-          } else if (autoRotate.current) {
-            // Steady Natural Orbit
-            globeGroup.rotation.y += 0.0018;
-          }
-
-          if (Math.abs(velocity.current.y) > 0.0001) {
-            globeGroup.rotation.x += velocity.current.y;
-            velocity.current.y *= 0.94;
-            globeGroup.rotation.x = Math.max(-0.6, Math.min(0.6, globeGroup.rotation.x));
-          }
-        }
-
-        renderer.render(scene, camera);
-      };
-
-      animate(performance.now());
-
-      // Resize observer
-      const handleResize = () => {
-        if (!container) return;
-        const w = container.clientWidth || 600;
-        const h = container.clientHeight || 600;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-      };
-
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        cancelAnimationFrame(animId);
-        window.removeEventListener("resize", handleResize);
-        if (observer) observer.disconnect();
-        globeGeometry.dispose();
-        globeMaterial.dispose();
-        atmosGeometry.dispose();
-        atmosMaterial.dispose();
-        renderer.dispose();
-        scene.clear();
-      };
-    } catch (err) {
-      console.warn("WebGL initialization fallback:", err);
-      setHasWebGL(false);
+  const onResize = useCallback(() => {
+    if (canvasRef.current) {
+      widthRef.current = canvasRef.current.offsetWidth;
     }
   }, []);
 
-  // Pointer Drag Interaction otimizada para toque fluido
-  const handlePointerDown = (e: React.PointerEvent) => {
-    isDragging.current = true;
-    prevPointer.current = { x: e.clientX, y: e.clientY };
-    velocity.current = { x: 0, y: 0 };
-    targetRotation.current = null;
-    if (mountRef.current) mountRef.current.style.cursor = "grabbing";
-  };
+  useEffect(() => {
+    window.addEventListener("resize", onResize);
+    onResize();
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging.current || !globeGroupRef.current) return;
+    const globe = createGlobe(canvasRef.current!, {
+      devicePixelRatio: 2,
+      width: widthRef.current * 2,
+      height: widthRef.current * 2,
+      phi: 0,
+      theta: 0.25,
+      dark: 1,
+      diffuse: 1.2,
+      mapSamples: 16000,
+      mapBrightness: 2,
+      baseColor: [0.08, 0.12, 0.22],
+      markerColor: [0.22, 0.74, 0.97],
+      glowColor: [0.08, 0.3, 0.6],
+      markers: [
+        { location: [-23.55, -46.63], size: 0.08 },  // São Paulo
+        { location: [40.71, -74.01], size: 0.07 },    // New York
+        { location: [51.51, -0.13], size: 0.07 },     // London
+        { location: [35.68, 139.65], size: 0.06 },    // Tokyo
+        { location: [48.86, 2.35], size: 0.06 },      // Paris
+        { location: [-33.87, 151.21], size: 0.05 },   // Sydney
+        { location: [25.2, 55.27], size: 0.06 },      // Dubai
+        { location: [19.08, 72.88], size: 0.05 },     // Mumbai
+        { location: [6.52, 3.38], size: 0.04 },       // Lagos
+        { location: [19.43, -99.13], size: 0.06 },    // Mexico City
+        { location: [52.52, 13.4], size: 0.05 },      // Berlin
+        { location: [37.57, 126.98], size: 0.05 },    // Seoul
+        { location: [43.65, -79.38], size: 0.05 },    // Toronto
+        { location: [-34.6, -58.38], size: 0.06 },    // Buenos Aires
+        { location: [55.76, 37.62], size: 0.05 },     // Moscow
+      ],
+      onRender: (state) => {
+        // When not dragging, auto-rotate
+        if (!pointerInteracting.current) {
+          phiRef.current += 0.003;
+        }
+        state.phi = phiRef.current + pointerInteractionMovement.current;
+        state.width = widthRef.current * 2;
+        state.height = widthRef.current * 2;
+      },
+    });
 
-    const dx = e.clientX - prevPointer.current.x;
-    const dy = e.clientY - prevPointer.current.y;
-
-    // Se o usuário estiver no celular e fizer gesto vertical de scroll, não bloqueia o scroll da página
-    if (e.pointerType === "touch" && Math.abs(dy) > Math.abs(dx) * 1.25) {
-      return;
-    }
-
-    const sens = e.pointerType === "touch" ? 0.003 : 0.004;
-    velocity.current = {
-      x: dx * sens,
-      y: dy * sens,
+    return () => {
+      globe.destroy();
+      window.removeEventListener("resize", onResize);
     };
-
-    globeGroupRef.current.rotation.y += velocity.current.x;
-    globeGroupRef.current.rotation.x = Math.max(
-      -0.6,
-      Math.min(0.6, globeGroupRef.current.rotation.x + velocity.current.y)
-    );
-
-    // Compute live telemetry coordinates based on rotation
-    const curLat = (-globeGroupRef.current.rotation.x * (180 / Math.PI)).toFixed(1);
-    const curLng = (-((globeGroupRef.current.rotation.y * (180 / Math.PI)) % 360)).toFixed(1);
-    setTelemetryLat(`${curLat}°`);
-    setTelemetryLng(`${curLng}°`);
-
-    prevPointer.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handlePointerUp = () => {
-    isDragging.current = false;
-    if (mountRef.current) mountRef.current.style.cursor = "grab";
-  };
-
-  const isHero = size === "hero";
+  }, [onResize]);
 
   return (
-    <div
-      className={`relative w-full mx-auto flex flex-col items-center justify-center select-none ${
-        isHero ? "max-w-[720px] lg:max-w-[760px]" : "max-w-[420px]"
-      } ${className}`}
-    >
-      {/* ── SOLID DEEP PURPLE BACKDROP VIGNETTE ── */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
-        <div
-          className={`rounded-full bg-[radial-gradient(circle,rgba(109,40,217,0.24)_0%,rgba(76,29,149,0.08)_45%,transparent_75%)] blur-2xl ${
-            isHero ? "w-[640px] h-[640px]" : "w-[360px] h-[360px]"
-          }`}
-        />
-      </div>
-
-      {/* ── TOP ENTERPRISE HUD BAR ── */}
-      {isHero && (
-        <div className="w-full flex items-center justify-between px-4 sm:px-6 mb-3 z-20 pointer-events-none">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#0a0c16]/90 border border-white/[0.08] backdrop-blur-md shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-            <span className="font-mono text-[10px] font-bold text-white/90 tracking-wider uppercase">
-              BASE GEOESPACIAL B2B
-            </span>
-            <span className="text-white/20">•</span>
-            <span className="font-mono text-[10px] text-[#a78bfa] font-semibold">
-              {telemetryLat}, {telemetryLng}
-            </span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0a0c16]/90 border border-white/[0.08] backdrop-blur-md">
-            <Layers className="w-3.5 h-3.5 text-[#a78bfa]" />
-            <span className="font-mono text-[10px] font-medium text-white/60 uppercase tracking-wider">
-              Malha Vetorial Natural Earth
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ── 3D CANVAS STAGE ── */}
-      <div
-        className={`relative w-full flex items-center justify-center z-10 touch-pan-y ${
-          isHero ? "h-[340px] sm:h-[440px] lg:h-[580px] max-w-[580px] aspect-square" : "h-[280px] sm:h-[360px] max-w-[360px] aspect-square"
-        }`}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-      >
-        {hasWebGL ? (
-          <div ref={mountRef} className="w-full h-full flex items-center justify-center" />
-        ) : (
-          <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full border border-violet-900/40 bg-[#0d0f18] flex flex-col items-center justify-center">
-            <GlobeIcon className="w-10 h-10 text-violet-400 mb-2" />
-            <span className="font-mono text-xs uppercase tracking-widest text-zinc-400 font-bold">
-              Base Vetorial Carregada
-            </span>
-          </div>
-        )}
-
-        {/* Enterprise Selected Hub Tooltip */}
-        {activeHub && isHero && (
-          <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-6 z-30 pointer-events-auto max-w-[240px] sm:max-w-[280px]">
-            <div className="p-3 sm:p-3.5 rounded-xl bg-[#0c0e18]/95 border border-white/[0.1] backdrop-blur-xl shadow-2xl">
-              <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
-                <MapPin className="w-3.5 h-3.5 text-[#a78bfa] shrink-0" />
-                <p className="font-display text-xs font-bold text-white truncate">
-                  {activeHub.name}, {activeHub.region}
-                  <span className="text-[10px] text-zinc-400 font-normal ml-1 hidden sm:inline">({activeHub.country})</span>
-                </p>
-              </div>
-              <p className="font-mono text-[10px] sm:text-[11px] text-[#a78bfa] font-bold mb-0.5">
-                {activeHub.leads}
-              </p>
-              <p className="text-[9px] sm:text-[10px] text-zinc-400 leading-tight">
-                <strong className="text-zinc-300">Déficit:</strong> {activeHub.missingWebsites}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── ENTERPRISE CONTROL TOOLBAR ── */}
-      {showControls && (
-        <div className="flex items-center gap-2 mt-2 mb-3 z-20">
-          <button
-            onClick={toggleAutoRotate}
-            type="button"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-[11px] font-semibold tracking-wider transition-all ${
-              isRotating
-                ? "bg-[#6d28d9]/25 border-[#7c3aed]/50 text-white"
-                : "bg-white/[0.03] border-white/10 text-zinc-400 hover:text-white"
-            }`}
-          >
-            {isRotating ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-            {isRotating ? "Pausar Órbita" : "Orbitar"}
-          </button>
-
-          <button
-            onClick={recenter}
-            type="button"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 font-mono text-[11px] font-semibold text-zinc-300 hover:text-white hover:border-[#7c3aed]/40 transition-all"
-            title="Recentralizar no Brasil"
-          >
-            <RotateCw className="w-3 h-3 text-[#a78bfa]" />
-            Centralizar Brasil
-          </button>
-        </div>
-      )}
-
-      {/* ── HUB SELECTOR PILLS (SÃO PAULO, RIO, BH, CURITIBA, LISBOA, NY) ── */}
-      {showHubSelector && (
-        <div className="w-full mt-1 z-20">
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap px-2">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 mr-1 hidden sm:inline-flex items-center gap-1">
-              <Compass className="w-3 h-3 text-[#a78bfa]" /> Metrópoles:
-            </span>
-            {ENTERPRISE_HUBS.map((hub) => {
-              const isSelected = activeHub.name === hub.name;
-              return (
-                <button
-                  key={hub.name}
-                  onClick={() => flyToHub(hub)}
-                  type="button"
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
-                    isSelected
-                      ? "bg-[#6d28d9] border-[#8b5cf6] text-white shadow-md font-semibold"
-                      : "bg-[#0c0e16]/80 border-white/[0.08] text-zinc-400 hover:text-white hover:border-violet-500/30"
-                  }`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      isSelected ? "bg-white" : "bg-violet-400/60"
-                    }`}
-                  />
-                  <span>{hub.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+    <div className="relative w-full max-w-[580px] aspect-square mx-auto">
+      {/* Glow behind globe */}
+      <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.25)_0%,transparent_70%)] blur-2xl pointer-events-none" />
+      <canvas
+        ref={canvasRef}
+        onPointerDown={(e) => {
+          pointerInteracting.current = e.clientX - pointerInteractionMovement.current;
+          canvasRef.current!.style.cursor = "grabbing";
+        }}
+        onPointerUp={() => {
+          pointerInteracting.current = null;
+          canvasRef.current!.style.cursor = "grab";
+        }}
+        onPointerOut={() => {
+          pointerInteracting.current = null;
+          if (canvasRef.current) canvasRef.current.style.cursor = "grab";
+        }}
+        onMouseMove={(e) => {
+          if (pointerInteracting.current !== null) {
+            const delta = e.clientX - pointerInteracting.current;
+            pointerInteractionMovement.current = delta / 100;
+          }
+        }}
+        onTouchMove={(e) => {
+          if (pointerInteracting.current !== null && e.touches[0]) {
+            const delta = e.touches[0].clientX - pointerInteracting.current;
+            pointerInteractionMovement.current = delta / 100;
+          }
+        }}
+        style={{
+          width: "100%",
+          height: "100%",
+          cursor: "grab",
+          contain: "layout paint size",
+        }}
+      />
     </div>
   );
 }
+
