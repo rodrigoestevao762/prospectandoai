@@ -51,15 +51,13 @@ export async function buscarEmpresas(
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
   // Centraliza no epicentro comercial da cidade (lat, lng) e calibra a malha conforme o raio solicitado
-  let baseDelta = 0.04;
+  let baseDelta = 0.05;
   if (radiusM && radiusM > 0) {
     const degreeRadius = radiusM / 111000;
     if (categoria === "todos") {
-      // Para 'todos os comércios', escala proporcionalmente ao raio (5km a 100km) garantindo tempo de resposta de 2s
-      baseDelta = Math.max(0.04, Math.min(degreeRadius * 1.6, 0.35));
+      baseDelta = Math.max(0.05, Math.min(degreeRadius * 1.6, 0.40));
     } else {
-      // Para nichos específicos, permite expansão mais ampla
-      baseDelta = Math.max(0.05, Math.min(degreeRadius * 1.8, 0.60));
+      baseDelta = Math.max(0.06, Math.min(degreeRadius * 2.0, 0.70));
     }
   }
   const maxDelta = baseDelta * radiusMultiplier;
@@ -71,13 +69,6 @@ export async function buscarEmpresas(
 
   const midLat = (s + n) / 2;
   const midLon = (w + e) / 2;
-
-  const bboxes = [
-    `[bbox:${s},${w},${midLat},${midLon}]`,
-    `[bbox:${midLat},${w},${n},${midLon}]`,
-    `[bbox:${s},${midLon},${midLat},${e}]`,
-    `[bbox:${midLat},${midLon},${n},${e}]`
-  ];
 
   function esc(st: string) { return st.replace(/\\/g, "\\\\").replace(/"/g, '\\"'); }
 
@@ -126,19 +117,53 @@ export async function buscarEmpresas(
     });
   }
 
-  const UA = { "User-Agent": "Overpass Turbo/1.0 (https://overpass-turbo.eu)" };
+  const UA = { "User-Agent": "ProspectAI/2.0 (OSINT Engine; https://prospectandoai.vercel.app)" };
   const ENDPOINTS = [
     "https://overpass.openstreetmap.fr/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
     "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter"
   ];
 
   const perQuadrantLimit = limit && limit > 0 ? Math.min(Math.ceil(limit / 2), 1500) : 1500;
-  const fetchQuadrantWithRetry = async (bString: string, idx: number) => {
-    const q = `[out:json][timeout:25]${bString};(${selectors.join("")});out center ${perQuadrantLimit};`;
 
-    // Se estiver rodando no navegador, utiliza o proxy Next.js para evitar bloqueio 406 de User-Agent
+  // Monta áreas de busca: se busca volume alto (>= 300), adiciona clusters radiais (que são 10x mais rápidos e não dão timeout)
+  const querySlices: string[] = [];
+
+  if (limit && limit >= 300) {
+    const clusterR = Math.max(4000, Math.min(Math.round((radiusM || 15000) * 0.4), 8000));
+    const step = maxDelta * 0.35;
+    const centers = [
+      { lat: lat, lon: lng }, // Epicentro
+      { lat: lat + step, lon: lng }, // Norte
+      { lat: lat - step, lon: lng }, // Sul
+      { lat: lat, lon: lng + step }, // Leste
+      { lat: lat, lon: lng - step }, // Oeste
+      { lat: lat + step * 0.8, lon: lng + step * 0.8 }, // Nordeste
+      { lat: lat - step * 0.8, lon: lng - step * 0.8 }, // Sudoeste
+      { lat: lat - step * 0.8, lon: lng + step * 0.8 }, // Sudeste
+      { lat: lat + step * 0.8, lon: lng - step * 0.8 }, // Noroeste
+    ];
+
+    centers.forEach(c => {
+      const aroundSelectors = selectors.map(s => s.replace(";", "") + `(around:${clusterR},${c.lat.toFixed(5)},${c.lon.toFixed(5)});`);
+      querySlices.push(`(${aroundSelectors.join("")})`);
+    });
+  } else {
+    // Busca padrão de 4 quadrantes
+    querySlices.push(
+      `[bbox:${s},${w},${midLat},${midLon}];(${selectors.join("")})`,
+      `[bbox:${midLat},${w},${n},${midLon}];(${selectors.join("")})`,
+      `[bbox:${s},${midLon},${midLat},${e}];(${selectors.join("")})`,
+      `[bbox:${midLat},${midLon},${n},${e}];(${selectors.join("")})`
+    );
+  }
+
+  const fetchSliceWithRetry = async (sliceStr: string, idx: number) => {
+    const q = `[out:json][timeout:18]${sliceStr.startsWith('[') ? '' : ''}${sliceStr};out center ${perQuadrantLimit};`;
+
     if (typeof window !== "undefined") {
       try {
         const res = await fetch("/api/overpass-proxy", {
@@ -153,7 +178,7 @@ export async function buscarEmpresas(
           }
         }
       } catch {
-        // Fallback direto se o proxy local falhar
+        // Fallback direto
       }
     }
 
@@ -164,7 +189,7 @@ export async function buscarEmpresas(
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
           body: "data=" + encodeURIComponent(q),
-          signal: AbortSignal.timeout(24000),
+          signal: AbortSignal.timeout(12000),
         });
         if (!res.ok) continue;
         const data = await res.json();
@@ -180,10 +205,10 @@ export async function buscarEmpresas(
 
   let allElements: any[] = [];
   try {
-    const quadrantResults = await Promise.all(
-      bboxes.map((bStr, i) => fetchQuadrantWithRetry(bStr, i))
+    const sliceResults = await Promise.all(
+      querySlices.map((slice, i) => fetchSliceWithRetry(slice, i))
     );
-    allElements = quadrantResults.flat();
+    allElements = sliceResults.flat();
   } catch {
     allElements = [];
   }
@@ -191,9 +216,9 @@ export async function buscarEmpresas(
   // Fallback com centro geográfico caso os quadrantes retornem vazios
   if (allElements.length === 0) {
     try {
-      const fallbackAround = `(around:4000,${lat},${lng})`;
+      const fallbackAround = `(around:6000,${lat},${lng})`;
       const fallbackSelectors = selectors.map(s => s.replace(";", "") + fallbackAround + ";");
-      const fallbackQ = `[out:json][timeout:20];(${fallbackSelectors.join("")});out center 1000;`;
+      const fallbackQ = `[out:json][timeout:15];(${fallbackSelectors.join("")});out center 1000;`;
 
       if (typeof window !== "undefined") {
         try {
@@ -208,9 +233,7 @@ export async function buscarEmpresas(
               allElements = fbJson.elements;
             }
           }
-        } catch {
-          // Ignorar erro do proxy
-        }
+        } catch {}
       }
 
       if (allElements.length === 0) {
@@ -220,7 +243,7 @@ export async function buscarEmpresas(
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
               body: "data=" + encodeURIComponent(fallbackQ),
-              signal: AbortSignal.timeout(12000),
+              signal: AbortSignal.timeout(10000),
             });
             if (res.ok) {
               const fbJson = await res.json();
@@ -289,7 +312,16 @@ export async function buscarEmpresas(
     'upa 24h', 'posto de saúde', 'posto de saude', 'ubs ', 'albergue'
   ];
 
-  const finalElements = allElements.filter((e: any) => {
+  // Desduplicação por ID OSM para máxima precisão
+  const seenIds = new Set<string>();
+  const uniqueElements = allElements.filter((e: any) => {
+    const id = String(e.id);
+    if (!id || seenIds.has(id)) return false;
+    seenIds.add(id);
+    return true;
+  });
+
+  const finalElements = uniqueElements.filter((e: any) => {
     if (e.tags?.office && blockedTags.includes(e.tags.office)) return false;
     if (e.tags?.amenity && blockedTags.includes(e.tags.amenity)) return false;
     if (e.tags?.shop && ['lottery'].includes(e.tags.shop)) return false;
@@ -317,18 +349,5 @@ export async function buscarEmpresas(
     facebook: e.tags?.["contact:facebook"] || e.tags?.facebook || null,
   })).filter((e: any) => e.nome !== "Empresa Desconhecida");
 
-  // De-duplicação inteligente por Unidade/Filial:
-  // Permite filiais com o mesmo nome em ruas ou endereços diferentes (ou nós distintos do mapa)
-  const uniqueByName: any[] = [];
-  const seenKeys = new Set<string>();
-  for (const el of finalElements) {
-    const nome = el.nome.toLowerCase().trim();
-    const end = el.endereco ? el.endereco.toLowerCase().trim() : "";
-    const key = end ? `${nome}::${end}` : `${nome}::${el.osmId}`;
-    if (!seenKeys.has(key)) {
-      seenKeys.add(key);
-      uniqueByName.push(el);
-    }
-  }
-  return uniqueByName;
+  return finalElements;
 }

@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 
 const ENDPOINTS = [
   "https://overpass.openstreetmap.fr/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
   "https://lz4.overpass-api.de/api/interpreter",
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter"
@@ -16,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ erro: "Query ausente" }, { status: 400 });
     }
 
-    const UA = "Overpass Turbo/1.0 (https://overpass-turbo.eu)";
+    const UA = "ProspectAI/2.0 (OSINT Enterprise Engine; https://prospectandoai.vercel.app)";
 
     for (let i = 0; i < ENDPOINTS.length; i++) {
       const ep = ENDPOINTS[(attemptIndex + i) % ENDPOINTS.length];
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
             "User-Agent": UA,
           },
           body: "data=" + encodeURIComponent(query),
-          signal: AbortSignal.timeout(28000),
+          signal: AbortSignal.timeout(12000),
         });
 
         if (!res.ok) continue;
@@ -48,4 +50,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ erro: err.message, elements: [] }, { status: 500 });
   }
 }
-
