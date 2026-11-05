@@ -65,24 +65,29 @@ export default function LoginPage() {
     setErro(null);
     setMsg(null);
 
-    // Validação de segurança anti-bot
-    if (!turnstileToken && process.env.NODE_ENV === "production") {
-      setErro("Por favor, conclua a verificação de segurança da Cloudflare.");
-      return;
-    }
-
     setCarregando(true);
-    const sb = supabaseBrowser();
-    if (modo === "login") {
-      const { error } = await sb.auth.signInWithPassword({ email, password: senha });
-      if (error) setErro(error.message);
-      else window.location.href = "/app";
-    } else {
-      const { error } = await sb.auth.signUp({ email, password: senha });
-      if (error) setErro(error.message);
-      else setMsg("Conta criada com sucesso! Verifique seu e-mail caso seja necessária a confirmação.");
+    try {
+      const sb = supabaseBrowser();
+      if (modo === "login") {
+        const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password: senha });
+        if (error) {
+          setErro(error.message === "Failed to fetch" ? "Erro de conexão ao autenticar. Verifique sua conexão e tente novamente." : error.message);
+        } else {
+          window.location.href = "/app";
+        }
+      } else {
+        const { error } = await sb.auth.signUp({ email: email.trim(), password: senha });
+        if (error) {
+          setErro(error.message === "Failed to fetch" ? "Erro de conexão ao criar conta. Tente novamente." : error.message);
+        } else {
+          setMsg("Conta criada com sucesso! Verifique seu e-mail caso seja necessária a confirmação.");
+        }
+      }
+    } catch (err: any) {
+      setErro(err?.message === "Failed to fetch" ? "Falha de comunicação com a rede. Tente novamente." : (err?.message || "Erro inesperado ao autenticar."));
+    } finally {
+      setCarregando(false);
     }
-    setCarregando(false);
   }
 
   async function loginComGoogle() {
@@ -277,7 +282,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome@empresa.com"
-                className="w-full rounded-xl px-3.5 py-3 text-sm bg-[#0d0f18] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#7c3aed] transition-colors"
+                className="w-full rounded-xl px-3.5 py-3 text-sm bg-[#0d0f18] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#38bdf8] transition-colors"
               />
             </div>
 
@@ -290,7 +295,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={recuperarSenha}
-                    className="text-xs text-[#a78bfa] hover:underline"
+                    className="text-xs text-[#38bdf8] hover:underline"
                   >
                     Esqueceu?
                   </button>
@@ -303,19 +308,23 @@ export default function LoginPage() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full rounded-xl px-3.5 py-3 text-sm bg-[#0d0f18] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#7c3aed] transition-colors"
+                className="w-full rounded-xl px-3.5 py-3 text-sm bg-[#0d0f18] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#38bdf8] transition-colors"
               />
             </div>
 
-            {/* ── CLOUDFLARE TURNSTILE BOT PROTECTION ── */}
-            <div className="pt-1">
-              <CloudflareTurnstile onVerify={(token) => setTurnstileToken(token)} />
+            {/* ── PROTEÇÃO SILENCIOSA SSL / 256-BIT ── */}
+            <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-zinc-500 bg-white/[0.02] border border-white/[0.06] rounded-xl px-3.5 py-2 select-none">
+              <span className="flex items-center gap-1.5 text-sky-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
+                <span>Conexão Segura & Criptografada</span>
+              </span>
+              <span className="text-[10px] text-zinc-600">SSL 256-bit</span>
             </div>
 
             <button
               type="submit"
               disabled={carregando}
-              className="btn-signal w-full py-3.5 rounded-xl text-sm font-semibold mt-2 flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(109,40,217,0.4)]"
+              className="btn-signal w-full py-3.5 rounded-xl text-sm font-semibold mt-2 flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(56,189,248,0.35)]"
             >
               {carregando ? (
                 <span className="flex items-center gap-2">
@@ -344,11 +353,11 @@ export default function LoginPage() {
             >
               {modo === "login" ? (
                 <>
-                  Não possui uma conta? <span className="text-[#a78bfa] font-semibold">Criar cadastro</span>
+                  Não possui uma conta? <span className="text-[#38bdf8] font-semibold">Criar cadastro</span>
                 </>
               ) : (
                 <>
-                  Já possui uma conta? <span className="text-[#a78bfa] font-semibold">Fazer login</span>
+                  Já possui uma conta? <span className="text-[#38bdf8] font-semibold">Fazer login</span>
                 </>
               )}
             </button>

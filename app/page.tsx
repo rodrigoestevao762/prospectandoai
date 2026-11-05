@@ -3,7 +3,16 @@
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
-import Globe from "@/components/Globe";
+import dynamic from "next/dynamic";
+
+const Globe = dynamic(() => import("@/components/Globe"), {
+  ssr: false,
+  loading: () => (
+    <div className="relative w-full max-w-[580px] aspect-square mx-auto flex items-center justify-center">
+      <div className="w-72 h-72 rounded-full border border-sky-500/20 bg-sky-950/10 animate-pulse" />
+    </div>
+  ),
+});
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { useTilt3D } from "@/hooks/useAnimations";
 import {
