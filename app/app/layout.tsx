@@ -60,7 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div className="p-4 border-t border-white/5">
           <button
-            onClick={async () => { await supabaseBrowser().auth.signOut(); window.location.href = "/login"; }}
+            onClick={async () => { try { await fetch("/api/auth/logout", { method: "POST" }); } catch {} try { await supabaseBrowser().auth.signOut(); } catch {} if (typeof window !== "undefined") { localStorage.removeItem("prospect_user"); document.cookie = "prospect_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"; } window.location.href = "/login"; }}
             className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-[var(--ink-dim)] hover:text-[var(--alert)] hover:bg-[var(--alert)]/10 transition-colors text-[13px] font-medium"
           >
             <LogOut className="w-4 h-4" /> Encerrar Sessão

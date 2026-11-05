@@ -64,19 +64,51 @@ export default function LoginPage() {
     e.preventDefault();
     setErro(null);
     setMsg(null);
-
     setCarregando(true);
+
     try {
+      const cleanEmail = email.trim().toLowerCase();
+
+      // 1. Autenticação direta do sistema
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, password: senha }),
+      });
+
+      const resData = await res.json().catch(() => ({}));
+      if (res.ok && resData.ok) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("prospect_user", JSON.stringify(resData.user || { email: cleanEmail }));
+          const sessionPayload = btoa(JSON.stringify({
+            email: cleanEmail,
+            id: resData.user?.id || "usr_rodrigoestevao762",
+            role: "admin",
+            exp: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          }));
+          document.cookie = `prospect_session=${sessionPayload}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+        }
+        window.location.href = "/app";
+        return;
+      }
+
+      if (cleanEmail === "rodrigoestevao762@gmail.com") {
+        setErro("Senha incorreta. Verifique a senha digitada.");
+        setCarregando(false);
+        return;
+      }
+
+      // 2. Fallback para Supabase para outras contas
       const sb = supabaseBrowser();
       if (modo === "login") {
-        const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password: senha });
+        const { error } = await sb.auth.signInWithPassword({ email: cleanEmail, password: senha });
         if (error) {
           setErro(error.message === "Failed to fetch" ? "Erro de conexão ao autenticar. Verifique sua conexão e tente novamente." : error.message);
         } else {
           window.location.href = "/app";
         }
       } else {
-        const { error } = await sb.auth.signUp({ email: email.trim(), password: senha });
+        const { error } = await sb.auth.signUp({ email: cleanEmail, password: senha });
         if (error) {
           setErro(error.message === "Failed to fetch" ? "Erro de conexão ao criar conta. Tente novamente." : error.message);
         } else {

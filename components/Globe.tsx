@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import createGlobe from "cobe";
 
-export default function Globe() {
+export default function Globe(_props?: any) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef<number | null>(null);
   const pointerInteractionMovement = useRef(0);
@@ -28,7 +28,7 @@ export default function Globe() {
       const initialWidth = canvasRef.current.offsetWidth || 500;
       width = initialWidth;
 
-      globe = createGlobe(canvasRef.current, {
+      globe = (createGlobe as any)(canvasRef.current, {
         devicePixelRatio: 2,
         width: initialWidth * 2,
         height: initialWidth * 2,
@@ -58,7 +58,7 @@ export default function Globe() {
           { location: [-34.6, -58.38], size: 0.06 },  // Buenos Aires
           { location: [55.76, 37.62], size: 0.05 },   // Moscow
         ],
-        onRender: (state) => {
+        onRender: (state: any) => {
           if (!pointerInteracting.current) {
             phiRef.current += 0.003;
           }

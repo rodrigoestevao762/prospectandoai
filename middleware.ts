@@ -5,31 +5,6 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const isProduction = process.env.NODE_ENV === "production";
 
-  const sb = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, {
-              ...options,
-              secure: isProduction,
-              sameSite: "lax",
-              path: "/",
-            })
-          );
-        },
-      },
-    }
-  );
-
-  const { data } = await sb.auth.getUser();
   const path = request.nextUrl.pathname;
   const isAuthPage = path === "/login";
   const isPublic =
@@ -40,8 +15,62 @@ export async function middleware(request: NextRequest) {
     path.endsWith(".geojson") ||
     path.endsWith(".ico");
 
+  // 1. Checagem de sessão direta/master (ex: rodrigoestevao762@gmail.com)
+  const prospectSessionCookie = request.cookies.get("prospect_session")?.value;
+  let internalUserEmail: string | null = null;
+  if (prospectSessionCookie) {
+    try {
+      const decoded = JSON.parse(Buffer.from(prospectSessionCookie, "base64").toString("utf-8"));
+      if (decoded && decoded.email && (!decoded.exp || decoded.exp > Date.now())) {
+        internalUserEmail = decoded.email.toLowerCase();
+      }
+    } catch {
+      // cookie inválido
+    }
+  }
+
+  // 2. Supabase Client com try/catch seguro
+  let sbUserEmail = "";
+  let hasSbUser = false;
+  if (!internalUserEmail && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    try {
+      const sb = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+              cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+              response = NextResponse.next({ request });
+              cookiesToSet.forEach(({ name, value, options }) =>
+                response.cookies.set(name, value, {
+                  ...options,
+                  secure: isProduction,
+                  sameSite: "lax",
+                  path: "/",
+                })
+              );
+            },
+          },
+        }
+      );
+      const { data } = await sb.auth.getUser();
+      if (data?.user?.email) {
+        sbUserEmail = data.user.email.toLowerCase();
+        hasSbUser = true;
+      }
+    } catch {
+      // Supabase indisponível / DNS error tratado
+    }
+  }
+
+  const authenticatedEmail = internalUserEmail || sbUserEmail;
+  const isAuthenticated = Boolean(internalUserEmail || hasSbUser);
+
   // Lista de e-mails autorizados (rodrigoestevao762@gmail.com padrão + variáveis de ambiente)
-  const userEmail = data?.user?.email?.toLowerCase() || "";
   const extraAllowed = (process.env.ALLOWED_EMAILS || "")
     .split(",")
     .map((e) => e.trim().toLowerCase())
@@ -49,20 +78,20 @@ export async function middleware(request: NextRequest) {
   const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 
   const isAuthorizedUser =
-    userEmail === "rodrigoestevao762@gmail.com" ||
-    (adminEmail && userEmail === adminEmail) ||
-    extraAllowed.includes(userEmail) ||
+    authenticatedEmail === "rodrigoestevao762@gmail.com" ||
+    (adminEmail && authenticatedEmail === adminEmail) ||
+    extraAllowed.includes(authenticatedEmail) ||
     process.env.ALLOW_ALL_USERS === "true";
 
   // Se o usuário não está logado e tenta acessar página protegida
-  if (!data.user && !isAuthPage && !isPublic) {
+  if (!isAuthenticated && !isAuthPage && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
   // Se logou com e-mail não autorizado, redireciona para o login com mensagem clara de segurança
-  if (data.user && !isAuthorizedUser && !isAuthPage && !isPublic) {
+  if (isAuthenticated && !isAuthorizedUser && !isAuthPage && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("error", "unauthorized");
@@ -70,7 +99,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Se já está logado e autorizado e tenta entrar na página de login, leva direto ao dashboard
-  if (data.user && isAuthorizedUser && isAuthPage) {
+  if (isAuthenticated && isAuthorizedUser && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
