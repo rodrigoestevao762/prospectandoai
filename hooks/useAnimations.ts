@@ -3,7 +3,14 @@
 import { useRef, useState, MouseEvent } from "react";
 import { useMotionValue, useSpring, useTransform } from "framer-motion";
 
-export function useTilt3D(config = { stiffness: 300, damping: 20, maxRotation: 15 }) {
+export function useTilt3D(userConfig?: { stiffness?: number; damping?: number; maxRotation?: number }) {
+  const config = {
+    stiffness: 300,
+    damping: 20,
+    maxRotation: 15,
+    ...(userConfig || {}),
+  };
+
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
