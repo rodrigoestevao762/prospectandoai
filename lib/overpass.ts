@@ -24,8 +24,8 @@ export async function geocodificar(cidade: string) {
     bbox = [parseFloat(bboxStr[0]), parseFloat(bboxStr[2]), parseFloat(bboxStr[1]), parseFloat(bboxStr[3])];
   }
 
-  let radiusM = 5000;
-  if (item.type === "city" || item.class === "place") radiusM = 20000;
+  let radiusM = 8000;
+  if (item.type === "city" || item.class === "place") radiusM = 25000;
   if (item.type === "country") radiusM = 500000;
   
   return { lat: parseFloat(item.lat), lng: parseFloat(item.lon), radiusM, bbox, paisNome };
@@ -50,14 +50,18 @@ export async function buscarEmpresas(
   const baseTags = tags.filter(t => !t.startsWith("AND:"));
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
-  // Calibra a extensão da busca de acordo com o raio
-  let baseDelta = 0.06;
+  const targetLimit = limit && limit > 0 ? limit : 300;
+
+  // Calibra a extensão da busca de acordo com o raio e o volume pedido
+  let baseDelta = 0.08;
   if (radiusM && radiusM > 0) {
     const degreeRadius = radiusM / 111000;
-    if (categoria === "todos") {
-      baseDelta = Math.max(0.04, Math.min(degreeRadius * 1.2, 0.35));
+    if (targetLimit >= 1500) {
+      baseDelta = Math.max(0.18, Math.min(degreeRadius * 1.5, 0.45));
+    } else if (categoria === "todos") {
+      baseDelta = Math.max(0.06, Math.min(degreeRadius * 1.2, 0.35));
     } else {
-      baseDelta = Math.max(0.05, Math.min(degreeRadius * 1.8, 0.65));
+      baseDelta = Math.max(0.08, Math.min(degreeRadius * 1.8, 0.65));
     }
   }
   const maxDelta = baseDelta * radiusMultiplier;
@@ -127,8 +131,6 @@ export async function buscarEmpresas(
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
   ];
 
-  const targetLimit = limit && limit > 0 ? limit : 300;
-
   // Função interna resiliente para executar uma query Overpass
   const executeQuery = async (queryOverpass: string, attemptIdx: number = 0): Promise<any[]> => {
     // 1. Tenta via proxy interno da aplicação (evita CORS no navegador)
@@ -177,16 +179,18 @@ export async function buscarEmpresas(
 
   let allElements: any[] = [];
 
-  // ESTRATÉGIA ULTRA VELOZ:
-  // Para buscas até 600 leads: 1 consulta unificada com bbox. Retorna em 2 a 6 segundos sem gargalo.
-  if (targetLimit <= 600) {
+  // ============================================================
+  // MÁQUINA DE BUSCA MULTI-RESOLUÇÃO GLOBAL:
+  // ============================================================
+  if (targetLimit <= 500) {
+    // Volume padrão: 1 consulta unificada instantânea (2-5 segundos)
     const qUnified = `[out:json][timeout:22][bbox:${s.toFixed(5)},${w.toFixed(5)},${n.toFixed(5)},${e.toFixed(5)}];(${selectors.join("")});out center ${targetLimit};`;
     allElements = await executeQuery(qUnified, 0);
-  } else {
-    // Para volumes ultra altos (1000 a 3000 leads): 4 quadrantes balanceados
+  } else if (targetLimit <= 1200) {
+    // Médio volume: 4 quadrantes balanceados
     const midLat = (s + n) / 2;
     const midLon = (w + e) / 2;
-    const perQuadrant = Math.min(Math.ceil(targetLimit / 3), 1000);
+    const perQuadrant = Math.min(Math.ceil(targetLimit / 3), 700);
     const quads = [
       `[bbox:${s.toFixed(5)},${w.toFixed(5)},${midLat.toFixed(5)},${midLon.toFixed(5)}]`,
       `[bbox:${midLat.toFixed(5)},${w.toFixed(5)},${n.toFixed(5)},${midLon.toFixed(5)}]`,
@@ -194,7 +198,6 @@ export async function buscarEmpresas(
       `[bbox:${midLat.toFixed(5)},${midLon.toFixed(5)},${n.toFixed(5)},${e.toFixed(5)}]`
     ];
 
-    // Executa em 2 batches de 2 para evitar estourar o limite de conexões por IP do Overpass
     const batch1 = await Promise.all([
       executeQuery(`[out:json][timeout:18]${quads[0]};(${selectors.join("")});out center ${perQuadrant};`, 0),
       executeQuery(`[out:json][timeout:18]${quads[1]};(${selectors.join("")});out center ${perQuadrant};`, 1)
@@ -208,15 +211,53 @@ export async function buscarEmpresas(
       ]);
       allElements.push(...batch2.flat());
     }
+  } else {
+    // ULTRA-VOLUME (1.500 a 3.000+ LEADS):
+    // Divide o território em uma grade espacial 3x3 (9 setores) cobrindo toda a metrópole
+    const stepLat = maxDelta / 3;
+    const stepLon = maxDelta / 3;
+    const cells: { s: number; n: number; w: number; e: number }[] = [];
+
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        const cellS = s + r * stepLat;
+        const cellN = cellS + stepLat;
+        const cellW = w + c * stepLon;
+        const cellE = cellW + stepLon;
+        cells.push({ s: cellS, n: cellN, w: cellW, e: cellE });
+      }
+    }
+
+    const perCell = Math.min(Math.ceil(targetLimit / 6), 600);
+
+    // Executa em 3 batches de 3 células simultâneas
+    for (let b = 0; b < cells.length; b += 3) {
+      const batch = cells.slice(b, b + 3);
+      const batchResults = await Promise.all(
+        batch.map((cell, idx) => {
+          const qCell = `[out:json][timeout:20][bbox:${cell.s.toFixed(5)},${cell.w.toFixed(5)},${cell.n.toFixed(5)},${cell.e.toFixed(5)}];(${selectors.join("")});out center ${perCell};`;
+          return executeQuery(qCell, (b + idx) % ENDPOINTS.length);
+        })
+      );
+
+      for (const arr of batchResults) {
+        allElements.push(...arr);
+      }
+
+      // Se já atingiu a meta pedida com margem, finaliza precocemente
+      if (allElements.length >= targetLimit * 1.15) {
+        break;
+      }
+    }
   }
 
-  // Fallback compacto se os seletores não trouxerem dados (ex: cidades com delimitação diferente)
+  // Fallback compacto se os seletores não trouxerem dados
   if (allElements.length === 0) {
     try {
-      const fallbackRadius = Math.max(5000, Math.min(radiusM || 15000, 25000));
+      const fallbackRadius = Math.max(6000, Math.min(radiusM || 18000, 30000));
       const fallbackAround = `(around:${fallbackRadius},${lat.toFixed(5)},${lng.toFixed(5)})`;
       const fallbackSelectors = selectors.map(s => s.replace(";", "") + fallbackAround + ";");
-      const fallbackQ = `[out:json][timeout:18];(${fallbackSelectors.join("")});out center ${targetLimit};`;
+      const fallbackQ = `[out:json][timeout:20];(${fallbackSelectors.join("")});out center ${targetLimit};`;
       allElements = await executeQuery(fallbackQ, 0);
     } catch {
       // Ignorar fallback

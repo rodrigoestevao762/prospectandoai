@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { CATEGORIAS } from "@/lib/categorias";
+import { listarLeads, atualizarLead as storageAtualizarLead, excluirLead as storageExcluirLead } from "@/lib/leads-storage";
 
 type Lead = {
   id: string;
@@ -70,27 +71,14 @@ export default function LeadsPage() {
 
   const carregar = useCallback(async () => {
     setCarregando(true);
-      const { data: setts } = await supabaseBrowser().from('settings').select('remetente_email').maybeSingle();
-      if (setts?.remetente_email) setSenderEmail(setts.remetente_email);
-          let allLeads: any[] = [];
-      let page = 0;
-      const limit = 1000;
-      while (true) {
-        const { data } = await supabaseBrowser()
-          .from('leads').select('*')
-          .order('score', { ascending: false }).order('nome')
-          .range(page * limit, (page + 1) * limit - 1);
-        
-        if (data && data.length > 0) {
-          allLeads = allLeads.concat(data);
-          if (data.length < limit) break;
-          page++;
-        } else {
-          break;
-        }
-      }
-      setLeads(allLeads);
-    setCarregando(false);
+    try {
+      const data = await listarLeads();
+      setLeads(data as any);
+    } catch (err) {
+      console.error("Erro ao carregar leads:", err);
+    } finally {
+      setCarregando(false);
+    }
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);
@@ -115,8 +103,10 @@ export default function LeadsPage() {
   }, [leads]);
 
   async function atualizar(id: string, campos: Partial<Lead>) {
-    await supabaseBrowser().from("leads").update(campos).eq("id", id);
     setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, ...campos } : l)));
+    try {
+      await storageAtualizarLead(id, campos as any);
+    } catch {}
   }
 
   async function gerar(l: Lead, canal: "email" | "instagram" | "whatsapp" = "whatsapp") {

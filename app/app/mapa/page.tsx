@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import type { Map as LeafletMap, LayerGroup, LeafletMouseEvent } from "leaflet";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { CATEGORIAS } from "@/lib/categorias";
+import { salvarLeads, obterIdsSalvos } from "@/lib/leads-storage";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Resultado = {
@@ -31,6 +32,10 @@ export default function MapaPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [salvos, setSalvos] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    obterIdsSalvos().then(setSalvos).catch(() => {});
+  }, []);
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const ocupadoRef = useRef(false);
   const catRef = useRef(cat);
@@ -99,40 +104,38 @@ export default function MapaPage() {
   }
 
   async function salvar(emp: Resultado) {
-    const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) return;
-    const { data, error } = await sb.from("leads").insert({
-      user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-      telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: emp.email,
-      fonte: "osm", osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
-    }).select("id").single();
-    if (!error && data) setSalvos((s) => new Set(s).add(emp.osmId));
-    else if (error) setErro(error.code === "23505" ? `${emp.nome} já está nos seus leads` : error.message);
+    try {
+      await salvarLeads([emp]);
+      setSalvos((s) => new Set(s).add(emp.osmId));
+      setAviso(`${emp.nome} salvo com sucesso!`);
+      setTimeout(() => setAviso(null), 3000);
+    } catch (err: any) {
+      setErro("Falha ao salvar: " + err.message);
+    }
   }
 
   async function salvarTodos(nivel?: "quente" | "morno" | "frio") {
     if (!resultados) return;
     let naoSalvos = resultados.filter(e => !salvos.has(e.osmId));
-      if (nivel) naoSalvos = naoSalvos.filter(r => r.nivel === nivel);
+    if (nivel) naoSalvos = naoSalvos.filter(r => r.nivel === nivel);
     if (naoSalvos.length === 0) return;
     
     setCarregando(true);
-    const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) return setCarregando(false);
-    
-    for (const emp of naoSalvos) {
-      const { error } = await sb.from("leads").insert({
-        user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-        telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: emp.email,
-        fonte: "osm", osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
+    setErro(null);
+    try {
+      const res = await salvarLeads(naoSalvos);
+      setSalvos(s => {
+        const ns = new Set(s);
+        naoSalvos.forEach(e => ns.add(e.osmId));
+        return ns;
       });
-      if (!error || error.code === "23505") {
-        setSalvos(s => new Set(s).add(emp.osmId));
-      }
+      setAviso(`${res.salvos} leads salvos no CRM e Alvos!`);
+      setTimeout(() => setAviso(null), 4000);
+    } catch (err: any) {
+      setErro("Erro ao salvar lote: " + err.message);
+    } finally {
+      setCarregando(false);
     }
-    setCarregando(false);
   }
 
   return (

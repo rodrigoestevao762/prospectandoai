@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { CATEGORIAS } from "@/lib/categorias";
+import { salvarLeads, obterIdsSalvos } from "@/lib/leads-storage";
+import { useEffect } from "react";
 import { Search, MapPin, Target, Zap, Activity, Globe, Save, Camera, Utensils } from "lucide-react";
 
 type Empresa = {
@@ -34,6 +36,11 @@ export default function BuscaPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [checando, setChecando] = useState<string | null>(null);
   const [somenteInstagram, setSomenteInstagram] = useState(false);
+  const [sucessoSalvar, setSucessoSalvar] = useState<string | null>(null);
+
+  useEffect(() => {
+    obterIdsSalvos().then(setSalvos).catch(() => {});
+  }, []);
 
   async function checarRedes(emp: Empresa) {
     setChecando(emp.osmId);
@@ -76,7 +83,7 @@ export default function BuscaPage() {
         
         let empresasRaw: any[] = [];
         let mult = 1;
-        const maxMult = limitFinal > 1500 ? 2 : 1;
+        const maxMult = limitFinal > 1500 ? 3 : 1;
         
         const limiteMult = raioManual !== 'auto' ? 1 : maxMult;
         while (mult <= limiteMult) {
@@ -173,18 +180,15 @@ export default function BuscaPage() {
     }
   }
 
-  async function salvar(emp: Empresa) {
-    const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) return;
-    const { data, error } = await sb.from('leads').upsert({
-      user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-      telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: (emp.email && emp.email.includes('duckduckgo.com')) ? null : emp.email,
-      fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
-      osm_id: emp.osmId, score: emp.score, nivel: emp.nivel
-    }, { onConflict: 'user_id,osm_id', ignoreDuplicates: true }).select('id').maybeSingle();
-    if (!error) setSalvos((s) => new Set(s).add(emp.osmId));
-    else setErro(error.message);
+    async function salvar(emp: Empresa) {
+    try {
+      await salvarLeads([emp]);
+      setSalvos((s) => new Set(s).add(emp.osmId));
+      setSucessoSalvar(`Lead "${emp.nome}" salvo no CRM e Alvos!`);
+      setTimeout(() => setSucessoSalvar(null), 3000);
+    } catch (err: any) {
+      setErro("Falha ao salvar lead: " + err.message);
+    }
   }
 
   async function enriquecerLoteRadar() {
@@ -225,35 +229,32 @@ export default function BuscaPage() {
     alert('Varredura de redes conclu�da com sucesso!');
   }
 
-  async function salvarEmLote(nivel?: 'quente' | 'morno' | 'frio') {
+    async function salvarEmLote(nivel?: 'quente' | 'morno' | 'frio') {
     if (!resultados) return;
     let lista = somenteInstagram ? resultados.filter(e => e.instagram) : resultados;
     if (nivel) lista = lista.filter(e => e.nivel === nivel);
     const naoSalvos = lista.filter(e => !salvos.has(e.osmId));
-    if (naoSalvos.length === 0) return;
-    setCarregando(true);
-    const sb = supabaseBrowser();
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) return setCarregando(false);
-    const chunkSize = 500;
-    for (let i = 0; i < naoSalvos.length; i += chunkSize) {
-      const pedaco = naoSalvos.slice(i, i + chunkSize);
-      const rows = pedaco.map(emp => ({
-        user_id: user.id, nome: emp.nome, categoria: emp.categoria, cidade: emp.cidade, pais: emp.pais,
-        telefone: emp.telefone, website: emp.website, instagram: emp.instagram, email: (emp.email && emp.email.includes('duckduckgo.com')) ? null : emp.email,
-        fonte: engine === 'insta' ? 'instagram' : engine === 'foods' ? 'ifood' : 'osm',
-        osm_id: emp.osmId, score: emp.score, nivel: emp.nivel,
-      }));
-      const { error } = await sb.from('leads').upsert(rows, { onConflict: 'user_id,osm_id', ignoreDuplicates: true });
-      if (!error) {
-        setSalvos(s => {
-          const ns = new Set(s);
-          pedaco.forEach(emp => ns.add(emp.osmId));
-          return ns;
-        });
-      } else { setErro('ERRO DB: ' + error.code + ' - ' + error.message); break; }
+    if (naoSalvos.length === 0) {
+      setSucessoSalvar("Todos os leads deste grupo já estão salvos!");
+      setTimeout(() => setSucessoSalvar(null), 3000);
+      return;
     }
-    setCarregando(false);
+    setCarregando(true);
+    setErro(null);
+    try {
+      const res = await salvarLeads(naoSalvos);
+      setSalvos(s => {
+        const ns = new Set(s);
+        naoSalvos.forEach(emp => ns.add(emp.osmId));
+        return ns;
+      });
+      setSucessoSalvar(`${res.salvos} leads salvos com sucesso no CRM e Alvos!`);
+      setTimeout(() => setSucessoSalvar(null), 4000);
+    } catch (err: any) {
+      setErro("Erro ao salvar lote: " + err.message);
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (
@@ -367,7 +368,13 @@ export default function BuscaPage() {
       </motion.form>
 
       <AnimatePresence>
-        {erro && (
+        {sucessoSalvar && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-mono flex items-center justify-between">
+              <span>✓ {sucessoSalvar}</span>
+              <button onClick={() => setSucessoSalvar(null)} className="text-emerald-400 hover:text-white ml-2">✕</button>
+            </motion.div>
+          )}
+          {erro && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
             className="mono rounded-xl border border-[var(--alert)]/40 bg-[var(--alert)]/10 px-4 py-3 text-xs text-[var(--alert)] shadow-[0_0_15px_rgba(255,93,93,0.1)] flex items-center gap-3">
             <Zap className="w-4 h-4 shrink-0" /> {erro}

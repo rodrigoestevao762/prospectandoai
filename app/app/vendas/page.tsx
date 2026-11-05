@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
+import { listarLeads, atualizarLead } from "@/lib/leads-storage";
 import Link from "next/link";
 import { Activity, Target, Zap } from "lucide-react";
 
@@ -29,21 +30,23 @@ export default function PipelineDeVendas() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabaseBrowser()
-        .from("leads")
-        .select("id, nome, cidade, nivel, status, score")
-        .order("score", { ascending: false });
-      if (data) setLeads(data as Lead[]);
-      setLoading(false);
+      try {
+        const data = await listarLeads();
+        setLeads(data as any);
+      } catch (err) {
+        console.error("Erro ao carregar leads no CRM:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
 
   async function updateLeadStatus(id: string, newStatus: string) {
-    // Optimistic update
-    setLeads(ls => ls.map(l => l.id === id ? { ...l, status: newStatus } : l));
-    // Backend update
-    await supabaseBrowser().from("leads").update({ status: newStatus }).eq("id", id);
+    setLeads(ls => ls.map(l => l.id === id ? { ...l, status: newStatus as any } : l));
+    try {
+      await atualizarLead(id, { status: newStatus as any });
+    } catch {}
   }
 
   return (
