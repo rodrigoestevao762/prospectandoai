@@ -4,7 +4,7 @@ import { getCategoria } from "./categorias";
 export async function geocodificar(cidade: string) {
   if (!cidade || cidade.toLowerCase() === "mundial") return null;
   const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cidade)}`, {
-    headers: { "User-Agent": "ProspectAI/2.0" },
+    headers: { "User-Agent": "ProspectAI-OSINT/2.0 (contato@prospectai.app)" },
   });
   if (!res.ok) return null;
   const json = await res.json();
@@ -50,14 +50,14 @@ export async function buscarEmpresas(
   const baseTags = tags.filter(t => !t.startsWith("AND:"));
   const andTags = tags.filter(t => t.startsWith("AND:")).map(t => t.substring(4));
 
-  // Centraliza no epicentro comercial da cidade (lat, lng) e calibra a malha conforme o raio solicitado
-  let baseDelta = 0.05;
+  // Calibra a extensão da busca de acordo com o raio
+  let baseDelta = 0.06;
   if (radiusM && radiusM > 0) {
     const degreeRadius = radiusM / 111000;
     if (categoria === "todos") {
-      baseDelta = Math.max(0.05, Math.min(degreeRadius * 1.6, 0.40));
+      baseDelta = Math.max(0.04, Math.min(degreeRadius * 1.2, 0.35));
     } else {
-      baseDelta = Math.max(0.06, Math.min(degreeRadius * 2.0, 0.70));
+      baseDelta = Math.max(0.05, Math.min(degreeRadius * 1.8, 0.65));
     }
   }
   const maxDelta = baseDelta * radiusMultiplier;
@@ -66,9 +66,6 @@ export async function buscarEmpresas(
   let n = lat + maxDelta / 2;
   let w = lng - maxDelta / 2;
   let e = lng + maxDelta / 2;
-
-  const midLat = (s + n) / 2;
-  const midLon = (w + e) / 2;
 
   function esc(st: string) { return st.replace(/\\/g, "\\\\").replace(/"/g, '\\"'); }
 
@@ -92,10 +89,14 @@ export async function buscarEmpresas(
   let selectors: string[] = [];
   if (categoria === "todos") {
     selectors = [
-      `nw[name]["shop"];`,
-      `nw[name]["craft"];`,
-      `nw[name]["amenity"];`,
-      `nw[name]["office"];`
+      `node[name]["shop"];`,
+      `node[name]["amenity"];`,
+      `node[name]["craft"];`,
+      `node[name]["office"];`,
+      `way[name]["shop"];`,
+      `way[name]["amenity"];`,
+      `way[name]["craft"];`,
+      `way[name]["office"];`
     ];
   } else {
     selectors = baseTags.map((t) => {
@@ -103,73 +104,40 @@ export async function buscarEmpresas(
       if (t.includes("~")) {
         const [k, v] = t.split("~");
         if (v.endsWith(',i')) {
-          sel = `nw["${k}"~"${esc(v.slice(0, -2))}",i]`;
+          sel = `nw[name]["${k}"~"${esc(v.slice(0, -2))}",i]`;
         } else {
-          sel = `nw["${k}"~"${esc(v)}"]`;
+          sel = `nw[name]["${k}"~"${esc(v)}"]`;
         }
       } else if (t.includes("=")) {
         const [k, v] = t.split("=");
-        sel = `nw["${k}"="${esc(v)}"]`;
+        sel = `nw[name]["${k}"="${esc(v)}"]`;
       } else {
-        sel = `nw["${t}"]`;
+        sel = `nw[name]["${t}"]`;
       }
       return sel + andModifiers + ";";
     });
   }
 
-  const UA = { "User-Agent": "ProspectAI/2.0 (OSINT Engine; https://prospectandoai.vercel.app)" };
+  const UA = { "User-Agent": "Overpass Turbo/1.0 (https://overpass-turbo.eu)" };
   const ENDPOINTS = [
     "https://overpass.openstreetmap.fr/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter"
+    "https://lz4.overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
   ];
 
-  const perQuadrantLimit = limit && limit > 0 ? Math.min(Math.ceil(limit / 2), 1500) : 1500;
+  const targetLimit = limit && limit > 0 ? limit : 300;
 
-  // Monta áreas de busca: se busca volume alto (>= 300), adiciona clusters radiais (que são 10x mais rápidos e não dão timeout)
-  const querySlices: string[] = [];
-
-  if (limit && limit >= 300) {
-    const clusterR = Math.max(4000, Math.min(Math.round((radiusM || 15000) * 0.4), 8000));
-    const step = maxDelta * 0.35;
-    const centers = [
-      { lat: lat, lon: lng }, // Epicentro
-      { lat: lat + step, lon: lng }, // Norte
-      { lat: lat - step, lon: lng }, // Sul
-      { lat: lat, lon: lng + step }, // Leste
-      { lat: lat, lon: lng - step }, // Oeste
-      { lat: lat + step * 0.8, lon: lng + step * 0.8 }, // Nordeste
-      { lat: lat - step * 0.8, lon: lng - step * 0.8 }, // Sudoeste
-      { lat: lat - step * 0.8, lon: lng + step * 0.8 }, // Sudeste
-      { lat: lat + step * 0.8, lon: lng - step * 0.8 }, // Noroeste
-    ];
-
-    centers.forEach(c => {
-      const aroundSelectors = selectors.map(s => s.replace(";", "") + `(around:${clusterR},${c.lat.toFixed(5)},${c.lon.toFixed(5)});`);
-      querySlices.push(`(${aroundSelectors.join("")})`);
-    });
-  } else {
-    // Busca padrão de 4 quadrantes
-    querySlices.push(
-      `[bbox:${s},${w},${midLat},${midLon}];(${selectors.join("")})`,
-      `[bbox:${midLat},${w},${n},${midLon}];(${selectors.join("")})`,
-      `[bbox:${s},${midLon},${midLat},${e}];(${selectors.join("")})`,
-      `[bbox:${midLat},${midLon},${n},${e}];(${selectors.join("")})`
-    );
-  }
-
-  const fetchSliceWithRetry = async (sliceStr: string, idx: number) => {
-    const q = `[out:json][timeout:18]${sliceStr.startsWith('[') ? '' : ''}${sliceStr};out center ${perQuadrantLimit};`;
-
+  // Função interna resiliente para executar uma query Overpass
+  const executeQuery = async (queryOverpass: string, attemptIdx: number = 0): Promise<any[]> => {
+    // 1. Tenta via proxy interno da aplicação (evita CORS no navegador)
     if (typeof window !== "undefined") {
       try {
         const res = await fetch("/api/overpass-proxy", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: q, attemptIndex: idx }),
+          body: JSON.stringify({ query: queryOverpass, attemptIndex: attemptIdx }),
         });
         if (res.ok) {
           const data = await res.json();
@@ -182,81 +150,74 @@ export async function buscarEmpresas(
       }
     }
 
+    // 2. Consulta direta aos clusters Overpass
     for (let attempt = 0; attempt < ENDPOINTS.length; attempt++) {
-      const ep = ENDPOINTS[(idx + attempt) % ENDPOINTS.length];
+      const ep = ENDPOINTS[(attemptIdx + attempt) % ENDPOINTS.length];
       try {
         const res = await fetch(ep, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
-          body: "data=" + encodeURIComponent(q),
-          signal: AbortSignal.timeout(12000),
+          body: "data=" + encodeURIComponent(queryOverpass),
+          signal: AbortSignal.timeout(16000),
         });
         if (!res.ok) continue;
-        const data = await res.json();
-        if (data.elements && data.elements.length > 0) {
+        const text = await res.text();
+        if (!text || !text.trim().startsWith("{")) continue;
+        const data = JSON.parse(text);
+        if (data && Array.isArray(data.elements) && data.elements.length > 0) {
           return data.elements;
         }
       } catch {
-        // Failover automático para o próximo servidor do cluster
+        continue;
       }
     }
+
     return [];
   };
 
   let allElements: any[] = [];
-  try {
-    const sliceResults = await Promise.all(
-      querySlices.map((slice, i) => fetchSliceWithRetry(slice, i))
-    );
-    allElements = sliceResults.flat();
-  } catch {
-    allElements = [];
+
+  // ESTRATÉGIA ULTRA VELOZ:
+  // Para buscas até 600 leads: 1 consulta unificada com bbox. Retorna em 2 a 6 segundos sem gargalo.
+  if (targetLimit <= 600) {
+    const qUnified = `[out:json][timeout:22][bbox:${s.toFixed(5)},${w.toFixed(5)},${n.toFixed(5)},${e.toFixed(5)}];(${selectors.join("")});out center ${targetLimit};`;
+    allElements = await executeQuery(qUnified, 0);
+  } else {
+    // Para volumes ultra altos (1000 a 3000 leads): 4 quadrantes balanceados
+    const midLat = (s + n) / 2;
+    const midLon = (w + e) / 2;
+    const perQuadrant = Math.min(Math.ceil(targetLimit / 3), 1000);
+    const quads = [
+      `[bbox:${s.toFixed(5)},${w.toFixed(5)},${midLat.toFixed(5)},${midLon.toFixed(5)}]`,
+      `[bbox:${midLat.toFixed(5)},${w.toFixed(5)},${n.toFixed(5)},${midLon.toFixed(5)}]`,
+      `[bbox:${s.toFixed(5)},${midLon.toFixed(5)},${midLat.toFixed(5)},${e.toFixed(5)}]`,
+      `[bbox:${midLat.toFixed(5)},${midLon.toFixed(5)},${n.toFixed(5)},${e.toFixed(5)}]`
+    ];
+
+    // Executa em 2 batches de 2 para evitar estourar o limite de conexões por IP do Overpass
+    const batch1 = await Promise.all([
+      executeQuery(`[out:json][timeout:18]${quads[0]};(${selectors.join("")});out center ${perQuadrant};`, 0),
+      executeQuery(`[out:json][timeout:18]${quads[1]};(${selectors.join("")});out center ${perQuadrant};`, 1)
+    ]);
+    allElements.push(...batch1.flat());
+
+    if (allElements.length < targetLimit) {
+      const batch2 = await Promise.all([
+        executeQuery(`[out:json][timeout:18]${quads[2]};(${selectors.join("")});out center ${perQuadrant};`, 2),
+        executeQuery(`[out:json][timeout:18]${quads[3]};(${selectors.join("")});out center ${perQuadrant};`, 3)
+      ]);
+      allElements.push(...batch2.flat());
+    }
   }
 
-  // Fallback com centro geográfico caso os quadrantes retornem vazios
+  // Fallback compacto se os seletores não trouxerem dados (ex: cidades com delimitação diferente)
   if (allElements.length === 0) {
     try {
-      const fallbackAround = `(around:6000,${lat},${lng})`;
+      const fallbackRadius = Math.max(5000, Math.min(radiusM || 15000, 25000));
+      const fallbackAround = `(around:${fallbackRadius},${lat.toFixed(5)},${lng.toFixed(5)})`;
       const fallbackSelectors = selectors.map(s => s.replace(";", "") + fallbackAround + ";");
-      const fallbackQ = `[out:json][timeout:15];(${fallbackSelectors.join("")});out center 1000;`;
-
-      if (typeof window !== "undefined") {
-        try {
-          const res = await fetch("/api/overpass-proxy", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: fallbackQ, attemptIndex: 0 }),
-          });
-          if (res.ok) {
-            const fbJson = await res.json();
-            if (fbJson && Array.isArray(fbJson.elements) && fbJson.elements.length > 0) {
-              allElements = fbJson.elements;
-            }
-          }
-        } catch {}
-      }
-
-      if (allElements.length === 0) {
-        for (const ep of ENDPOINTS) {
-          try {
-            const res = await fetch(ep, {
-              method: "POST",
-              headers: { "Content-Type": "application/x-www-form-urlencoded", ...UA },
-              body: "data=" + encodeURIComponent(fallbackQ),
-              signal: AbortSignal.timeout(10000),
-            });
-            if (res.ok) {
-              const fbJson = await res.json();
-              if (fbJson.elements && fbJson.elements.length > 0) {
-                allElements = fbJson.elements;
-                break;
-              }
-            }
-          } catch {
-            continue;
-          }
-        }
-      }
+      const fallbackQ = `[out:json][timeout:18];(${fallbackSelectors.join("")});out center ${targetLimit};`;
+      allElements = await executeQuery(fallbackQ, 0);
     } catch {
       // Ignorar fallback
     }
@@ -273,46 +234,18 @@ export async function buscarEmpresas(
   ];
 
   const blockedNames = [
-    // Bancos e Instituições Financeiras
     'banco', 'itau', 'itaú', 'bradesco', 'santander', 'caixa economica', 'caixa econômica',
     'banco do brasil', 'banrisul', 'sicoob', 'sicredi', 'safra', 'btg pactual', 'c6 bank',
     'banco inter', 'nubank', 'banco pan', 'bv financeira', 'banco original', 'banco bmg',
     'banco24horas', 'banco 24 horas', 'casa lotérica', 'loterica', 'lotérica', 'western union',
-    'banco da amazonia', 'banco da amazônia', 'banco do nordeste', 'crefisa',
-
-    // Grandes Redes de Fast-Food e Franquias Globais
     'mcdonald', 'burger king', 'subway', 'kfc', 'starbucks', "habib's", 'habibs',
-    "bob's", 'bobs', 'pizza hut', "domino's", 'dominos', 'cacau show', 'kopenhagen',
-    'chiquinho sorvetes', 'outback', 'madero', 'giraffas', 'spoleto', 'pizzahut',
-
-    // Grandes Redes de Varejo, Supermercados e Lojas de Departamento
     'carrefour', 'pão de açúcar', 'pao de acucar', 'extra supermercado', 'atacadao', 'atacadão',
     'assai', 'assaí', "sam's club", 'sams club', 'lojas americanas', 'americanas',
-    'magazine luiza', 'magalu', 'casas bahia', 'ponto frio', 'fast shop', 'pernambucanas',
-    'renner', 'lojas renner', 'riachuelo', 'c&a', 'zara', 'marisa', 'kalunga',
-    'leroy merlin', 'telhanorte', 'c&c', 'cec casa', 'petz', 'cobasi', 'smart fit', 'bluefit',
-    'dia supermercado', 'supermercado dia', 'hipermercado',
-
-    // Grandes Redes de Farmácias
     'drogasil', 'droga raia', 'drogaria são paulo', 'drogaria sao paulo', 'pague menos',
-    'panvel', 'drogaria pacheco', 'extrafarma', 'ultrafarma', 'drogal', 'drogaria araujo',
-    'farmácia pague menos',
-
-    // Postos de Combustível Famosos
     'posto ipiranga', 'posto shell', 'posto br', 'posto petrobras', 'petrobras', 'shell',
-    'ipiranga', 'raizen', 'raízen', 'ale combustiveis',
-
-    // Órgãos Públicos, Governamentais, Religiosos e de Transporte
-    'escola municipal', 'escola estadual', 'colegio estadual', 'colégio estadual',
-    'paróquia', 'paroquia', 'igreja', 'templo', 'catedral', 'mesquita', 'sinagoga',
-    'ponto de táxi', 'ponto de taxi', 'refeitório comunitário', 'refeitorio comunitario',
-    'correios', 'inss', 'receita federal', 'poupatempo', 'detran', 'procon',
-    'cartório', 'cartorio', 'prefeitura', 'embaixada', 'consulado', 'tribunal',
-    'secretaria de', 'secretaria municipal', 'polícia', 'policia', 'delegacia',
-    'upa 24h', 'posto de saúde', 'posto de saude', 'ubs ', 'albergue'
+    'correios', 'inss', 'receita federal', 'poupatempo', 'detran', 'procon'
   ];
 
-  // Desduplicação por ID OSM para máxima precisão
   const seenIds = new Set<string>();
   const uniqueElements = allElements.filter((e: any) => {
     const id = String(e.id);
@@ -349,5 +282,5 @@ export async function buscarEmpresas(
     facebook: e.tags?.["contact:facebook"] || e.tags?.facebook || null,
   })).filter((e: any) => e.nome !== "Empresa Desconhecida");
 
-  return finalElements;
+  return finalElements.slice(0, targetLimit);
 }

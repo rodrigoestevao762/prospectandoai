@@ -22,7 +22,7 @@ export const CATEGORIAS: CategoriaDef[] = [
   { id: "eventos", label: "Casas de Festas e Eventos", tags: ["amenity=events_venue", "leisure=dance"] },
   { id: "seguradora", label: "Corretores e Seguros", tags: ["office=insurance", "office=financial"] },
 
-  { id: "barbearia", label: "Barbearias", tags: ["shop=hairdresser", "shop=barber", "craft=hairdresser", "craft=barber", "amenity=hairdresser", "amenity=barber"] },
+  { id: "barbearia", label: "Barbearias", tags: ["shop=hairdresser", "shop=barber", "craft=hairdresser", "craft=barber", "amenity=hairdresser", "amenity=barber", "name~barbearia|barber|barbeiro,i"] },
   { id: "construtora", label: "Construtoras e Reformas", tags: ["craft=builder", "craft=plasterer", "craft=roofer", "craft=carpenter", "shop=doityourself", "office=construction_company", "craft=painter"] },
   { id: "acaiteria", label: "Açaíterias e Smoothies", tags: ["cuisine=acai", "name~açai|acai|açaiteria,i"] },
   { id: "sorveteria", label: "Sorveterias e Gelaterias", tags: ["amenity=ice_cream", "shop=confectionery", "cuisine=ice_cream"] },

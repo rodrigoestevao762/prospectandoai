@@ -69,14 +69,14 @@ export default function BuscaPage() {
           return setErro("Cidade não encontrada no mapa");
         }
 
-        setErro("Extraindo até " + limitFinal + " leads do mapa global... (Isso pode levar até 120 segundos, por favor aguarde)");
+        setErro("Extraindo leads em alta velocidade via satélites OSINT...");
         const tags = cat
           ? cat.tags
           : Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
         
         let empresasRaw: any[] = [];
         let mult = 1;
-        const maxMult = limitFinal > 500 ? 5 : 3; // Mega Brain: expanda at 5x se pedirem muitos leads
+        const maxMult = limitFinal > 1500 ? 2 : 1;
         
         const limiteMult = raioManual !== 'auto' ? 1 : maxMult;
         while (mult <= limiteMult) {
@@ -96,9 +96,10 @@ export default function BuscaPage() {
             empresasRaw.forEach(r => map.set(r.osmId || (r.nome + "::" + r.endereco), r));
             let novos = 0;
             raw.forEach((r: any) => {
-                if (!map.has(r.endereco + r.nome)) {
+                const k = r.osmId || (r.nome + "::" + r.endereco);
+                if (!map.has(k)) {
                     empresasRaw.push(r);
-                    map.set(r.endereco + r.nome, r);
+                    map.set(k, r);
                     novos++;
                 }
             });

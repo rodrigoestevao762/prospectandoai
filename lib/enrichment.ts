@@ -233,7 +233,7 @@ export async function radarInstagram(
 
       const htmlUnificado = searches.join(" ");
       const instaMatches = (
-        htmlLimpo.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
+        htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
       ).filter((u) => {
         const lower = u.toLowerCase();
         return (
