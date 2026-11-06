@@ -581,8 +581,9 @@ const BATCH_SIZE = 50; // Lotes maiores para mais velocidade
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {visiveis.map((l, i) => {
 
-    const est = NIVEL_ESTILO[l.nivel];
-    const accent = NIVEL_ACCENT[l.nivel];
+    const nivelSeguro: "quente" | "morno" | "frio" = (l.nivel === "quente" || l.nivel === "morno" || l.nivel === "frio") ? l.nivel : "frio";
+    const est = NIVEL_ESTILO[nivelSeguro] || NIVEL_ESTILO.frio;
+    const accent = (NIVEL_ACCENT as any)[nivelSeguro] || "#9aa5b1";
     
     if (l.fontes && Array.isArray(l.fontes)) {
       const f = l.fontes.find((fo) => fo?.startsWith?.("foto|"));

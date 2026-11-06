@@ -39,7 +39,7 @@ export default function BuscaPage() {
   const [sucessoSalvar, setSucessoSalvar] = useState<string | null>(null);
 
   useEffect(() => {
-    obterIdsSalvos().then(setSalvos).catch(() => {});
+    obterIdsSalvos().then((res) => { if (res instanceof Set) setSalvos(res); else setSalvos(new Set(Array.isArray(res) ? res : [])); }).catch(() => setSalvos(new Set()));
   }, []);
 
   async function checarRedes(emp: Empresa) {
@@ -443,7 +443,8 @@ export default function BuscaPage() {
             {/* CARDS COM FOTOS GRANDES ENCIMA */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {(somenteInstagram ? resultados.filter(e => e.instagram) : resultados).map((emp, i) => {
-                const accent = NIVEL_ACCENT[emp.nivel];
+                const nivelSeguro: "quente" | "morno" | "frio" = (emp.nivel === "quente" || emp.nivel === "morno" || emp.nivel === "frio") ? emp.nivel : "frio";
+                const accent = NIVEL_ACCENT[nivelSeguro] || "#55685f";
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(emp.nome + " " + (emp.endereco || emp.cidade))}`;
 
                 return (
@@ -486,9 +487,9 @@ export default function BuscaPage() {
                           className="flex-1 btn-3d bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] px-0">
                           {checando === emp.osmId ? "SCAN..." : "🔍 DEEP SCAN"}
                         </button>
-                        <button onClick={() => salvar(emp)} disabled={salvos.has(emp.osmId)}
-                          className={`flex-1 btn-3d text-[10px] px-0 font-bold ${salvos.has(emp.osmId) ? 'bg-white/10 text-white/50 border-none' : 'bg-[var(--signal)] text-black border-none shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:scale-105'}`}>
-                          {salvos.has(emp.osmId) ? "✓ TRAVADO" : "TRAVAR ALVO"}
+                        <button onClick={() => salvar(emp)} disabled={Boolean(salvos?.has?.(emp.osmId))}
+                          className={`flex-1 btn-3d text-[10px] px-0 font-bold ${Boolean(salvos?.has?.(emp.osmId)) ? 'bg-white/10 text-white/50 border-none' : 'bg-[var(--signal)] text-black border-none shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:scale-105'}`}>
+                          {Boolean(salvos?.has?.(emp.osmId)) ? "✓ TRAVADO" : "TRAVAR ALVO"}
                         </button>
                       </div>
                     </div>

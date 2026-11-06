@@ -1,37 +1,43 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
-const LEADS_FILE = path.join(DATA_DIR, "leads.json");
+// No ambiente serverless da Vercel, apenas /tmp é gravável
+const DATA_DIR = process.env.VERCEL || process.env.NODE_ENV === "production"
+  ? os.tmpdir()
+  : path.join(process.cwd(), ".data");
+
+const LEADS_FILE = path.join(DATA_DIR, "prospectai_leads.json");
 
 function ensureDataFile() {
-  if (!fs.existsSync(DATA_DIR)) {
-    try {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
-    } catch {}
-  }
-  if (!fs.existsSync(LEADS_FILE)) {
-    try {
+    }
+    if (!fs.existsSync(LEADS_FILE)) {
       fs.writeFileSync(LEADS_FILE, "[]", "utf-8");
-    } catch {}
+    }
+  } catch (e) {
+    // Falha silenciosa em ambientes ultra-restritos
   }
 }
 
 function readLeads(): any[] {
-  ensureDataFile();
   try {
-    const raw = fs.readFileSync(LEADS_FILE, "utf-8");
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+    ensureDataFile();
+    if (fs.existsSync(LEADS_FILE)) {
+      const raw = fs.readFileSync(LEADS_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch {}
+  return [];
 }
 
 function writeLeads(leads: any[]) {
-  ensureDataFile();
   try {
+    ensureDataFile();
     fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2), "utf-8");
   } catch (err) {
     console.error("Falha ao salvar leads no disco:", err);
@@ -43,25 +49,25 @@ export async function GET() {
     const leads = readLeads();
     return NextResponse.json({ ok: true, leads, total: leads.length });
   } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message, leads: [] }, { status: 500 });
+    return NextResponse.json({ ok: true, leads: [], total: 0 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const leadsToSave: any[] = Array.isArray(body.leads) ? body.leads : body.lead ? [body.lead] : [];
+    const body = await req.json().catch(() => ({}));
+    const leadsToSave: any[] = Array.isArray(body?.leads) ? body.leads : body?.lead ? [body.lead] : [];
 
     if (leadsToSave.length === 0) {
-      return NextResponse.json({ ok: false, error: "Nenhum lead fornecido para salvar" }, { status: 400 });
+      return NextResponse.json({ ok: true, salvos: 0, total: 0 });
     }
 
     const currentLeads = readLeads();
     const map = new Map<string, any>();
 
-    // Indexa os existentes
     for (const l of currentLeads) {
-      const key = l.osmId || l.osm_id || l.id || (l.nome + "::" + (l.endereco || l.cidade));
+      if (!l) continue;
+      const key = String(l.osmId || l.osm_id || l.id || ((l.nome || "") + "::" + (l.endereco || l.cidade || "")));
       map.set(key, l);
     }
 
@@ -69,18 +75,19 @@ export async function POST(req: Request) {
     const agora = new Date().toISOString();
 
     for (const item of leadsToSave) {
-      const osmId = item.osmId || item.osm_id || String(item.id || Date.now() + Math.random());
-      const key = osmId || (item.nome + "::" + (item.endereco || item.cidade));
+      if (!item) continue;
+      const osmId = String(item.osmId || item.osm_id || Date.now() + "_" + Math.random().toString(36).substring(2, 6));
+      const key = osmId || ((item.nome || "") + "::" + (item.endereco || item.cidade || ""));
 
       const existing = map.get(key);
       const leadFormatado = {
-        id: existing?.id || (item.id && !item.id.startsWith("osm_") ? item.id : "lead_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7)),
+        id: existing?.id || (item.id && !item.id.startsWith("osm_") ? item.id : "lead_" + osmId.replace(/\D/g, "") + "_" + Math.random().toString(36).substring(2, 6)),
         osmId: osmId,
         osm_id: osmId,
-        nome: item.nome || "Empresa Sem Nome",
-        categoria: item.categoria || "Geral",
-        cidade: item.cidade || "",
-        pais: item.pais || "Brasil",
+        nome: String(item.nome || "Empresa Sem Nome"),
+        categoria: String(item.categoria || "Geral"),
+        cidade: String(item.cidade || ""),
+        pais: String(item.pais || "Brasil"),
         lat: item.lat || null,
         lng: item.lng || null,
         telefone: item.telefone || null,
@@ -88,9 +95,9 @@ export async function POST(req: Request) {
         instagram: item.instagram || null,
         email: item.email || null,
         facebook: item.facebook || null,
-        endereco: item.endereco || "",
-        score: item.score || 50,
-        nivel: item.nivel || "morno",
+        endereco: String(item.endereco || ""),
+        score: typeof item.score === "number" ? item.score : 50,
+        nivel: item.nivel === "quente" || item.nivel === "morno" || item.nivel === "frio" ? item.nivel : "morno",
         status: existing?.status || item.status || "novo",
         canal: existing?.canal || item.canal || null,
         notas: existing?.notas || item.notas || "",
@@ -119,7 +126,7 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const { id, campos } = body;
     if (!id || !campos) {
       return NextResponse.json({ ok: false, error: "ID e campos são obrigatórios" }, { status: 400 });
