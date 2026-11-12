@@ -1,6 +1,7 @@
 import { isEmailValidoParaB2B } from "./validar-email";
 import { geocodificar, buscarEmpresas } from "./overpass";
 import { buscarOutscraper } from "./outscraper";
+import { normalizarParametrosBusca } from "./normalizar-busca";
 
 async function fetchHtml(url: string): Promise<string> {
   try {
@@ -12,7 +13,7 @@ async function fetchHtml(url: string): Promise<string> {
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
       },
-      signal: AbortSignal.timeout(2500),
+      signal: AbortSignal.timeout(1800),
     });
     return await res.text();
   } catch (err) {
@@ -131,10 +132,13 @@ export async function enrichLeadData(
 }
 
 export async function radarInstagram(
-  nicho: string,
-  cidade: string,
+  nichoInput: string,
+  cidadeInput: string,
   limit: number = 300,
 ) {
+  // Desinversão inteligente de parâmetros caso o usuário inverta Nicho e Cidade
+  const { nicho, cidade } = normalizarParametrosBusca(nichoInput, cidadeInput);
+
   const isGlobal = cidade.toLowerCase() === "mundial" || cidade.trim() === "";
   const cid = isGlobal ? "" : cidade.trim();
   const nic = nicho.trim() || "loja";
@@ -143,7 +147,7 @@ export async function radarInstagram(
     ? `${nic} modas`
     : nic;
 
-  // 1. OUTSCRAPER (Google Maps - True Machine)
+  // 1. OUTSCRAPER (se chave configurada)
   const outscraperPromise = (async () => {
     try {
       const key = process.env.OUTSCRAPER_API_KEY;
@@ -152,7 +156,7 @@ export async function radarInstagram(
         const results = await buscarOutscraper(
           query,
           key,
-          Math.min(limit, 500),
+          Math.min(limit, 300),
         );
         return results.map((r: any) => ({
           osmId: r.osmId,
@@ -173,7 +177,7 @@ export async function radarInstagram(
     return [];
   })();
 
-  // 2. OVERPASS
+  // 2. OVERPASS RÁPIDO (máx 150 alvos para não estourar a lambda da Vercel)
   const overpassPromise = (async () => {
     let leadsOSM: any[] = [];
     try {
@@ -187,18 +191,14 @@ export async function radarInstagram(
               c.id === nicLower || c.label.toLowerCase().includes(nicLower),
           );
 
+          const safeLimit = Math.min(limit, 150);
           if (cat) {
             leadsOSM = await buscarEmpresas(
-              cat.id, cat.tags, geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit
-            );
-          } else if (nicLower === "todos" || nicLower === "todos os comércios" || nicLower === "todos os comercios" || nicLower === "lojas" || nicLower === "empresas") {
-            const todasAsTags = Array.from(new Set(CATEGORIAS.flatMap((c) => c.tags)));
-            leadsOSM = await buscarEmpresas(
-              "todos", todasAsTags, geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit
+              cat.id, cat.tags, geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, safeLimit
             );
           } else {
             leadsOSM = await buscarEmpresas(
-              "todos", [`name~${nic},i`], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, limit
+              "todos", [`name~${nic},i`], geo.lat, geo.lng, geo.radiusM, cid, geo.paisNome, geo.bbox, safeLimit
             );
           }
         }
@@ -212,7 +212,7 @@ export async function radarInstagram(
     }));
   })();
 
-  // 3. OSINT
+  // 3. OSINT INSTAGRAM SCAN
   const osintPromise = (async () => {
     try {
       const base = `${nicExpanded} ${cid}`.trim();
@@ -231,7 +231,10 @@ export async function radarInstagram(
         r.status === "fulfilled" ? r.value : "",
       );
 
-      const htmlUnificado = searches.join(" ");
+      const htmlUnificado = searches.join(" ")
+        .replace(/%20/gi, " ")
+        .replace(/%22/gi, "")
+        .replace(/&amp;/gi, "&");
       const instaMatches = (
         htmlUnificado.match(/instagram\.com\/([A-Za-z0-9_.]+)/gi) || []
       ).filter((u) => {
@@ -275,24 +278,28 @@ export async function radarInstagram(
             email: null,
             instagram: `https://www.instagram.com/${user}`,
             fonte: "instagram",
-            score: 50,
-            nivel: "morno" as const,
+            score: 75,
+            nivel: "quente" as const,
           };
         });
     } catch (err) {
-      console.error("OSINT Insta falhou:", err);
       return [];
     }
   })();
 
-  const [outResults, overpassResults, osintResults] = await Promise.all([
-    outscraperPromise,
-    overpassPromise,
-    osintPromise,
+  // DEADLINE DE SEGURANÇA SERVERLESS: Máximo 7.200ms para NUNCA estourar timeout 504 na Vercel
+  const timeoutPromise = new Promise<any[]>((resolve) => {
+    setTimeout(() => resolve([]), 7200);
+  });
+
+  const [outResults, overpassResults, osintResults] = await Promise.race([
+    Promise.all([outscraperPromise, overpassPromise, osintPromise]),
+    timeoutPromise.then(() => [[], [], []])
   ]);
 
   const map = new Map<string, any>();
-  for (const item of [...outResults, ...overpassResults, ...osintResults]) {
+  for (const item of [...(outResults || []), ...(overpassResults || []), ...(osintResults || [])]) {
+    if (!item) continue;
     const key = item.instagram ? item.instagram.toLowerCase() : item.osmId;
     if (!map.has(key)) map.set(key, item);
   }
@@ -301,10 +308,11 @@ export async function radarInstagram(
 }
 
 export async function radarFoods(
-  nicho: string,
-  cidade: string,
+  nichoInput: string,
+  cidadeInput: string,
   limit: number = 300,
 ) {
+  const { nicho, cidade } = normalizarParametrosBusca(nichoInput, cidadeInput);
   const isGlobal = cidade.toLowerCase() === "mundial" || cidade.trim() === "";
   const cid = isGlobal ? "" : cidade.trim();
   const nic = nicho.trim() || "restaurante";
@@ -317,7 +325,7 @@ export async function radarFoods(
         ? `${nic} pizzeria`
         : nic;
 
-  // 1. OUTSCRAPER (Google Maps - True Machine)
+  // 1. OUTSCRAPER
   const outscraperPromise = (async () => {
     try {
       const key = process.env.OUTSCRAPER_API_KEY;
@@ -326,7 +334,7 @@ export async function radarFoods(
         const results = await buscarOutscraper(
           query,
           key,
-          Math.min(limit, 500),
+          Math.min(limit, 300),
         );
         return results.map((r: any) => ({
           osmId: r.osmId,
@@ -347,7 +355,7 @@ export async function radarFoods(
     return [];
   })();
 
-  // 2. OVERPASS
+  // 2. OVERPASS RÁPIDO (máx 150)
   const overpassPromise = (async () => {
     let leadsOSM: any[] = [];
     try {
@@ -361,6 +369,7 @@ export async function radarFoods(
               c.id === nicLower || c.label.toLowerCase().includes(nicLower),
           );
 
+          const safeLimit = Math.min(limit, 150);
           if (cat) {
             leadsOSM = await buscarEmpresas(
               cat.id,
@@ -371,7 +380,7 @@ export async function radarFoods(
               cid,
               geo.paisNome,
               geo.bbox,
-              limit,
+              safeLimit,
             );
           } else {
             leadsOSM = await buscarEmpresas(
@@ -383,7 +392,7 @@ export async function radarFoods(
               cid,
               geo.paisNome,
               geo.bbox,
-              limit,
+              safeLimit,
             );
           }
         }
@@ -397,7 +406,7 @@ export async function radarFoods(
     }));
   })();
 
-  // 3. OSINT
+  // 3. OSINT FOODS & DELIVERY
   const osintPromise = (async () => {
     try {
       const base = `${nicExpanded} ${cid}`.trim();
@@ -429,73 +438,77 @@ export async function radarFoods(
           const u = new URL(match);
           const host = u.hostname.replace("www.", "");
 
-          const isDelivery = [
-            "ifood.com.br",
-            "ubereats.com",
-            "rappi.com",
-            "doordash.com",
-            "grubhub.com",
-            "just-eat.co.uk",
-            "deliveroo.co.uk",
-            "zomato.com",
-            "tripadvisor.com",
-            "yelp.com",
-          ].includes(host);
-
-          if (isDelivery && u.pathname.length > 5) {
-            const pathParts = u.pathname.split("/").filter(Boolean);
-            const nomePotencial = pathParts[pathParts.length - 1].replace(
-              /-/g,
-              " ",
-            );
-
-            if (nomePotencial.length > 3 && !nomePotencial.includes("?")) {
-              const fonteStr = host.split(".")[0];
-              const nomeFormatado = nomePotencial.replace(/\b\w/g, (l) =>
-                l.toUpperCase(),
+          if (
+            host.includes("ifood.com.br") ||
+            host.includes("rappi.com") ||
+            host.includes("ubereats.com") ||
+            host.includes("tripadvisor") ||
+            host.includes("yelp")
+          ) {
+            const pathParts = u.pathname
+              .split("/")
+              .filter(Boolean)
+              .filter(
+                (p) =>
+                  ![
+                    "delivery",
+                    "restaurante",
+                    "cardapio",
+                    "menu",
+                    "br",
+                    "pt",
+                    "restaurant_review",
+                    "biz",
+                  ].includes(p.toLowerCase()),
               );
 
-              restaurantes.set(nomeFormatado, {
-                nome: nomeFormatado,
-                url: match,
-                fonteStr,
-              });
+            if (pathParts.length > 0) {
+              const slug = pathParts[pathParts.length - 1];
+              const nome = slug
+                .replace(/[-_]/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase());
+
+              if (nome.length > 2 && !restaurantes.has(nome.toLowerCase())) {
+                restaurantes.set(nome.toLowerCase(), {
+                  osmId: "food_" + slug,
+                  nome,
+                  categoria: nicho || "Delivery/Alimentos",
+                  cidade: cidade || "Global",
+                  pais: "",
+                  telefone: null,
+                  website: match,
+                  instagram: null,
+                  email: null,
+                  fonte: "delivery",
+                  score: 75,
+                  nivel: "quente" as const,
+                });
+              }
             }
           }
         } catch (e) {}
       }
 
-      return Array.from(restaurantes.values())
-        .slice(0, limit)
-        .map((r, i) => ({
-          osmId: `osint_food_${i}`,
-          nome: r.nome,
-          categoria: nicho || "Delivery/Restaurante",
-          cidade: cidade || "Global",
-          pais: "",
-          telefone: null,
-          website: r.url,
-          email: null,
-          instagram: null,
-          fonte: r.fonteStr,
-          score: 60,
-          nivel: "quente" as const,
-        }));
+      return Array.from(restaurantes.values()).slice(0, limit);
     } catch (err) {
-      console.error("OSINT Foods falhou:", err);
       return [];
     }
   })();
 
-  const [outResults, overpassResults, osintResults] = await Promise.all([
-    outscraperPromise,
-    overpassPromise,
-    osintPromise,
+  // DEADLINE DE SEGURANÇA SERVERLESS: Máximo 7.200ms
+  const timeoutPromise = new Promise<any[]>((resolve) => {
+    setTimeout(() => resolve([]), 7200);
+  });
+
+  const [outResults, overpassResults, osintResults] = await Promise.race([
+    Promise.all([outscraperPromise, overpassPromise, osintPromise]),
+    timeoutPromise.then(() => [[], [], []])
   ]);
 
   const map = new Map<string, any>();
-  for (const item of [...outResults, ...overpassResults, ...osintResults]) {
-    const key = item.nome.toLowerCase();
+  for (const item of [...(outResults || []), ...(overpassResults || []), ...(osintResults || [])]) {
+    if (!item) continue;
+    const key = item.website ? item.website.toLowerCase() : item.osmId;
     if (!map.has(key)) map.set(key, item);
   }
 

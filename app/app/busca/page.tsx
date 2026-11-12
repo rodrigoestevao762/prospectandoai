@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { CATEGORIAS } from "@/lib/categorias";
 import { salvarLeads, obterIdsSalvos } from "@/lib/leads-storage";
+import { normalizarParametrosBusca } from "@/lib/normalizar-busca";
 import { useEffect } from "react";
 import { Search, MapPin, Target, Zap, Activity, Globe, Save, Camera, Utensils } from "lucide-react";
 
@@ -53,9 +54,28 @@ export default function BuscaPage() {
 
   async function buscar(e: React.FormEvent) {
     e.preventDefault();
-    setCarregando(true); setErro(null); setResultados(null); setResultados(null); setSalvos(new Set());
+    setCarregando(true); setErro(null); setResultados(null); setSalvos(new Set());
     
     let limitFinal = parseInt(limite) || 300;
+
+    // Normalização e desinversão inteligente de nicho e cidade
+    const { nicho: nichoNorm, cidade: cidadeNorm, invertido } = normalizarParametrosBusca(
+      engine === "insta" ? nichoInsta : categoria,
+      cidade
+    );
+
+    let cidadeAlvo = cidadeNorm;
+    let nichoAlvo = nichoNorm;
+
+    if (invertido) {
+      if (engine === "insta") setNichoInsta(nichoNorm);
+      setCidade(cidadeNorm);
+    }
+
+    if (!cidadeAlvo) {
+      setCarregando(false);
+      return setErro("Informe uma cidade ou região para prospecção.");
+    }
 
     if (engine === "osint") {
       try {
@@ -63,17 +83,17 @@ export default function BuscaPage() {
         const { geocodificar, buscarEmpresas } = await import('@/lib/overpass');
         const { qualificar } = await import('@/lib/qualificacao');
 
-        const cat = getCategoria(categoria);
-        if (!cidade || (categoria !== "todos" && !cat)) {
-          setCarregando(false);
-          return setErro("Categoria e cidade obrigatórias");
+        let cat = getCategoria(nichoAlvo) || getCategoria(categoria);
+        if (!cat && nichoAlvo) {
+          const nLower = nichoAlvo.toLowerCase();
+          cat = CATEGORIAS.find(c => c.id === nLower || c.label.toLowerCase().includes(nLower));
         }
-        
-        setErro("Geocodificando cidade... (Buscando coordenadas)");
-        const geo = await geocodificar(cidade + (pais ? ", " + pais : ""));
+
+        setErro("Geocodificando território... (Buscando coordenadas de " + cidadeAlvo + ")");
+        const geo = await geocodificar(cidadeAlvo + (pais ? ", " + pais : ""));
         if (!geo) {
           setCarregando(false);
-          return setErro("Cidade não encontrada no mapa");
+          return setErro("Cidade não encontrada no mapa: " + cidadeAlvo);
         }
 
         setErro("Extraindo leads em alta velocidade via satélites OSINT...");
@@ -88,7 +108,7 @@ export default function BuscaPage() {
         const limiteMult = raioManual !== 'auto' ? 1 : maxMult;
         while (mult <= limiteMult) {
             if (mult > 1) {
-                setErro(`Ampliando raio do satlite (Nvel ${mult})... Buscando mais leads para atingir a meta de ${limitFinal}...`);
+                setErro(`Ampliando raio do satélite (Nível ${mult})... Buscando mais leads para atingir a meta de ${limitFinal}...`);
             }
             
             let realRadius = geo.radiusM;
@@ -97,7 +117,7 @@ export default function BuscaPage() {
                realRadius = parseInt(raioManual) * 1000;
                realMult = 1;
             }
-            const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, realRadius, cidade, geo.paisNome, null, limitFinal, realMult);
+            const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, realRadius, cidadeAlvo, geo.paisNome, null, limitFinal, realMult);
             
             const map = new Map();
             empresasRaw.forEach(r => map.set(r.osmId || (r.nome + "::" + r.endereco), r));
@@ -112,11 +132,11 @@ export default function BuscaPage() {
             });
             
             if (empresasRaw.length >= limitFinal) {
-                break; // Atingiu a meta
+                break;
             }
             
             if (novos === 0 && mult > 1) {
-                break; // Esgotou a regio
+                break;
             }
             
             mult++;
@@ -131,7 +151,7 @@ export default function BuscaPage() {
           return { ...e, score: q.score, nivel: q.nivel };
         });
 
-        empresas.sort((a: any, b: any) => b.score - a.score || a.nome.localeCompare(b.nome));
+        empresas.sort((a: any, b: any) => (b.score || 0) - (a.score || 0) || (a.nome || "").localeCompare(b.nome || ""));
         
         setResultados(empresas);
         setCarregando(false);
@@ -139,45 +159,74 @@ export default function BuscaPage() {
         return;
       } catch (err: any) {
         setCarregando(false);
-        if (err.message && (err.message.includes("504") || err.message.includes("TIMEOUT") || err.message.includes("timeout"))) {
-           return setErro('O sat?lite sofreu Timeout Interno porque a varredura exigiu muito processamento. Tente buscar por um bairro espec?fico.');
-        }
-        setErro("Falha crítica ao conectar com satélites do OSINT: " + err.message);
+        setErro("Falha ao conectar com satélites do OSINT: " + err.message);
         return;
       }
     }
 
-    let endpoint = "";
-    let bodyData: any = { categoria, cidade, pais, limit: limitFinal };
+    // MOTORES INSTAGRAM & FOODS RESILIENTES
+    let endpoint = engine === "insta" ? "/api/buscar-insta" : "/api/buscar-foods";
+    let bodyData: any = {
+      nicho: nichoAlvo,
+      cidade: cidadeAlvo,
+      limit: Math.min(limitFinal, 500)
+    };
 
-    if (engine === "insta") {
-      endpoint = "/api/buscar-insta";
-      bodyData = { nicho: nichoInsta, cidade, limit: limitFinal };
-    } else if (engine === "foods") {
-      endpoint = "/api/buscar-foods";
-      bodyData = { nicho: categoria === "todos" ? "restaurante" : categoria, cidade, limit: limitFinal };
-    }
+    setErro(`Acionando ${engine === 'insta' ? 'Deep Scan Instagram' : 'Radar Delivery'} para ${nichoAlvo} em ${cidadeAlvo}...`);
 
+    let perfisApi: any[] = [];
     try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); 
-      const text = await res.text(); 
-      let json; 
-      try { json = JSON.parse(text); } catch (e) { 
-        setCarregando(false); 
-        if (text.includes('504') || text.includes('TIMEOUT')) { 
-          return setErro('Tempo limite excedido no servidor (504).'); 
-        } 
-        return setErro('Erro no servidor (não retornou JSON). Resposta: ' + text.substring(0, 40)); 
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData),
+        signal: AbortSignal.timeout(9000), // Timeout defensivo no client (evita 504)
+      });
+      if (res.ok) {
+        const json = await res.json().catch(() => ({}));
+        perfisApi = json.resultados || json.empresas || [];
       }
-      setCarregando(false);
-      
-      if (!res.ok) return setErro(json.erro || "Erro na busca");
-      
-      setResultados(json.empresas || json.resultados || []);
-    } catch (err: any) {
-      setCarregando(false);
-      setErro("Falha crítica ao conectar com satélites: " + err.message);
+    } catch {
+      // Continua para o enriquecimento via satélite se a API demorar
     }
+
+    // Se o usuário pediu volume alto (300+ leads) ou a API trouxe menos alvos que a meta:
+    let leadsSat: any[] = [];
+    try {
+      const { getCategoria, CATEGORIAS } = await import('@/lib/categorias');
+      const { geocodificar, buscarEmpresas } = await import('@/lib/overpass');
+      const { qualificar } = await import('@/lib/qualificacao');
+
+      const geo = await geocodificar(cidadeAlvo);
+      if (geo) {
+        let cat = getCategoria(nichoAlvo);
+        if (!cat) {
+          const nLower = nichoAlvo.toLowerCase();
+          cat = CATEGORIAS.find(c => c.id === nLower || c.label.toLowerCase().includes(nLower));
+        }
+        const tags = cat ? cat.tags : [`name~${nichoAlvo},i`];
+        const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, geo.radiusM, cidadeAlvo, geo.paisNome, null, limitFinal, 1);
+        leadsSat = raw.map(e => {
+          const q = qualificar({ website: e.website, instagram: e.instagram, email: e.email, telefone: e.telefone, endereco: e.endereco });
+          return { ...e, score: q.score, nivel: q.nivel };
+        });
+      }
+    } catch {}
+
+    // Unifica os perfis do Instagram/Foods com a malha geoespacial
+    const map = new Map<string, any>();
+    for (const p of [...perfisApi, ...leadsSat]) {
+      if (!p) continue;
+      const key = p.instagram ? p.instagram.toLowerCase() : (p.osmId || (p.nome + "::" + p.endereco));
+      if (!map.has(key)) map.set(key, p);
+    }
+
+    const unificados = Array.from(map.values()).slice(0, limitFinal);
+    unificados.sort((a: any, b: any) => (b.score || 0) - (a.score || 0) || (a.nome || "").localeCompare(b.nome || ""));
+
+    setCarregando(false);
+    setErro(null);
+    setResultados(unificados);
   }
 
     async function salvar(emp: Empresa) {
