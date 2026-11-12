@@ -103,12 +103,12 @@ export default function BuscaPage() {
         
         let empresasRaw: any[] = [];
         let mult = 1;
-        const maxMult = limitFinal > 1500 ? 3 : 1;
+        const maxMult = limitFinal > 1500 ? 2 : 1;
         
         const limiteMult = raioManual !== 'auto' ? 1 : maxMult;
         while (mult <= limiteMult) {
             if (mult > 1) {
-                setErro(`Ampliando raio do satélite (Nível ${mult})... Buscando mais leads para atingir a meta de ${limitFinal}...`);
+                setErro(`Expandindo varredura orbital (Nível ${mult})... Total capturado até agora: ${empresasRaw.length}/${limitFinal}...`);
             }
             
             let realRadius = geo.radiusM;
@@ -116,6 +116,8 @@ export default function BuscaPage() {
             if (raioManual !== 'auto') {
                realRadius = parseInt(raioManual) * 1000;
                realMult = 1;
+            } else if (limitFinal >= 2000) {
+               realMult = mult === 1 ? 1.6 : 2.4;
             }
             const raw = await buscarEmpresas(cat?.id || "todos", tags, geo.lat, geo.lng, realRadius, cidadeAlvo, geo.paisNome, null, limitFinal, realMult);
             
@@ -140,8 +142,8 @@ export default function BuscaPage() {
             }
             
             mult++;
-            if (mult <= maxMult) {
-               await new Promise(r => setTimeout(r, 2000));
+            if (mult <= limiteMult) {
+               await new Promise(r => setTimeout(r, 200));
             }
         }
         

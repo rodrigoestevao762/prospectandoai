@@ -228,7 +228,7 @@ export async function buscarEmpresas(
       }
     }
 
-    const perCell = Math.min(Math.ceil(targetLimit / 6), 600);
+    const perCell = Math.min(Math.ceil(targetLimit / 4), 900);
 
     // Executa em 3 batches de 3 células simultâneas
     for (let b = 0; b < cells.length; b += 3) {

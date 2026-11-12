@@ -37,9 +37,13 @@ export async function POST(req: Request) {
     let user: any = null;
 
     try {
-      const auth = await usuarioObrigatorio();
-      sb = auth.sb;
-      user = auth.user;
+      const authPromise = usuarioObrigatorio();
+      const timeoutPromise = new Promise<null>((r) => setTimeout(() => r(null), 700));
+      const auth = await Promise.race([authPromise, timeoutPromise]);
+      if (auth && typeof auth === "object" && "sb" in auth) {
+        sb = (auth as any).sb;
+        user = (auth as any).user;
+      }
     } catch {
       // Aberto para modo resiliente / local
     }
